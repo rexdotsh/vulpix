@@ -38,6 +38,8 @@ export interface UsePolkadotExtensionReturn {
   isExtensionAvailable: boolean;
 }
 
+const STORAGE_KEY = 'polkadot-extension-connection';
+
 export const usePolkadotExtension = ({
   appName,
   enableOnMount = false,
@@ -57,6 +59,48 @@ export const usePolkadotExtension = ({
     Object.keys(window.injectedWeb3).length > 0;
 
   const selectedAccount = accounts[selectedAccountIndex] || null;
+
+  // Save connection state to localStorage
+  const saveConnectionState = useCallback(
+    (connected: boolean, accountIndex = 0) => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            connected,
+            selectedAccountIndex: accountIndex,
+            timestamp: Date.now(),
+          }),
+        );
+      }
+    },
+    [],
+  );
+
+  // Load connection state from localStorage
+  const loadConnectionState = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const {
+            connected,
+            selectedAccountIndex: storedIndex,
+            timestamp,
+          } = JSON.parse(stored);
+          // Only reconnect if the stored state is less than 24 hours old
+          const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+          return {
+            connected: connected && isRecent,
+            selectedAccountIndex: storedIndex || 0,
+          };
+        }
+      } catch (error) {
+        console.warn('Failed to load connection state:', error);
+      }
+    }
+    return { connected: false, selectedAccountIndex: 0 };
+  }, []);
 
   const enableExtensions = useCallback(async () => {
     if (!isExtensionAvailable) {
@@ -88,9 +132,17 @@ export const usePolkadotExtension = ({
       const unsubscribeFn = await web3AccountsSubscribe(
         (injectedAccounts: InjectedAccountWithMeta[]) => {
           setAccounts(injectedAccounts);
-          setIsReady(injectedAccounts.length > 0);
+          const hasAccounts = injectedAccounts.length > 0;
+          setIsReady(hasAccounts);
 
-          if (injectedAccounts.length === 0) {
+          if (hasAccounts) {
+            // Restore selected account index from localStorage
+            const { selectedAccountIndex: storedIndex } = loadConnectionState();
+            const validIndex =
+              storedIndex < injectedAccounts.length ? storedIndex : 0;
+            setSelectedAccountIndex(validIndex);
+            saveConnectionState(true, validIndex);
+          } else {
             setError(
               'No accounts found. Please create an account in your wallet extension.',
             );
@@ -107,18 +159,20 @@ export const usePolkadotExtension = ({
           : 'Failed to connect to wallet extension',
       );
       setIsReady(false);
+      saveConnectionState(false);
     } finally {
       setIsConnecting(false);
     }
-  }, [appName, isExtensionAvailable]);
+  }, [appName, isExtensionAvailable, loadConnectionState, saveConnectionState]);
 
   const selectAccount = useCallback(
     (index: number) => {
       if (index >= 0 && index < accounts.length) {
         setSelectedAccountIndex(index);
+        saveConnectionState(true, index);
       }
     },
-    [accounts.length],
+    [accounts.length, saveConnectionState],
   );
 
   const getInjector = useCallback(
@@ -148,10 +202,19 @@ export const usePolkadotExtension = ({
     setExtensions([]);
     setSelectedAccountIndex(0);
     setError(null);
-  }, [unsubscribe]);
+    saveConnectionState(false);
+  }, [unsubscribe, saveConnectionState]);
 
+  // Auto-reconnect on mount if previously connected
   useEffect(() => {
-    if (enableOnMount && !isReady && !isConnecting && isExtensionAvailable) {
+    const { connected } = loadConnectionState();
+
+    if (
+      (enableOnMount || connected) &&
+      !isReady &&
+      !isConnecting &&
+      isExtensionAvailable
+    ) {
       enableExtensions();
     }
   }, [
@@ -160,6 +223,7 @@ export const usePolkadotExtension = ({
     isConnecting,
     isExtensionAvailable,
     enableExtensions,
+    loadConnectionState,
   ]);
 
   useEffect(() => {
