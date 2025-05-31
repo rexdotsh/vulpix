@@ -5,7 +5,6 @@ import { usePolkadotExtension } from '@/hooks/usePolkadotExtension';
 import { AssetHubNFTManager, type UserNFT } from '@/lib/AssetHubNFTManager';
 import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
 
-// Helper function to decode hex metadata
 const decodeHexMetadata = (hexString: string) => {
   try {
     if (!hexString || hexString === '0x') return null;
@@ -21,19 +20,16 @@ const decodeHexMetadata = (hexString: string) => {
   }
 };
 
-// Helper function to get IPFS image URL
 const getIpfsImageUrl = (metadata: any) => {
   if (!metadata) return null;
   const image = metadata.image;
   if (!image) return null;
 
-  // Handle IPFS URLs
   if (image.startsWith('ipfs://')) {
     const cid = image.replace('ipfs://', '');
     return `https://ipfs.io/ipfs/${cid}`;
   }
 
-  // Handle direct CIDs
   if (typeof image === 'string' && image.length > 40) {
     return `https://ipfs.io/ipfs/${image}`;
   }
@@ -43,6 +39,7 @@ const getIpfsImageUrl = (metadata: any) => {
 
 const NFTManager = () => {
   const [isMounted, setIsMounted] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const {
     isReady,
@@ -56,7 +53,7 @@ const NFTManager = () => {
     disconnectExtensions,
   } = usePolkadotExtension({
     appName: 'AssetHub NFT Manager',
-    enableOnMount: false,
+    enableOnMount: true,
   });
 
   const [nftManager] = useState(() => new AssetHubNFTManager());
@@ -68,24 +65,45 @@ const NFTManager = () => {
   }, []);
 
   useEffect(() => {
+    if (isMounted && (isReady || (!isConnecting && error))) {
+      setIsInitialLoad(false);
+    }
+  }, [isMounted, isReady, isConnecting, error]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
     const fetchNFTs = async () => {
-      if (isReady && selectedAccount) {
-        setIsLoading(true);
-        try {
-          await nftManager.initialize();
+      if (!isReady || !selectedAccount || isLoading) return;
+
+      setIsLoading(true);
+      try {
+        await nftManager.initialize();
+        if (!isCancelled) {
           const nfts = await nftManager.getUserNFTs(selectedAccount.address);
-          setUserNFTs(nfts);
-        } catch (err) {
+          if (!isCancelled) {
+            setUserNFTs(nfts);
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
           console.error(err);
-        } finally {
+        }
+      } finally {
+        if (!isCancelled) {
           setIsLoading(false);
         }
       }
     };
-    fetchNFTs();
-  }, [isReady, selectedAccount, nftManager]);
 
-  if (!isMounted) {
+    fetchNFTs();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isReady, selectedAccount?.address]);
+
+  if (!isMounted || isInitialLoad) {
     return (
       <div className="p-6">
         <div className="text-center">Loading...</div>
