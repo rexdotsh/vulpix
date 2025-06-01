@@ -30,6 +30,9 @@ const getIpfsImageUrl = (metadata: any) => {
 };
 
 const NFTManager = () => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   const {
     isReady,
     isConnecting,
@@ -50,6 +53,16 @@ const NFTManager = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && (isReady || (!isConnecting && error))) {
+      setIsInitialLoad(false);
+    }
+  }, [isMounted, isReady, isConnecting, error]);
+
+  useEffect(() => {
     let isCancelled = false;
 
     const fetchNFTs = async () => {
@@ -64,8 +77,10 @@ const NFTManager = () => {
             setUserNFTs(nfts);
           }
         }
-      } catch (error) {
-        console.error('Failed to fetch NFTs:', error);
+      } catch (err) {
+        if (!isCancelled) {
+          console.error(err);
+        }
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -77,7 +92,7 @@ const NFTManager = () => {
     return () => {
       isCancelled = true;
     };
-  }, [isReady, selectedAccount?.address, nftManager, isLoading]);
+  }, [isReady, selectedAccount?.address]);
 
   if (!isReady) {
     return (
