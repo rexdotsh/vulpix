@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { usePolkadotExtension } from '@/hooks/usePolkadotExtension';
 import { AssetHubNFTManager, type UserNFT } from '@/lib/AssetHubNFTManager';
-import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
 
 const decodeHexMetadata = (hexString: string) => {
   try {
@@ -12,35 +11,25 @@ const decodeHexMetadata = (hexString: string) => {
     const bytes = new Uint8Array(
       hex.match(/.{1,2}/g)?.map((byte) => Number.parseInt(byte, 16)) || [],
     );
-    const decoded = new TextDecoder().decode(bytes);
-    return JSON.parse(decoded);
-  } catch (error) {
-    console.error('Failed to decode metadata:', error);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
     return null;
   }
 };
 
 const getIpfsImageUrl = (metadata: any) => {
-  if (!metadata) return null;
-  const image = metadata.image;
-  if (!image) return null;
-
+  if (!metadata?.image) return null;
+  const { image } = metadata;
   if (image.startsWith('ipfs://')) {
-    const cid = image.replace('ipfs://', '');
-    return `https://ipfs.io/ipfs/${cid}`;
+    return `https://ipfs.io/ipfs/${image.replace('ipfs://', '')}`;
   }
-
   if (typeof image === 'string' && image.length > 40) {
     return `https://ipfs.io/ipfs/${image}`;
   }
-
   return image;
 };
 
 const NFTManager = () => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
   const {
     isReady,
     isConnecting,
@@ -61,16 +50,6 @@ const NFTManager = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && (isReady || (!isConnecting && error))) {
-      setIsInitialLoad(false);
-    }
-  }, [isMounted, isReady, isConnecting, error]);
-
-  useEffect(() => {
     let isCancelled = false;
 
     const fetchNFTs = async () => {
@@ -85,10 +64,8 @@ const NFTManager = () => {
             setUserNFTs(nfts);
           }
         }
-      } catch (err) {
-        if (!isCancelled) {
-          console.error(err);
-        }
+      } catch (error) {
+        console.error('Failed to fetch NFTs:', error);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -97,24 +74,15 @@ const NFTManager = () => {
     };
 
     fetchNFTs();
-
     return () => {
       isCancelled = true;
     };
-  }, [isReady, selectedAccount?.address]);
-
-  if (!isMounted || isInitialLoad) {
-    return (
-      <div className="p-6">
-        <div className="text-center">Loading...</div>
-      </div>
-    );
-  }
+  }, [isReady, selectedAccount?.address, nftManager, isLoading]);
 
   if (!isReady) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Connect Wallet</h1>
+      <div className="p-4">
+        <h1 className="text-xl mb-4">Connect Wallet</h1>
         <button
           type="button"
           onClick={enableExtensions}
@@ -123,74 +91,73 @@ const NFTManager = () => {
         >
           {isConnecting ? 'Connecting...' : 'Connect Wallet'}
         </button>
-        {error && <p className="text-red-500 mt-2">Error: {error}</p>}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Your NFTs</h1>
+        <h1 className="text-xl">NFTs ({userNFTs.length})</h1>
         <button
           type="button"
           onClick={disconnectExtensions}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          className="bg-red-500 text-white px-3 py-1 rounded text-sm"
         >
           Disconnect
         </button>
       </div>
+
       <div className="mb-4">
-        <h2 className="font-semibold">Accounts</h2>
-        <ul>
-          {accounts.map((account: InjectedAccountWithMeta, index: number) => (
-            <li
-              key={account.address}
-              onClick={() => selectAccount(index)}
-              className={`cursor-pointer ${index === selectedAccountIndex ? 'font-bold' : ''}`}
-            >
-              {account.meta.name || account.address}
-            </li>
+        <select
+          value={selectedAccountIndex}
+          onChange={(e) => selectAccount(Number(e.target.value))}
+          className="border rounded px-2 py-1"
+        >
+          {accounts.map((account, index) => (
+            <option key={account.address} value={index}>
+              {account.meta.name || account.address.slice(0, 8)}
+            </option>
           ))}
-        </ul>
+        </select>
       </div>
+
       {isLoading ? (
-        <p>Loading NFTs...</p>
+        <p>Loading...</p>
       ) : userNFTs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {userNFTs.map((nft: UserNFT) => {
-            const decodedMetadata = decodeHexMetadata(nft.itemMetadata?.data);
-            const imageUrl = getIpfsImageUrl(decodedMetadata);
+          {userNFTs.map((nft) => {
+            const metadata = decodeHexMetadata(nft.itemMetadata?.data);
+            const imageUrl = getIpfsImageUrl(metadata);
 
             return (
               <div
                 key={`${nft.collection}-${nft.item}`}
-                className="border rounded-lg p-4 bg-white shadow"
+                className="border rounded p-3"
               >
                 {imageUrl && (
                   <img
                     src={imageUrl}
-                    alt={decodedMetadata?.name || `NFT ${nft.item}`}
-                    className="w-full h-48 object-cover rounded mb-3"
+                    alt={metadata?.name || `NFT ${nft.item}`}
+                    className="w-full h-32 object-cover rounded mb-2"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}
                   />
                 )}
-                <div className="space-y-1">
-                  <h3 className="font-semibold">
-                    {decodedMetadata?.name || `Item #${nft.item}`}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Collection: {nft.collection}
+                <h3 className="font-medium">
+                  {metadata?.name || `Item #${nft.item}`}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Collection: {nft.collection}
+                </p>
+                <p className="text-sm text-gray-600">Item: {nft.item}</p>
+                {metadata?.description && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {metadata.description}
                   </p>
-                  <p className="text-sm text-gray-600">Item: {nft.item}</p>
-                  {decodedMetadata?.description && (
-                    <p className="text-sm text-gray-700">
-                      {decodedMetadata.description}
-                    </p>
-                  )}
-                </div>
+                )}
               </div>
             );
           })}
