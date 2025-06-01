@@ -49,7 +49,7 @@ export class AssetHubNFTManager {
   private api: ApiPromise | null = null;
   private wsEndpoint: string;
 
-  constructor(wsEndpoint = 'wss://asset-hub-paseo-rpc.dwellir.com') {
+  constructor(wsEndpoint = 'wss://testnet-passet-hub.polkadot.io') {
     this.wsEndpoint = wsEndpoint;
   }
 
