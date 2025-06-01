@@ -77,7 +77,7 @@ export const usePolkadotExtension = ({
     [],
   );
 
-  // Load connection state from localStorage
+  // load connection state from localStorage
   const loadConnectionState = useCallback(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -88,7 +88,7 @@ export const usePolkadotExtension = ({
             selectedAccountIndex: storedIndex,
             timestamp,
           } = JSON.parse(stored);
-          // Only reconnect if the stored state is less than 24 hours old
+          // only reconnect if the stored state is less than 24 hours old
           const isRecent = Date.now() - timestamp < 24 * 60 * 60 * 1000;
           return {
             connected: connected && isRecent,
@@ -136,7 +136,7 @@ export const usePolkadotExtension = ({
           setIsReady(hasAccounts);
 
           if (hasAccounts) {
-            // Restore selected account index from localStorage
+            // restore selected account index from localStorage
             const { selectedAccountIndex: storedIndex } = loadConnectionState();
             const validIndex =
               storedIndex < injectedAccounts.length ? storedIndex : 0;
@@ -205,7 +205,7 @@ export const usePolkadotExtension = ({
     saveConnectionState(false);
   }, [unsubscribe, saveConnectionState]);
 
-  // Auto-reconnect on mount if previously connected
+  // auto-reconnect on mount if previously connected
   useEffect(() => {
     const { connected } = loadConnectionState();
 

@@ -29,7 +29,7 @@ const getIpfsImageUrl = (metadata: any) => {
   return image;
 };
 
-const NFTManager = () => {
+export default function Dashboard() {
   const {
     isReady,
     isConnecting,
@@ -169,6 +169,4 @@ const NFTManager = () => {
       )}
     </div>
   );
-};
-
-export default NFTManager;
+}

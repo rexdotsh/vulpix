@@ -1,7 +1,11 @@
 'use client';
 
-import NFTManager from '@/components/NFTManager';
+import Link from 'next/link';
 
-export default function Home() {
-  return <NFTManager />;
+export default function Page() {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen">
+      <Link href="/dashboard">Dashboard</Link>
+    </div>
+  );
 }
