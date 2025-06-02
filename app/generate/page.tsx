@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,9 @@ import {
   generateImageSchema,
   type GenerateImageInput,
 } from '@/lib/validationSchemas';
+import { useAssetHub } from '@/lib/providers/AssetHubProvider';
+import { usePolkadot } from '@/lib/providers/PolkadotProvider';
+import type { UserCollection } from '@/lib/assetHubNFTManager';
 
 export default function GeneratePage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +48,101 @@ export default function GeneratePage() {
     width: number;
     height: number;
   } | null>(null);
+
+  // minting logic !!
+  const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
+  const { selectedAccount, getInjector } = usePolkadot();
+  const [collections, setCollections] = useState<UserCollection[]>([]);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
+  const [newCollectionName, setNewCollectionName] = useState<string>('');
+  const [isMinting, setIsMinting] = useState(false);
+
+  useEffect(() => {
+    if (!selectedAccount?.address || !nftManager || !isAssetHubInitialized)
+      return;
+    (async () => {
+      try {
+        const cols = await nftManager.getUserCollections(
+          selectedAccount.address,
+        );
+        setCollections(cols);
+      } catch (e) {
+        console.error('Error fetching collections:', e);
+      }
+    })();
+  }, [selectedAccount?.address, nftManager, isAssetHubInitialized]);
+
+  const handleMint = async () => {
+    if (!selectedAccount) {
+      toast.error('Wallet not connected');
+      return;
+    }
+    if (!nftManager) {
+      toast.error('AssetHub not initialized');
+      return;
+    }
+    setIsMinting(true);
+    try {
+      const injector = await getInjector(selectedAccount.address);
+      if (!injector) throw new Error('Failed to get injector');
+      let collectionId = selectedCollectionId;
+      // create new collection if needed
+      if (
+        collectionId === 'new' ||
+        (!collectionId && newCollectionName.trim())
+      ) {
+        const createResult = await nftManager.createCollection(
+          selectedAccount.address,
+          injector,
+        );
+        collectionId = createResult.collectionId;
+        if (newCollectionName.trim()) {
+          await nftManager.setCollectionMetadata(
+            selectedAccount.address,
+            injector,
+            collectionId,
+            JSON.stringify({ name: newCollectionName }),
+          );
+        }
+      }
+
+      const uploadRes = await fetch('/api/ipfs/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: generatedImage }),
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok)
+        throw new Error(uploadData.error || 'IPFS upload failed');
+      const ipfsUrl: string = uploadData.url;
+      const ipfsHash = ipfsUrl.split('/ipfs/')[1]; // we use this for metadata
+
+      const itemId = await nftManager.getNextItemId(collectionId);
+      await nftManager.mintNFT(
+        selectedAccount.address,
+        injector,
+        collectionId,
+        itemId,
+        selectedAccount.address,
+      );
+
+      await nftManager.setNFTMetadata(
+        selectedAccount.address,
+        injector,
+        collectionId,
+        itemId,
+        JSON.stringify({ image: `ipfs://${ipfsHash}` }),
+      );
+      toast.success(
+        `NFT minted in collection ${collectionId} with item ID ${itemId}`,
+      );
+    } catch (e: any) {
+      console.error('Minting error:', e);
+      toast.error(e.message || 'Error minting NFT');
+    } finally {
+      setIsMinting(false);
+    }
+  };
 
   const form = useForm<GenerateImageInput>({
     resolver: zodResolver(generateImageSchema),
@@ -442,15 +540,62 @@ export default function GeneratePage() {
               )}
             </CardContent>
             {generatedImage && (
-              <CardFooter className="pt-4 flex justify-center">
-                <Button variant="outline" asChild>
-                  <a
-                    href={generatedImage}
-                    download={`generated_image_${Date.now()}.png`}
+              <CardFooter className="pt-4 flex flex-col items-center space-y-4 w-full">
+                <div className="flex space-x-2">
+                  <Button variant="outline" asChild>
+                    <a
+                      href={generatedImage}
+                      download={`generated_image_${Date.now()}.png`}
+                    >
+                      Download Image
+                    </a>
+                  </Button>
+                </div>
+                <div className="w-full space-y-2">
+                  {collections.length > 0 ? (
+                    <Select
+                      onValueChange={setSelectedCollectionId}
+                      value={selectedCollectionId}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a collection" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {collections.map((col) => (
+                          <SelectItem key={col.id} value={col.id}>
+                            {col.metadata?.name || col.id}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="new">
+                          Create new collection
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No collections found. Please enter a new collection name
+                      below.
+                    </p>
+                  )}
+                  {(selectedCollectionId === 'new' ||
+                    collections.length === 0) && (
+                    <Input
+                      placeholder="New Collection Name"
+                      value={newCollectionName}
+                      onChange={(e) => setNewCollectionName(e.target.value)}
+                    />
+                  )}
+                  <Button
+                    onClick={handleMint}
+                    disabled={
+                      isMinting ||
+                      (!selectedCollectionId && !newCollectionName.trim())
+                    }
+                    className="w-full"
                   >
-                    Download Image
-                  </a>
-                </Button>
+                    {isMinting ? 'Minting...' : 'Mint NFT'}
+                  </Button>
+                </div>
               </CardFooter>
             )}
           </Card>
