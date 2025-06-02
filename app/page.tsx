@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { useAssetHub } from '@/lib/AssetHubProvider';
-import { usePolkadot } from '@/lib/PolkadotProvider';
+import { useAssetHub } from '@/lib/providers/AssetHubProvider';
+import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { Button } from '@/components/ui/button';
 
 export default function Page() {

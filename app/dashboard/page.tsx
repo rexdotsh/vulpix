@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePolkadot } from '@/lib/PolkadotProvider';
-import { useAssetHub } from '@/lib/AssetHubProvider';
-import type { UserNFT } from '@/lib/AssetHubNFTManager';
+import { usePolkadot } from '@/lib/providers/PolkadotProvider';
+import { useAssetHub } from '@/lib/providers/AssetHubProvider';
+import type { UserNFT } from '@/lib/assetHubNFTManager';
 import {
   Card,
   CardContent,

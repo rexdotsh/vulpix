@@ -1,8 +1,8 @@
 'use client';
 
 import { ChevronDown, Wallet, WifiOff, Wifi, User, Check } from 'lucide-react';
-import { usePolkadot } from '@/lib/PolkadotProvider';
-import { useAssetHub } from '@/lib/AssetHubProvider';
+import { usePolkadot } from '@/lib/providers/PolkadotProvider';
+import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
