@@ -34,10 +34,10 @@ const getIpfsImageUrl = (metadata: any) => {
   if (!metadata?.image) return null;
   const { image } = metadata;
   if (image.startsWith('ipfs://')) {
-    return `https://ipfs.io/ipfs/${image.replace('ipfs://', '')}`;
+    return `https://gateway.pinata.cloud/ipfs/${image.replace('ipfs://', '')}`;
   }
   if (typeof image === 'string' && image.length > 40) {
-    return `https://ipfs.io/ipfs/${image}`;
+    return `https://gateway.pinata.cloud/ipfs/${image}`;
   }
   return image;
 };
