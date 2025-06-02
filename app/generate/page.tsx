@@ -174,7 +174,7 @@ export default function GeneratePage() {
     }
 
     try {
-      const response = await fetch('/api/heurist/generate', {
+      const response = await fetch('/api/image/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
