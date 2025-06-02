@@ -7,7 +7,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
-import { AssetHubNFTManager } from '../assetHubNFTManager';
+import { AssetHubNFTManager } from '@/lib/assetHubNFTManager';
 
 interface AssetHubContextType {
   nftManager: AssetHubNFTManager | null;
