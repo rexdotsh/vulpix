@@ -3,10 +3,13 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useAssetHub } from '@/lib/AssetHubProvider';
+import { usePolkadot } from '@/lib/PolkadotProvider';
 import { Button } from '@/components/ui/button';
 
 export default function Page() {
   const { isInitialized, isInitializing } = useAssetHub();
+  const { isReady: isWalletReady, isConnecting: isWalletConnecting } =
+    usePolkadot();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -17,32 +20,33 @@ export default function Page() {
           </h1>
         </div>
 
-        <Link href="/dashboard">
-          <Button
-            size="lg"
-            disabled={!isInitialized}
-            className="text-lg px-8 py-6"
-          >
-            {isInitializing ? (
-              <>
-                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                Connecting...
-              </>
-            ) : isInitialized ? (
+        {isWalletReady && isInitialized ? (
+          <Link href="/dashboard">
+            <Button size="lg" className="text-lg px-8 py-6">
               <>
                 Go to Dashboard
                 <ArrowRight className="ml-2 h-5 w-5" />
               </>
-            ) : (
+            </Button>
+          </Link>
+        ) : (
+          <Button size="lg" disabled className="text-lg px-8 py-6">
+            {isWalletConnecting ? (
+              <>
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Connecting Wallet...
+              </>
+            ) : !isWalletReady ? (
               'Connect Wallet First'
+            ) : isInitializing ? (
+              <>
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Initializing AssetHub...
+              </>
+            ) : (
+              'Unable to connect'
             )}
           </Button>
-        </Link>
-
-        {!isInitialized && !isInitializing && (
-          <p className="text-sm text-gray-500">
-            Connect your wallet to access your NFTs
-          </p>
         )}
       </div>
     </div>
