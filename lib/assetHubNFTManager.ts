@@ -246,19 +246,11 @@ export class AssetHubNFTManager {
       injector,
     );
 
-    const mintEvent = result.events.find(
-      (event: any) => event.section === 'nfts' && event.method === 'Issued',
-    );
-
-    if (!mintEvent) {
-      throw new Error('NFT mint event not found in transaction events');
-    }
-
     return {
       ...result,
-      collectionId: mintEvent.data[0].toString(),
-      itemId: mintEvent.data[1].toString(),
-      owner: mintEvent.data[2].toString(),
+      collectionId: collectionId.toString(),
+      itemId: itemId.toString(),
+      owner: mintTo,
     };
   }
 
@@ -305,6 +297,12 @@ export class AssetHubNFTManager {
       throw new Error('API not initialized. Call initialize() first.');
     const nextId = await this.api.query.nfts.nextCollectionId();
     return nextId.toString();
+  }
+
+  async getNextItemId(_collectionId: string | number): Promise<string> {
+    // Random u32: ignore on-chain state for now
+    const randomId = Math.floor(Math.random() * (2 ** 32 - 1));
+    return randomId.toString();
   }
 
   isConnected(): boolean {
