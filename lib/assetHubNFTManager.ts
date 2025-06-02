@@ -194,6 +194,8 @@ export class AssetHubNFTManager {
       },
     } = config;
 
+    // pre-fetch the next collection ID so we can return it to the user
+    const nextId = await this.getNextCollectionId();
     const tx = this.api.tx.nfts.create(creatorAddress, {
       settings: 0,
       maxSupply,
@@ -212,19 +214,9 @@ export class AssetHubNFTManager {
       injector,
     );
 
-    const collectionEvent = result.events.find(
-      (event: any) => event.section === 'nfts' && event.method === 'Created',
-    );
-
-    if (!collectionEvent) {
-      throw new Error(
-        'Collection creation event not found in transaction events',
-      );
-    }
-
     return {
       ...result,
-      collectionId: collectionEvent.data[0].toString(),
+      collectionId: nextId,
     };
   }
 
