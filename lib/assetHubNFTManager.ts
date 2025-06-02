@@ -284,6 +284,18 @@ export class AssetHubNFTManager {
     return this.signAndSendTransaction(tx, fromAddress, injector);
   }
 
+  async burnNFT(
+    ownerAddress: string,
+    injector: InjectedExtension,
+    collectionId: string | number,
+    itemId: string | number,
+  ): Promise<TransactionResult> {
+    if (!this.api)
+      throw new Error('API not initialized. Call initialize() first.');
+    const tx = this.api.tx.nfts.burn(collectionId, itemId);
+    return this.signAndSendTransaction(tx, ownerAddress, injector);
+  }
+
   async getNextCollectionId(): Promise<string> {
     if (!this.api)
       throw new Error('API not initialized. Call initialize() first.');
