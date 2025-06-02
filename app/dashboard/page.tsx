@@ -11,6 +11,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -58,7 +59,7 @@ function NFTLoadingSkeleton() {
 }
 
 export default function Dashboard() {
-  const { isReady, selectedAccount } = usePolkadot();
+  const { isReady, selectedAccount, getInjector } = usePolkadot();
 
   const {
     nftManager,
@@ -69,6 +70,7 @@ export default function Dashboard() {
 
   const [userNFTs, setUserNFTs] = useState<UserNFT[]>([]);
   const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
+  const [burningItem, setBurningItem] = useState<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -233,6 +235,48 @@ export default function Dashboard() {
                       )}
                     </div>
                   </CardContent>
+                  <CardFooter>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={async () => {
+                        if (!nftManager || !selectedAccount) return;
+                        const id = `${nft.collection}-${nft.item}`;
+                        setBurningItem(id);
+                        try {
+                          const injector = await getInjector(
+                            selectedAccount.address,
+                          );
+                          if (!injector)
+                            throw new Error('Failed to get injector');
+                          await nftManager.burnNFT(
+                            selectedAccount.address,
+                            injector,
+                            nft.collection,
+                            nft.item,
+                          );
+                          setUserNFTs((prev) =>
+                            prev.filter(
+                              (i) =>
+                                !(
+                                  i.collection === nft.collection &&
+                                  i.item === nft.item
+                                ),
+                            ),
+                          );
+                        } catch (error) {
+                          console.error(error);
+                        } finally {
+                          setBurningItem(null);
+                        }
+                      }}
+                      disabled={burningItem === `${nft.collection}-${nft.item}`}
+                    >
+                      {burningItem === `${nft.collection}-${nft.item}`
+                        ? 'Burning...'
+                        : 'Burn'}
+                    </Button>
+                  </CardFooter>
                 </Card>
               );
             })}
