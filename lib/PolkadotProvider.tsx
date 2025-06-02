@@ -19,7 +19,7 @@ interface PolkadotProviderProps {
 export function PolkadotProvider({ children }: PolkadotProviderProps) {
   const polkadotState = usePolkadotExtension({
     appName: 'AssetHub NFT Manager',
-    enableOnMount: true,
+    enableOnMount: false,
   });
 
   return (
