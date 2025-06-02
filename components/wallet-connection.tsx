@@ -26,7 +26,7 @@ export function WalletConnection() {
     disconnectExtensions,
   } = usePolkadot();
 
-  const { isInitialized, isInitializing, error: assetHubError } = useAssetHub();
+  const { isInitialized, isInitializing } = useAssetHub();
 
   if (!isReady) {
     return (
@@ -64,7 +64,6 @@ export function WalletConnection() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
-          {/* Connection Status Header */}
           <DropdownMenuLabel className="pb-2">
             <div className="flex items-center justify-between">
               <span className="font-semibold">Wallet Connected</span>
