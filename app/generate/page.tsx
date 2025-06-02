@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,19 +33,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { availableModels } from '@/lib/availableModels';
-
-const formSchema = z.object({
-  model: z.string().min(1, 'Model is required.'),
-  prompt: z.string().min(1, 'Prompt is required.'),
-  neg_prompt: z.string().optional(),
-  num_iterations: z.number().min(1).max(100).optional(),
-  guidance_scale: z.number().min(1).max(20).optional(),
-  width: z.number().min(256).max(2048).optional(),
-  height: z.number().min(256).max(2048).optional(),
-  seed: z.number().int().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import {
+  generateImageSchema,
+  type GenerateImageInput,
+} from '@/lib/validationSchemas';
 
 export default function GeneratePage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,8 +46,8 @@ export default function GeneratePage() {
     height: number;
   } | null>(null);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<GenerateImageInput>({
+    resolver: zodResolver(generateImageSchema),
     defaultValues: {
       model: availableModels[0].id,
       prompt: '',
@@ -70,7 +60,7 @@ export default function GeneratePage() {
     },
   });
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+  const onSubmit: SubmitHandler<GenerateImageInput> = async (data) => {
     setIsLoading(true);
     setGeneratedImage(null);
     setGeneratedImageDimensions(null);
