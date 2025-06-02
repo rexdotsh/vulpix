@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import Image from 'next/image';
 import {
   Form,
@@ -126,7 +126,6 @@ export default function GeneratePage() {
 
   return (
     <div className="container mx-auto p-4 lg:p-8">
-      <Toaster richColors position="top-center" />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-7">
           <Card className="w-full">
