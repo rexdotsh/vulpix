@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePolkadot } from '@/lib/PolkadotProvider';
-import { useAssetHub } from '@/lib/AssetHubProvider';
-import type { UserNFT } from '@/lib/AssetHubNFTManager';
+import { usePolkadot } from '@/lib/providers/PolkadotProvider';
+import { useAssetHub } from '@/lib/providers/AssetHubProvider';
+import type { UserNFT } from '@/lib/assetHubNFTManager';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,10 +35,10 @@ const getIpfsImageUrl = (metadata: any) => {
   if (!metadata?.image) return null;
   const { image } = metadata;
   if (image.startsWith('ipfs://')) {
-    return `https://ipfs.io/ipfs/${image.replace('ipfs://', '')}`;
+    return `https://gateway.pinata.cloud/ipfs/${image.replace('ipfs://', '')}`;
   }
   if (typeof image === 'string' && image.length > 40) {
-    return `https://ipfs.io/ipfs/${image}`;
+    return `https://gateway.pinata.cloud/ipfs/${image}`;
   }
   return image;
 };
@@ -58,7 +59,7 @@ function NFTLoadingSkeleton() {
 }
 
 export default function Dashboard() {
-  const { isReady, selectedAccount } = usePolkadot();
+  const { isReady, selectedAccount, getInjector } = usePolkadot();
 
   const {
     nftManager,
@@ -69,6 +70,7 @@ export default function Dashboard() {
 
   const [userNFTs, setUserNFTs] = useState<UserNFT[]>([]);
   const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
+  const [burningItem, setBurningItem] = useState<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -233,6 +235,48 @@ export default function Dashboard() {
                       )}
                     </div>
                   </CardContent>
+                  <CardFooter>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={async () => {
+                        if (!nftManager || !selectedAccount) return;
+                        const id = `${nft.collection}-${nft.item}`;
+                        setBurningItem(id);
+                        try {
+                          const injector = await getInjector(
+                            selectedAccount.address,
+                          );
+                          if (!injector)
+                            throw new Error('Failed to get injector');
+                          await nftManager.burnNFT(
+                            selectedAccount.address,
+                            injector,
+                            nft.collection,
+                            nft.item,
+                          );
+                          setUserNFTs((prev) =>
+                            prev.filter(
+                              (i) =>
+                                !(
+                                  i.collection === nft.collection &&
+                                  i.item === nft.item
+                                ),
+                            ),
+                          );
+                        } catch (error) {
+                          console.error(error);
+                        } finally {
+                          setBurningItem(null);
+                        }
+                      }}
+                      disabled={burningItem === `${nft.collection}-${nft.item}`}
+                    >
+                      {burningItem === `${nft.collection}-${nft.item}`
+                        ? 'Burning...'
+                        : 'Burn'}
+                    </Button>
+                  </CardFooter>
                 </Card>
               );
             })}

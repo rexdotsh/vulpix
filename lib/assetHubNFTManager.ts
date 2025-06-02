@@ -194,6 +194,8 @@ export class AssetHubNFTManager {
       },
     } = config;
 
+    // pre-fetch the next collection ID so we can return it to the user
+    const nextId = await this.getNextCollectionId();
     const tx = this.api.tx.nfts.create(creatorAddress, {
       settings: 0,
       maxSupply,
@@ -212,19 +214,9 @@ export class AssetHubNFTManager {
       injector,
     );
 
-    const collectionEvent = result.events.find(
-      (event: any) => event.section === 'nfts' && event.method === 'Created',
-    );
-
-    if (!collectionEvent) {
-      throw new Error(
-        'Collection creation event not found in transaction events',
-      );
-    }
-
     return {
       ...result,
-      collectionId: collectionEvent.data[0].toString(),
+      collectionId: nextId,
     };
   }
 
@@ -246,19 +238,11 @@ export class AssetHubNFTManager {
       injector,
     );
 
-    const mintEvent = result.events.find(
-      (event: any) => event.section === 'nfts' && event.method === 'Issued',
-    );
-
-    if (!mintEvent) {
-      throw new Error('NFT mint event not found in transaction events');
-    }
-
     return {
       ...result,
-      collectionId: mintEvent.data[0].toString(),
-      itemId: mintEvent.data[1].toString(),
-      owner: mintEvent.data[2].toString(),
+      collectionId: collectionId.toString(),
+      itemId: itemId.toString(),
+      owner: mintTo,
     };
   }
 
@@ -300,11 +284,29 @@ export class AssetHubNFTManager {
     return this.signAndSendTransaction(tx, fromAddress, injector);
   }
 
+  async burnNFT(
+    ownerAddress: string,
+    injector: InjectedExtension,
+    collectionId: string | number,
+    itemId: string | number,
+  ): Promise<TransactionResult> {
+    if (!this.api)
+      throw new Error('API not initialized. Call initialize() first.');
+    const tx = this.api.tx.nfts.burn(collectionId, itemId);
+    return this.signAndSendTransaction(tx, ownerAddress, injector);
+  }
+
   async getNextCollectionId(): Promise<string> {
     if (!this.api)
       throw new Error('API not initialized. Call initialize() first.');
     const nextId = await this.api.query.nfts.nextCollectionId();
     return nextId.toString();
+  }
+
+  async getNextItemId(_collectionId: string | number): Promise<string> {
+    // Random u32: ignore on-chain state for now
+    const randomId = Math.floor(Math.random() * (2 ** 32 - 1));
+    return randomId.toString();
   }
 
   isConnected(): boolean {
