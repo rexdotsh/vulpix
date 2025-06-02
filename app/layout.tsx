@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { PolkadotProvider } from '@/lib/PolkadotProvider';
+import { WalletConnection } from '@/components/wallet-connection';
 import { AssetHubProvider } from '@/lib/AssetHubProvider';
 
 const geistSans = Geist({
@@ -30,7 +31,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <PolkadotProvider>
-          <AssetHubProvider>{children}</AssetHubProvider>
+          <AssetHubProvider>
+            <WalletConnection />
+            {children}
+          </AssetHubProvider>
         </PolkadotProvider>
       </body>
     </html>
