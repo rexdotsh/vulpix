@@ -21,14 +21,24 @@ export default function Page() {
         </div>
 
         {isWalletReady && isInitialized ? (
-          <Link href="/dashboard">
-            <Button size="lg" className="text-lg px-8 py-6">
-              <>
-                Go to Dashboard
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </>
-            </Button>
-          </Link>
+          <div className="flex justify-center space-x-4">
+            <Link href="/dashboard">
+              <Button size="lg" className="text-lg px-8 py-6">
+                <>
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              </Button>
+            </Link>
+            <Link href="/generate">
+              <Button size="lg" className="text-lg px-8 py-6">
+                <>
+                  Go to Generate
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              </Button>
+            </Link>
+          </div>
         ) : (
           <Button size="lg" disabled className="text-lg px-8 py-6">
             {isWalletConnecting ? (
