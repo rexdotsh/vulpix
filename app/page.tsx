@@ -14,7 +14,7 @@ export default function Page() {
     selectedAccountIndex,
     enableExtensions,
     selectAccount,
-    disconnectExtensions,
+    disconnectExtensions, 
   } = usePolkadot();
 
   const { isInitialized, isInitializing, error: assetHubError } = useAssetHub();

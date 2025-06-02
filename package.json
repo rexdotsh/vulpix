@@ -17,9 +17,13 @@
     "@polkadot/extension-inject": "^0.59.1",
     "@polkadot/util": "^13.5.1",
     "@polkadot/util-crypto": "^13.5.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
     "next": "15.3.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -29,6 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
+    "tw-animate-css": "^1.3.3",
     "typescript": "^5"
   }
 }
