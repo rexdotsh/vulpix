@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "build:dev": "next build --turbopack",
     "build": "next build",
     "start": "next start",
     "lint:check": "biome lint",
