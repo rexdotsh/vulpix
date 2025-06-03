@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import Heurist from 'heurist';
 import { env } from '@/env';
 import { generateImageSchema } from '@/lib/validationSchemas';
+import { db } from '@/lib/db';
+import { imageGenerationHistory } from '@/lib/db/schema';
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +16,7 @@ export async function POST(req: Request) {
       );
     }
     const {
+      userAddress,
       model,
       prompt,
       neg_prompt,
@@ -35,6 +38,20 @@ export async function POST(req: Request) {
       ...(width && { width }),
       ...(height && { height }),
       ...(seed !== undefined && { seed }),
+    });
+
+    await db.insert(imageGenerationHistory).values({
+      userAddress,
+      prompt,
+      negPrompt: neg_prompt ?? null,
+      model,
+      numIterations: num_iterations,
+      guidanceScale: guidance_scale,
+      width,
+      height,
+      seed: seed ?? null,
+      generatedUrl: result.url,
+      response: result,
     });
 
     return NextResponse.json(result);

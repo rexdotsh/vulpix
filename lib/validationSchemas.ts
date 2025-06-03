@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const generateImageSchema = z.object({
+  userAddress: z.string().min(1, 'User address is required.'),
   model: z.string().min(1, 'Model is required.'),
   prompt: z.string().min(1, 'Prompt is required.'),
   neg_prompt: z.string().optional(),
