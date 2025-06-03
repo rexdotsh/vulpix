@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build:dev": "next build --turbopack",
-    "build": "next build",
+    "build": "bunx prisma generate && next build",
     "start": "next start",
     "lint:check": "biome lint",
     "format:check": "biome format",
