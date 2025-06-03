@@ -34,8 +34,8 @@ import {
 } from '@/components/ui/form';
 import { availableModels } from '@/lib/availableModels';
 import {
-  generateImageSchema,
-  type GenerateImageInput,
+  generateImageFormSchema,
+  type GenerateImageFormInput,
 } from '@/lib/validationSchemas';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
@@ -144,8 +144,8 @@ export default function GeneratePage() {
     }
   };
 
-  const form = useForm<GenerateImageInput>({
-    resolver: zodResolver(generateImageSchema),
+  const form = useForm<GenerateImageFormInput>({
+    resolver: zodResolver(generateImageFormSchema),
     defaultValues: {
       model: availableModels[0].id,
       prompt: '',
@@ -158,13 +158,20 @@ export default function GeneratePage() {
     },
   });
 
-  const onSubmit: SubmitHandler<GenerateImageInput> = async (data) => {
+  const onSubmit: SubmitHandler<GenerateImageFormInput> = async (data) => {
+    if (!selectedAccount?.address) {
+      toast.error('Wallet not connected');
+      return;
+    }
     setIsLoading(true);
     setGeneratedImage(null);
     setGeneratedImageDimensions(null);
     toast.info('Generating image...');
 
-    const payload: { [key: string]: any } = { ...data };
+    const payload: { [key: string]: any } = {
+      ...data,
+      userAddress: selectedAccount.address,
+    };
 
     if (!payload.neg_prompt || payload.neg_prompt.trim() === '') {
       payload.neg_prompt = undefined;

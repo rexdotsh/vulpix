@@ -8,3 +8,26 @@ datasource db {
   url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+model User {
+  id                String               @id
+  createdAt         DateTime             @default(now())
+  imageGenerations  ImageGeneration[]
+}
+
+model ImageGeneration {
+  id            Int      @id @default(autoincrement())
+  userId        String
+  prompt        String
+  negPrompt     String?
+  model         String
+  numIterations Int?
+  guidanceScale Float?
+  width         Int?
+  height        Int?
+  seed          Int?
+  imageUrl      String
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id])
+}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Heurist from 'heurist';
 import { env } from '@/env';
 import { generateImageSchema } from '@/lib/validationSchemas';
+import prisma from '@/prisma/db';
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
       );
     }
     const {
+      userAddress,
       model,
       prompt,
       neg_prompt,
@@ -35,6 +37,26 @@ export async function POST(req: Request) {
       ...(width && { width }),
       ...(height && { height }),
       ...(seed !== undefined && { seed }),
+    });
+
+    await prisma.user.upsert({
+      where: { id: userAddress },
+      update: {},
+      create: { id: userAddress },
+    });
+    await prisma.imageGeneration.create({
+      data: {
+        userId: userAddress,
+        prompt,
+        negPrompt: neg_prompt || null,
+        model,
+        numIterations: num_iterations,
+        guidanceScale: guidance_scale,
+        width,
+        height,
+        seed,
+        imageUrl: result.url,
+      },
     });
 
     return NextResponse.json(result);

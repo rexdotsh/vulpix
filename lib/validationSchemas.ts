@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const generateImageSchema = z.object({
+  userAddress: z.string().min(1, 'User address is required.'),
   model: z.string().min(1, 'Model is required.'),
   prompt: z.string().min(1, 'Prompt is required.'),
   neg_prompt: z.string().optional(),
@@ -12,3 +13,9 @@ export const generateImageSchema = z.object({
 });
 
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
+
+// the form uses the same schema but omits the user address
+export const generateImageFormSchema = generateImageSchema.omit({
+  userAddress: true,
+});
+export type GenerateImageFormInput = z.infer<typeof generateImageFormSchema>;
