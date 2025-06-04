@@ -40,11 +40,10 @@ export const generateImage = mutation({
     });
 
     const { userAddress, ...rest } = args;
-    await ctx.scheduler.runAfter(
-      0,
-      internal.functions.heuristGen.callHeuristAPI,
-      { imageGenId, ...rest },
-    );
+    await ctx.scheduler.runAfter(0, internal.heuristGen.callHeuristAPI, {
+      imageGenId,
+      ...rest,
+    });
 
     return imageGenId;
   },
