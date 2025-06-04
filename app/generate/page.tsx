@@ -40,6 +40,9 @@ import {
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import type { UserCollection } from '@/lib/assetHubNFTManager';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
 
 export default function GeneratePage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +59,15 @@ export default function GeneratePage() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
   const [isMinting, setIsMinting] = useState(false);
+
+  const [imageGenId, setImageGenId] = useState<Id<'imageGenerations'> | null>(
+    null,
+  );
+  const generateImageMutation = useMutation(api.functions.images.generateImage);
+  const imageQuery = useQuery(
+    api.functions.images.getImageGeneration,
+    imageGenId ? { imageGenId } : 'skip',
+  );
 
   useEffect(() => {
     if (!selectedAccount?.address || !nftManager || !isAssetHubInitialized)
@@ -166,55 +178,28 @@ export default function GeneratePage() {
     setIsLoading(true);
     setGeneratedImage(null);
     setGeneratedImageDimensions(null);
+    setImageGenId(null);
     toast.info('Generating image...');
-
-    const payload: { [key: string]: any } = {
-      ...data,
-      userAddress: selectedAccount.address,
-    };
-
-    if (!payload.neg_prompt || payload.neg_prompt.trim() === '') {
-      payload.neg_prompt = undefined;
-    }
-    if (payload.seed === undefined || Number.isNaN(payload.seed)) {
-      payload.seed = undefined;
-    }
-
     try {
-      const response = await fetch('/api/image/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      const id = await generateImageMutation({
+        userAddress: selectedAccount.address,
+        model: data.model,
+        prompt: data.prompt,
+        negPrompt: data.neg_prompt || undefined,
+        numIterations: data.num_iterations,
+        guidanceScale: data.guidance_scale,
+        width: data.width,
+        height: data.height,
+        seed: data.seed,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage =
-          typeof errorData.error === 'string'
-            ? errorData.error
-            : errorData.error?.message || 'Failed to generate image';
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-
-      if (result.url) {
-        setGeneratedImage(result.url);
-        setGeneratedImageDimensions({
-          width: data.width ?? 1024,
-          height: data.height ?? 768,
-        });
-        toast.success('Image generated successfully!');
-      } else {
-        console.error('Unexpected API response structure:', result);
-        throw new Error('Image URL not found in API response.');
-      }
+      setImageGenId(id);
+      setGeneratedImageDimensions({
+        width: data.width ?? 1024,
+        height: data.height ?? 768,
+      });
     } catch (err: any) {
-      console.error(err);
+      console.error('Error starting image generation:', err);
       toast.error(err.message || 'Error generating image.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -228,6 +213,17 @@ export default function GeneratePage() {
   const watchHeight = form.watch('height');
   const watchIterations = form.watch('num_iterations');
   const watchGuidance = form.watch('guidance_scale');
+
+  useEffect(() => {
+    if (imageQuery?.imageUrl) {
+      setGeneratedImage(imageQuery.imageUrl);
+      toast.success('Image generated successfully!');
+      setIsLoading(false);
+    } else if (imageQuery?.status === 'failed') {
+      toast.error(imageQuery.error || 'Image generation failed.');
+      setIsLoading(false);
+    }
+  }, [imageQuery]);
 
   return (
     <div className="container mx-auto p-4 lg:p-8">
