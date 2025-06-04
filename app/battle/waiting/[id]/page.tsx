@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 
 export default function BattleWaitingPage() {
   const { id } = useParams();
@@ -40,9 +41,9 @@ export default function BattleWaitingPage() {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      alert('Link copied to clipboard!');
+      toast.success('Link copied to clipboard!');
     } catch (err) {
-      alert('Failed to copy link');
+      toast.error('Failed to copy link');
     }
   };
 
