@@ -93,6 +93,9 @@ export async function getUserCollections(
 ): Promise<UserCollection[]> {
   try {
     const collections = await nftManager.getUserCollections(userAddress);
+    collections.sort((a: UserCollection, b: UserCollection) =>
+      a.id.localeCompare(b.id),
+    );
     return collections;
   } catch (e) {
     console.error('Error fetching collections:', e);

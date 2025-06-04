@@ -110,6 +110,24 @@ export function ImageHistory() {
 
 function ImageHistoryCard({ image }: { image: ImageGeneration }) {
   const [mintDialogOpen, setMintDialogOpen] = useState(false);
+  const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
+  const { selectedAccount } = usePolkadot();
+  const [collectionsList, setCollectionsList] = useState<UserCollection[]>([]);
+  const [isLoadingCollections, setIsLoadingCollections] = useState(false);
+
+  useEffect(() => {
+    if (isAssetHubInitialized && selectedAccount?.address && nftManager) {
+      setIsLoadingCollections(true);
+      (async () => {
+        const cols = await getUserCollections(
+          nftManager,
+          selectedAccount.address,
+        );
+        setCollectionsList(cols);
+        setIsLoadingCollections(false);
+      })();
+    }
+  }, [isAssetHubInitialized, selectedAccount?.address, nftManager]);
 
   return (
     <>
@@ -186,6 +204,7 @@ function ImageHistoryCard({ image }: { image: ImageGeneration }) {
                   variant="secondary"
                   size="sm"
                   onClick={() => setMintDialogOpen(true)}
+                  disabled={!isAssetHubInitialized}
                 >
                   Mint NFT
                 </Button>
@@ -200,6 +219,10 @@ function ImageHistoryCard({ image }: { image: ImageGeneration }) {
           open={mintDialogOpen}
           setOpen={setMintDialogOpen}
           imageUrl={image.imageUrl}
+          nftManager={nftManager}
+          isAssetHubInitialized={isAssetHubInitialized}
+          collections={collectionsList}
+          isLoadingCollections={isLoadingCollections}
         />
       )}
     </>
@@ -210,35 +233,23 @@ function MintDialog({
   open,
   setOpen,
   imageUrl,
+  nftManager,
+  isAssetHubInitialized,
+  collections,
+  isLoadingCollections,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   imageUrl: string;
+  nftManager: any;
+  isAssetHubInitialized: boolean;
+  collections: UserCollection[];
+  isLoadingCollections: boolean;
 }) {
-  const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
   const { selectedAccount, getInjector } = usePolkadot();
-  const [collections, setCollections] = useState<UserCollection[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
   const [isMinting, setIsMinting] = useState(false);
-
-  useEffect(() => {
-    if (
-      !open ||
-      !selectedAccount?.address ||
-      !nftManager ||
-      !isAssetHubInitialized
-    )
-      return;
-
-    (async () => {
-      const cols = await getUserCollections(
-        nftManager,
-        selectedAccount.address,
-      );
-      setCollections(cols);
-    })();
-  }, [open, selectedAccount?.address, nftManager, isAssetHubInitialized]);
 
   const handleMint = async () => {
     if (!selectedAccount) return;
@@ -280,7 +291,11 @@ function MintDialog({
             />
           </div>
 
-          {collections.length > 0 ? (
+          {isLoadingCollections ? (
+            <p className="text-sm text-muted-foreground text-center">
+              Loading collections...
+            </p>
+          ) : collections.length > 0 ? (
             <Select
               onValueChange={setSelectedCollectionId}
               value={selectedCollectionId}
@@ -303,7 +318,8 @@ function MintDialog({
             </p>
           )}
 
-          {(selectedCollectionId === 'new' || collections.length === 0) && (
+          {(selectedCollectionId === 'new' ||
+            (!isLoadingCollections && collections.length === 0)) && (
             <Input
               placeholder="New Collection Name"
               value={newCollectionName}
@@ -319,7 +335,10 @@ function MintDialog({
           <Button
             onClick={handleMint}
             disabled={
-              isMinting || (!selectedCollectionId && !newCollectionName.trim())
+              isMinting ||
+              isLoadingCollections ||
+              (!selectedCollectionId && !newCollectionName.trim()) ||
+              !isAssetHubInitialized
             }
           >
             {isMinting ? 'Minting...' : 'Mint NFT'}
