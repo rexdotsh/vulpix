@@ -1,4 +1,4 @@
-name: Format Check
+name: Format & Lint Check
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   format:
-    name: Format Check
+    name: Format & Lint Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
