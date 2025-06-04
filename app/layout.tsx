@@ -4,6 +4,7 @@ import './globals.css';
 import { PolkadotProvider } from '@/lib/providers/PolkadotProvider';
 import { WalletConnection } from '@/components/wallet-connection';
 import { AssetHubProvider } from '@/lib/providers/AssetHubProvider';
+import { ConvexClientProvider } from '@/lib/providers/ConvexClientProvider';
 import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
@@ -31,13 +32,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <PolkadotProvider>
-          <AssetHubProvider>
-            <WalletConnection />
-            <Toaster richColors position="top-center" />
-            {children}
-          </AssetHubProvider>
-        </PolkadotProvider>
+        <ConvexClientProvider>
+          <PolkadotProvider>
+            <AssetHubProvider>
+              <WalletConnection />
+              <Toaster richColors position="top-center" />
+              {children}
+            </AssetHubProvider>
+          </PolkadotProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

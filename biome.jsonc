@@ -3,6 +3,7 @@
   "files": {
     "ignoreUnknown": false,
     "ignore": [
+      "convex/_generated",
       "**/pnpm-lock.yaml",
       "lib/db/migrations",
       "lib/editor/react-renderer.tsx",
