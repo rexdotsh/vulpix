@@ -1,9 +1,7 @@
 'use client';
-
-import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+import { api } from '@/convex/_generated/api';
 import {
   Card,
   CardContent,
@@ -16,21 +14,17 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { getBaseUrl } from '@/lib/utils';
+import { useEffect } from 'react';
 
 export default function BattleWaitingPage() {
-  const { id } = useParams();
+  const params = useParams();
   const router = useRouter();
-  const [shareUrl, setShareUrl] = useState('');
 
-  const roomId = Array.isArray(id) ? id[0] : (id ?? ''); // TODO: properly type-check this
+  const roomId = typeof params.id === 'string' ? params.id : '';
+  const shareUrl = `${getBaseUrl()}/battle/join/${roomId}`;
+
   const battleRoom = useQuery(api.functions.battle.getBattleRoom, { roomId });
-
-  // TODO: use env url for base domain name
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location?.origin) {
-      setShareUrl(`${window.location.origin}/battle/join/${roomId}`);
-    }
-  }, [roomId]);
 
   useEffect(() => {
     if (battleRoom?.roomFull) {

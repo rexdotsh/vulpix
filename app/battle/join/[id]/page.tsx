@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import {
@@ -114,7 +114,6 @@ export default function BattleJoinPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* Header */}
           <div className="text-center space-y-4">
             <h1 className="text-3xl font-bold text-foreground">
               ⚔️ Join Battle Room
@@ -124,7 +123,6 @@ export default function BattleJoinPage() {
             </p>
           </div>
 
-          {/* Battle Room Info */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -163,7 +161,6 @@ export default function BattleJoinPage() {
             </CardContent>
           </Card>
 
-          {/* NFT Selection */}
           <Card>
             <CardHeader>
               <CardTitle>⚡ Choose Your Fighter</CardTitle>
@@ -215,7 +212,6 @@ export default function BattleJoinPage() {
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
           <Card>
             <CardContent className="pt-6">
               <div className="flex gap-4">
@@ -244,7 +240,6 @@ export default function BattleJoinPage() {
             </CardContent>
           </Card>
 
-          {/* Help Text */}
           <Card className="bg-muted/50">
             <CardContent className="pt-6">
               <div className="text-center space-y-2">
