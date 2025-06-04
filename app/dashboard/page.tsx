@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
-import type { UserNFT } from '@/lib/assetHubNFTManager';
 import {
   Card,
   CardContent,
@@ -17,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { formatDistanceToNow } from 'date-fns';
+import { useNFTs } from '@/hooks/useNFTs';
 
 const decodeHexMetadata = (hexString: string) => {
   try {
@@ -59,56 +60,24 @@ function NFTLoadingSkeleton() {
 }
 
 export default function Dashboard() {
-  const { isReady, selectedAccount, getInjector } = usePolkadot();
-
-  const {
-    nftManager,
-    isInitialized,
-    isInitializing,
-    error: assetHubError,
-  } = useAssetHub();
-
-  const [userNFTs, setUserNFTs] = useState<UserNFT[]>([]);
-  const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
+  const { isReady, selectedAccount } = usePolkadot();
+  const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
 
+  const {
+    nfts: userNFTs,
+    lastSyncTime,
+    isSyncing,
+    syncFromAssetHub,
+    burnNFT,
+    initializeUser,
+  } = useNFTs();
+
   useEffect(() => {
-    let isCancelled = false;
-
-    const fetchNFTs = async () => {
-      if (
-        !isReady ||
-        !selectedAccount ||
-        !nftManager ||
-        !isInitialized ||
-        isLoadingNFTs
-      )
-        return;
-
-      setIsLoadingNFTs(true);
-      try {
-        if (!isCancelled) {
-          const nfts = await nftManager.getUserNFTs(selectedAccount.address);
-          if (!isCancelled) {
-            setUserNFTs(nfts);
-          }
-        }
-      } catch (err) {
-        if (!isCancelled) {
-          console.error(err);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoadingNFTs(false);
-        }
-      }
-    };
-
-    fetchNFTs();
-    return () => {
-      isCancelled = true;
-    };
-  }, [isReady, selectedAccount?.address, nftManager, isInitialized]);
+    if (isReady && selectedAccount) {
+      initializeUser();
+    }
+  }, [isReady, selectedAccount]);
 
   if (!isReady) {
     return (
@@ -130,35 +99,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!isInitialized) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>
-              {isInitializing
-                ? 'Connecting to AssetHub...'
-                : 'Connection Failed'}
-            </CardTitle>
-            <CardDescription>
-              {isInitializing
-                ? 'Please wait while we establish connection to AssetHub'
-                : assetHubError || 'Failed to connect to AssetHub'}
-            </CardDescription>
-          </CardHeader>
-          {!isInitializing && (
-            <CardContent>
-              <Button asChild className="w-full">
-                <Link href="/">Go Back</Link>
-              </Button>
-            </CardContent>
-          )}
-        </Card>
-      </div>
-    );
-  }
-
-  const isLoading = isLoadingNFTs || isInitializing;
+  const isLoading = userNFTs === undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,12 +123,30 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">My NFTs</h1>
             <p className="text-muted-foreground mt-1">
-              {isLoading ? 'Loading...' : `${userNFTs.length} items found`}
+              {isLoading
+                ? 'Loading...'
+                : `${userNFTs?.length || 0} items found`}
+              {lastSyncTime && (
+                <span className="ml-2 text-sm">
+                  (Last synced:{' '}
+                  {formatDistanceToNow(lastSyncTime, { addSuffix: true })})
+                </span>
+              )}
             </p>
           </div>
-          <Badge variant="secondary" className="text-sm">
-            {selectedAccount?.meta.name || selectedAccount?.address.slice(0, 8)}
-          </Badge>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => syncFromAssetHub()}
+              disabled={isSyncing || !isInitialized}
+            >
+              {isSyncing ? 'Syncing...' : 'Sync from AssetHub'}
+            </Button>
+            <Badge variant="secondary" className="text-sm">
+              {selectedAccount?.meta.name ||
+                selectedAccount?.address.slice(0, 8)}
+            </Badge>
+          </div>
         </div>
 
         {isLoading ? (
@@ -196,7 +155,7 @@ export default function Dashboard() {
               <NFTLoadingSkeleton key={`skeleton-${Date.now()}-${i}`} />
             ))}
           </div>
-        ) : userNFTs.length > 0 ? (
+        ) : userNFTs && userNFTs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {userNFTs.map((nft) => {
               const metadata = decodeHexMetadata(nft.itemMetadata?.data);
@@ -240,37 +199,20 @@ export default function Dashboard() {
                       variant="destructive"
                       size="sm"
                       onClick={async () => {
-                        if (!nftManager || !selectedAccount) return;
                         const id = `${nft.collection}-${nft.item}`;
                         setBurningItem(id);
                         try {
-                          const injector = await getInjector(
-                            selectedAccount.address,
-                          );
-                          if (!injector)
-                            throw new Error('Failed to get injector');
-                          await nftManager.burnNFT(
-                            selectedAccount.address,
-                            injector,
-                            nft.collection,
-                            nft.item,
-                          );
-                          setUserNFTs((prev) =>
-                            prev.filter(
-                              (i) =>
-                                !(
-                                  i.collection === nft.collection &&
-                                  i.item === nft.item
-                                ),
-                            ),
-                          );
+                          await burnNFT(nft.collection, nft.item);
                         } catch (error) {
                           console.error(error);
                         } finally {
                           setBurningItem(null);
                         }
                       }}
-                      disabled={burningItem === `${nft.collection}-${nft.item}`}
+                      disabled={
+                        burningItem === `${nft.collection}-${nft.item}` ||
+                        !isInitialized
+                      }
                     >
                       {burningItem === `${nft.collection}-${nft.item}`
                         ? 'Burning...'
