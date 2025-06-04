@@ -31,13 +31,13 @@ export default function BattleJoinPage() {
   const battleRoom = useQuery(api.functions.battle.getBattleRoom, { roomId });
   const joinBattleRoom = useMutation(api.functions.battle.joinBattleRoom);
 
-  // Fetch user's NFTs
   useEffect(() => {
     const fetchNFTs = async () => {
       if (!isReady || !selectedAccount || !nftManager || !isInitialized) return;
 
       setIsLoadingNFTs(true);
       try {
+        // using assethub
         const nfts = await nftManager.getUserNFTs(selectedAccount.address);
         setUserNFTs(nfts);
       } catch (error) {
@@ -50,7 +50,6 @@ export default function BattleJoinPage() {
     fetchNFTs();
   }, [isReady, selectedAccount?.address, nftManager, isInitialized]);
 
-  // Redirect to play page when room becomes full
   useEffect(() => {
     if (battleRoom?.roomFull) {
       router.push(`/battle/play/${roomId}`);
@@ -62,15 +61,12 @@ export default function BattleJoinPage() {
 
     setIsJoining(true);
     try {
-      // Join the battle room with the joiner's NFT details
       await joinBattleRoom({
         roomId,
         joinerAddress: selectedAccount.address,
         joinerNftCollection: selectedNFT.collection,
         joinerNftItem: selectedNFT.item,
       });
-
-      // Redirect will happen automatically via useEffect
     } catch (error) {
       console.error('Failed to join battle:', error);
       setIsJoining(false);
@@ -108,30 +104,6 @@ export default function BattleJoinPage() {
             <p className="text-center mt-4 text-muted-foreground">
               Loading battle room...
             </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (battleRoom.roomFull) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-6xl mb-4">⚔️</div>
-              <h2 className="text-xl font-semibold">Battle in Progress!</h2>
-              <p className="text-muted-foreground mt-2">
-                This battle room is full and the fight has begun.
-              </p>
-              <Button
-                onClick={() => router.push('/dashboard')}
-                className="mt-4 w-full"
-              >
-                Return to Dashboard
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>

@@ -248,7 +248,7 @@ export default function Dashboard() {
                     <Button
                       variant="default"
                       size="sm"
-                      className="flex-1"
+                      className="ml-2"
                       onClick={async () => {
                         if (!selectedAccount) return;
                         const battleRoomId = Math.random()

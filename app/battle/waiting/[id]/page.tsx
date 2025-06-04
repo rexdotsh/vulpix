@@ -16,14 +16,15 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
-export default function BattleWinningPage() {
+export default function BattleWaitingPage() {
   const { id } = useParams();
   const router = useRouter();
   const [shareUrl, setShareUrl] = useState('');
 
-  const roomId = Array.isArray(id) ? id[0] : (id ?? '');
+  const roomId = Array.isArray(id) ? id[0] : (id ?? ''); // TODO: properly type-check this
   const battleRoom = useQuery(api.functions.battle.getBattleRoom, { roomId });
 
+  // TODO: use env url for base domain name
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location?.origin) {
       setShareUrl(`${window.location.origin}/battle/join/${roomId}`);
@@ -62,49 +63,23 @@ export default function BattleWinningPage() {
     );
   }
 
-  if (battleRoom.roomFull) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🏆</div>
-              <h2 className="text-xl font-semibold">Room is Full!</h2>
-              <p className="text-muted-foreground mt-2">
-                This battle room is already at capacity.
-              </p>
-              <Button
-                onClick={() => router.push('/dashboard')}
-                className="mt-4 w-full"
-              >
-                Return to Dashboard
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-8">
-          {/* Header */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-foreground">
-              🎉 Battle Room Created!
+              Battle Room Created!
             </h1>
             <p className="text-xl text-muted-foreground">
               Your NFT is ready for battle. Invite someone to challenge you!
             </p>
           </div>
 
-          {/* Room Details Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                🏆 Battle Room Details
+                Battle Room Details
               </CardTitle>
               <CardDescription>
                 Room ID: <Badge variant="secondary">{roomId}</Badge>
@@ -141,18 +116,16 @@ export default function BattleWinningPage() {
             </CardContent>
           </Card>
 
-          {/* Share Options */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                📤 Invite Players
+                Invite Players
               </CardTitle>
               <CardDescription>
                 Share your battle room with others to start the fight!
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Quick Share */}
               <div className="space-y-3">
                 <p className="font-medium">Share Link</p>
                 <div className="flex gap-2">
@@ -162,14 +135,13 @@ export default function BattleWinningPage() {
                     className="font-mono text-sm"
                   />
                   <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                    📋 Copy
+                    Copy
                   </Button>
                 </div>
               </div>
 
               <Separator />
 
-              {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   variant="default"
@@ -182,7 +154,7 @@ export default function BattleWinningPage() {
                   }
                   className="w-full"
                 >
-                  📤 Share Battle Room
+                  Share Battle Room
                 </Button>
 
                 <Button
@@ -190,13 +162,12 @@ export default function BattleWinningPage() {
                   onClick={() => router.push(`/battle/waiting/${roomId}`)}
                   className="w-full"
                 >
-                  👁️ View Waiting Room
+                  View Waiting Room
                 </Button>
               </div>
 
               <Separator />
 
-              {/* Additional Actions */}
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
@@ -209,7 +180,6 @@ export default function BattleWinningPage() {
             </CardContent>
           </Card>
 
-          {/* Help Text */}
           <Card className="bg-muted/50">
             <CardContent className="pt-6">
               <div className="text-center space-y-2">
