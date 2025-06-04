@@ -13,7 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as functions_battle from "../functions/battle.js";
+import type * as battle from "../battle.js";
 import type * as heuristGen from "../heuristGen.js";
 import type * as images from "../images.js";
 import type * as nft from "../nft.js";
@@ -28,11 +28,11 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  "functions/battle": typeof functions_battle;
-  "functions/heuristGen": typeof functions_heuristGen;
-  "functions/images": typeof functions_images;
-  "functions/nft": typeof functions_nft;
-  "functions/users": typeof functions_users;
+  battle: typeof battle;
+  heuristGen: typeof heuristGen;
+  images: typeof images;
+  nft: typeof nft;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
