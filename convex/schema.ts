@@ -41,4 +41,28 @@ export default defineSchema({
     roomFull: v.boolean(),
     createdAt: v.number(),
   }).index('by_roomId', ['roomId']),
+
+  nftCollections: defineTable({
+    collectionId: v.string(),
+    owner: v.string(),
+    userAddress: v.id('users'),
+    details: v.any(),
+    metadata: v.any(),
+    lastSynced: v.number(),
+  })
+    .index('by_user', ['userAddress'])
+    .index('by_collection_id', ['collectionId']),
+
+  nftItems: defineTable({
+    collectionId: v.string(),
+    itemId: v.string(),
+    owner: v.string(),
+    userAddress: v.id('users'),
+    itemDetails: v.any(),
+    itemMetadata: v.any(),
+    lastSynced: v.number(),
+  })
+    .index('by_user', ['userAddress'])
+    .index('by_collection', ['collectionId'])
+    .index('by_item', ['collectionId', 'itemId']),
 });

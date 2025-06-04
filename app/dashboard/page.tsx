@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
-import type { UserNFT } from '@/lib/assetHubNFTManager';
 import {
   Card,
   CardContent,
@@ -17,9 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { useRouter } from 'next/navigation';
-import { useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { formatDistanceToNow } from 'date-fns';
+import { useNFTs } from '@/hooks/useNFTs';
 
 const decodeHexMetadata = (hexString: string) => {
   try {
@@ -62,58 +60,39 @@ function NFTLoadingSkeleton() {
 }
 
 export default function Dashboard() {
-  const { isReady, selectedAccount, getInjector } = usePolkadot();
-  const router = useRouter();
+  const { isReady, selectedAccount } = usePolkadot();
+  const { isInitialized } = useAssetHub();
+  const [burningItem, setBurningItem] = useState<string | null>(null);
+  const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
 
   const {
-    nftManager,
-    isInitialized,
-    isInitializing,
-    error: assetHubError,
-  } = useAssetHub();
-
-  const [userNFTs, setUserNFTs] = useState<UserNFT[]>([]);
-  const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
-  const [burningItem, setBurningItem] = useState<string | null>(null);
-  const createBattleRoom = useMutation(api.functions.battle.createBattleRoom);
+    nfts: userNFTs,
+    lastSyncTime,
+    isSyncing,
+    syncFromAssetHub,
+    burnNFT,
+    initializeUser,
+  } = useNFTs();
 
   useEffect(() => {
-    let isCancelled = false;
+    if (isReady && selectedAccount) {
+      initializeUser();
 
-    const fetchNFTs = async () => {
-      if (
-        !isReady ||
-        !selectedAccount ||
-        !nftManager ||
-        !isInitialized ||
-        isLoadingNFTs
-      )
-        return;
-
-      setIsLoadingNFTs(true);
-      try {
-        if (!isCancelled) {
-          const nfts = await nftManager.getUserNFTs(selectedAccount.address);
-          if (!isCancelled) {
-            setUserNFTs(nfts);
+      // start background sync when component loads
+      const performBackgroundSync = async () => {
+        if (isInitialized && !isSyncing) {
+          setIsBackgroundSyncing(true);
+          try {
+            await syncFromAssetHub();
+          } finally {
+            setIsBackgroundSyncing(false);
           }
         }
-      } catch (err) {
-        if (!isCancelled) {
-          console.error(err);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoadingNFTs(false);
-        }
-      }
-    };
+      };
 
-    fetchNFTs();
-    return () => {
-      isCancelled = true;
-    };
-  }, [isReady, selectedAccount?.address, nftManager, isInitialized]);
+      performBackgroundSync();
+    }
+  }, [isReady, selectedAccount, isInitialized]);
 
   if (!isReady) {
     return (
@@ -135,35 +114,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!isInitialized) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>
-              {isInitializing
-                ? 'Connecting to AssetHub...'
-                : 'Connection Failed'}
-            </CardTitle>
-            <CardDescription>
-              {isInitializing
-                ? 'Please wait while we establish connection to AssetHub'
-                : assetHubError || 'Failed to connect to AssetHub'}
-            </CardDescription>
-          </CardHeader>
-          {!isInitializing && (
-            <CardContent>
-              <Button asChild className="w-full">
-                <Link href="/">Go Back</Link>
-              </Button>
-            </CardContent>
-          )}
-        </Card>
-      </div>
-    );
-  }
-
-  const isLoading = isLoadingNFTs || isInitializing;
+  const isLoading = userNFTs === undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -187,12 +138,37 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">My NFTs</h1>
             <p className="text-muted-foreground mt-1">
-              {isLoading ? 'Loading...' : `${userNFTs.length} items found`}
+              {isLoading
+                ? 'Loading...'
+                : `${userNFTs?.length || 0} items found`}
+              {lastSyncTime && (
+                <span className="ml-2 text-sm">
+                  (Last synced:{' '}
+                  {formatDistanceToNow(lastSyncTime, { addSuffix: true })})
+                </span>
+              )}
+              {isBackgroundSyncing && (
+                <span className="ml-2 text-sm text-muted-foreground animate-pulse">
+                  (Syncing in background...)
+                </span>
+              )}
             </p>
           </div>
-          <Badge variant="secondary" className="text-sm">
-            {selectedAccount?.meta.name || selectedAccount?.address.slice(0, 8)}
-          </Badge>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => syncFromAssetHub()}
+              disabled={isSyncing || isBackgroundSyncing || !isInitialized}
+            >
+              {isSyncing || isBackgroundSyncing
+                ? 'Syncing...'
+                : 'Sync from AssetHub'}
+            </Button>
+            <Badge variant="secondary" className="text-sm">
+              {selectedAccount?.meta.name ||
+                selectedAccount?.address.slice(0, 8)}
+            </Badge>
+          </div>
         </div>
 
         {isLoading ? (
@@ -201,7 +177,7 @@ export default function Dashboard() {
               <NFTLoadingSkeleton key={`skeleton-${Date.now()}-${i}`} />
             ))}
           </div>
-        ) : userNFTs.length > 0 ? (
+        ) : userNFTs && userNFTs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {userNFTs.map((nft) => {
               const metadata = decodeHexMetadata(nft.itemMetadata?.data);
@@ -245,65 +221,24 @@ export default function Dashboard() {
                       variant="destructive"
                       size="sm"
                       onClick={async () => {
-                        if (!nftManager || !selectedAccount) return;
                         const id = `${nft.collection}-${nft.item}`;
                         setBurningItem(id);
                         try {
-                          const injector = await getInjector(
-                            selectedAccount.address,
-                          );
-                          if (!injector)
-                            throw new Error('Failed to get injector');
-                          await nftManager.burnNFT(
-                            selectedAccount.address,
-                            injector,
-                            nft.collection,
-                            nft.item,
-                          );
-                          setUserNFTs((prev) =>
-                            prev.filter(
-                              (i) =>
-                                !(
-                                  i.collection === nft.collection &&
-                                  i.item === nft.item
-                                ),
-                            ),
-                          );
+                          await burnNFT(nft.collection, nft.item);
                         } catch (error) {
                           console.error(error);
                         } finally {
                           setBurningItem(null);
                         }
                       }}
-                      disabled={burningItem === `${nft.collection}-${nft.item}`}
+                      disabled={
+                        burningItem === `${nft.collection}-${nft.item}` ||
+                        !isInitialized
+                      }
                     >
                       {burningItem === `${nft.collection}-${nft.item}`
                         ? 'Burning...'
                         : 'Burn'}
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex-1"
-                      onClick={async () => {
-                        if (!nftManager || !selectedAccount) return;
-                        const battleRoomId = Math.random()
-                          .toString(16)
-                          .slice(2, 8)
-                          .padStart(6, '0');
-
-                        // Call Convex mutation to create battle room
-                        await createBattleRoom({
-                          roomId: battleRoomId,
-                          nftCollection: nft.collection,
-                          nftItem: nft.item,
-                          userAddress: selectedAccount.address,
-                        });
-
-                        router.push(`/battle/waiting/${battleRoomId}`);
-                      }}
-                    >
-                      Battle
                     </Button>
                   </CardFooter>
                 </Card>
