@@ -3,6 +3,7 @@ name: Format & Lint Check
 on:
   push:
   pull_request:
+
 jobs:
   quality:
     runs-on: ubuntu-latest
