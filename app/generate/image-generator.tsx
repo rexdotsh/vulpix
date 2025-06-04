@@ -43,6 +43,7 @@ import type { UserCollection } from '@/lib/assetHubNFTManager';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
+import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
 
 export function ImageGenerator() {
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +53,6 @@ export function ImageGenerator() {
     height: number;
   } | null>(null);
 
-  // minting logic !!
   const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
   const { selectedAccount, getInjector } = usePolkadot();
   const [collections, setCollections] = useState<UserCollection[]>([]);
@@ -73,87 +73,27 @@ export function ImageGenerator() {
     if (!selectedAccount?.address || !nftManager || !isAssetHubInitialized)
       return;
     (async () => {
-      try {
-        const cols = await nftManager.getUserCollections(
-          selectedAccount.address,
-        );
-        setCollections(cols);
-      } catch (e) {
-        console.error('Error fetching collections:', e);
-      }
+      const cols = await getUserCollections(
+        nftManager,
+        selectedAccount.address,
+      );
+      setCollections(cols);
     })();
   }, [selectedAccount?.address, nftManager, isAssetHubInitialized]);
 
   const handleMint = async () => {
-    if (!selectedAccount) {
-      toast.error('Wallet not connected');
-      return;
-    }
-    if (!nftManager) {
-      toast.error('AssetHub not initialized');
-      return;
-    }
+    if (!generatedImage || !selectedAccount) return;
+
     setIsMinting(true);
-    try {
-      const injector = await getInjector(selectedAccount.address);
-      if (!injector) throw new Error('Failed to get injector');
-      let collectionId = selectedCollectionId;
-      // create new collection if needed
-      if (
-        collectionId === 'new' ||
-        (!collectionId && newCollectionName.trim())
-      ) {
-        const createResult = await nftManager.createCollection(
-          selectedAccount.address,
-          injector,
-        );
-        collectionId = createResult.collectionId;
-        if (newCollectionName.trim()) {
-          await nftManager.setCollectionMetadata(
-            selectedAccount.address,
-            injector,
-            collectionId,
-            JSON.stringify({ name: newCollectionName }),
-          );
-        }
-      }
-
-      const uploadRes = await fetch('/api/ipfs/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: generatedImage }),
-      });
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok)
-        throw new Error(uploadData.error || 'IPFS upload failed');
-      const ipfsUrl: string = uploadData.url;
-      const ipfsHash = ipfsUrl.split('/ipfs/')[1]; // we use this for metadata
-
-      const itemId = await nftManager.getNextItemId(collectionId);
-      await nftManager.mintNFT(
-        selectedAccount.address,
-        injector,
-        collectionId,
-        itemId,
-        selectedAccount.address,
-      );
-
-      await nftManager.setNFTMetadata(
-        selectedAccount.address,
-        injector,
-        collectionId,
-        itemId,
-        JSON.stringify({ image: `ipfs://${ipfsHash}` }),
-      );
-      toast.success(
-        `NFT minted in collection ${collectionId} with item ID ${itemId}`,
-      );
-    } catch (e: any) {
-      console.error('Minting error:', e);
-      toast.error(e.message || 'Error minting NFT');
-    } finally {
-      setIsMinting(false);
-    }
+    await mintImageAsNFT({
+      nftManager,
+      selectedAccount,
+      getInjector,
+      selectedCollectionId,
+      newCollectionName,
+      imageUrl: generatedImage,
+    });
+    setIsMinting(false);
   };
 
   const form = useForm<GenerateImageFormInput>({
