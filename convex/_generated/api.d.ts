@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as functions_heuristGen from "../functions/heuristGen.js";
 import type * as functions_images from "../functions/images.js";
 
 /**
@@ -24,6 +25,7 @@ import type * as functions_images from "../functions/images.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "functions/heuristGen": typeof functions_heuristGen;
   "functions/images": typeof functions_images;
 }>;
 export declare const api: FilterApi<
