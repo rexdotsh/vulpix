@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const ipfsUrl = await pinata.gateways.public.convert(uploadResult.cid);
 
     try {
-      await fetchMutation(api.functions.images.updateImageIpfsUrl, {
+      await fetchMutation(api.images.updateImageIpfsUrl, {
         imageUrl: url,
         ipfsUrl,
       });

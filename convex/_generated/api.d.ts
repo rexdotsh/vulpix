@@ -14,10 +14,10 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as functions_battle from "../functions/battle.js";
-import type * as functions_heuristGen from "../functions/heuristGen.js";
-import type * as functions_images from "../functions/images.js";
-import type * as functions_nft from "../functions/nft.js";
-import type * as functions_users from "../functions/users.js";
+import type * as heuristGen from "../heuristGen.js";
+import type * as images from "../images.js";
+import type * as nft from "../nft.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
