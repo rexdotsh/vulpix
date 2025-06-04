@@ -11,9 +11,10 @@ jobs:
     name: Format & Lint Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - name: Setup Biome CLI
+        uses: biomejs/setup-biome@v2
         with:
-          bun-version: latest
-      - name: Check Format & Lint
-        run: bunx biome ci
+          version: 1.9.4
+
+      - name: Run Biome
+        run: biome ci
