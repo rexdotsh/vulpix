@@ -18,6 +18,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
+import { useRouter } from 'next/navigation';
+import { useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 
 const decodeHexMetadata = (hexString: string) => {
   try {
@@ -61,9 +64,11 @@ function NFTLoadingSkeleton() {
 
 export default function Dashboard() {
   const { isReady, selectedAccount } = usePolkadot();
+  const router = useRouter();
   const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
   const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
+  const createBattleRoom = useMutation(api.functions.battle.createBattleRoom);
 
   const {
     nfts: userNFTs,
@@ -239,6 +244,29 @@ export default function Dashboard() {
                       {burningItem === `${nft.collection}-${nft.item}`
                         ? 'Burning...'
                         : 'Burn'}
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="flex-1"
+                      onClick={async () => {
+                        if (!selectedAccount) return;
+                        const battleRoomId = Math.random()
+                          .toString(16)
+                          .slice(2, 8)
+                          .padStart(6, '0');
+
+                        await createBattleRoom({
+                          roomId: battleRoomId,
+                          nftCollection: nft.collection,
+                          nftItem: nft.item,
+                          userAddress: selectedAccount.address,
+                        });
+
+                        router.push(`/battle/waiting/${battleRoomId}`);
+                      }}
+                    >
+                      Battle
                     </Button>
                   </CardFooter>
                 </Card>
