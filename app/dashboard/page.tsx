@@ -63,6 +63,7 @@ export default function Dashboard() {
   const { isReady, selectedAccount } = usePolkadot();
   const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
+  const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
 
   const {
     nfts: userNFTs,
@@ -76,8 +77,22 @@ export default function Dashboard() {
   useEffect(() => {
     if (isReady && selectedAccount) {
       initializeUser();
+
+      // start background sync when component loads
+      const performBackgroundSync = async () => {
+        if (isInitialized && !isSyncing) {
+          setIsBackgroundSyncing(true);
+          try {
+            await syncFromAssetHub();
+          } finally {
+            setIsBackgroundSyncing(false);
+          }
+        }
+      };
+
+      performBackgroundSync();
     }
-  }, [isReady, selectedAccount]);
+  }, [isReady, selectedAccount, isInitialized]);
 
   if (!isReady) {
     return (
@@ -132,15 +147,22 @@ export default function Dashboard() {
                   {formatDistanceToNow(lastSyncTime, { addSuffix: true })})
                 </span>
               )}
+              {isBackgroundSyncing && (
+                <span className="ml-2 text-sm text-muted-foreground animate-pulse">
+                  (Syncing in background...)
+                </span>
+              )}
             </p>
           </div>
           <div className="flex items-center space-x-3">
             <Button
               variant="outline"
               onClick={() => syncFromAssetHub()}
-              disabled={isSyncing || !isInitialized}
+              disabled={isSyncing || isBackgroundSyncing || !isInitialized}
             >
-              {isSyncing ? 'Syncing...' : 'Sync from AssetHub'}
+              {isSyncing || isBackgroundSyncing
+                ? 'Syncing...'
+                : 'Sync from AssetHub'}
             </Button>
             <Badge variant="secondary" className="text-sm">
               {selectedAccount?.meta.name ||
