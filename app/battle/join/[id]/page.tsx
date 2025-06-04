@@ -28,8 +28,8 @@ export default function BattleJoinPage() {
   const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
 
   const roomId = Array.isArray(id) ? id[0] : (id ?? '');
-  const battleRoom = useQuery(api.functions.battle.getBattleRoom, { roomId });
-  const joinBattleRoom = useMutation(api.functions.battle.joinBattleRoom);
+  const battleRoom = useQuery(api.battle.getBattleRoom, { roomId });
+  const joinBattleRoom = useMutation(api.battle.joinBattleRoom);
 
   useEffect(() => {
     const fetchNFTs = async () => {

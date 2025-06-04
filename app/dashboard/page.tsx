@@ -68,7 +68,7 @@ export default function Dashboard() {
   const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
   const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
-  const createBattleRoom = useMutation(api.functions.battle.createBattleRoom);
+  const createBattleRoom = useMutation(api.battle.createBattleRoom);
 
   const {
     nfts: userNFTs,

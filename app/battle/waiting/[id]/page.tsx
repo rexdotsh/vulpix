@@ -24,7 +24,7 @@ export default function BattleWaitingPage() {
   const roomId = typeof params.id === 'string' ? params.id : '';
   const shareUrl = `${getBaseUrl()}/battle/join/${roomId}`;
 
-  const battleRoom = useQuery(api.functions.battle.getBattleRoom, { roomId });
+  const battleRoom = useQuery(api.battle.getBattleRoom, { roomId });
 
   useEffect(() => {
     if (battleRoom?.roomFull) {
