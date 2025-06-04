@@ -67,9 +67,9 @@ export function ImageGenerator() {
   const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
   const { selectedAccount, getInjector } = usePolkadot();
 
-  const generateImageMutation = useMutation(api.functions.images.generateImage);
+  const generateImageMutation = useMutation(api.images.generateImage);
   const imageQuery = useQuery(
-    api.functions.images.getImageGeneration,
+    api.images.getImageGeneration,
     imageGenId ? { imageGenId } : 'skip',
   );
 

@@ -51,7 +51,7 @@ export function ImageHistory() {
   const userAddress = selectedAccount?.address;
 
   const images = useQuery(
-    api.functions.images.getUserImages,
+    api.images.getUserImages,
     userAddress ? { userAddress } : 'skip',
   );
 

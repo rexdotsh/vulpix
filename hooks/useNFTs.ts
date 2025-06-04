@@ -10,22 +10,20 @@ export function useNFTs() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [hasAttemptedInitialSync, setHasAttemptedInitialSync] = useState(false);
 
-  const createOrGetUser = useMutation(api.functions.users.createOrGetUser);
-  const syncUserNFTs = useMutation(api.functions.nft.syncUserNFTs);
-  const syncUserCollections = useMutation(
-    api.functions.nft.syncUserCollections,
-  );
+  const createOrGetUser = useMutation(api.users.createOrGetUser);
+  const syncUserNFTs = useMutation(api.nft.syncUserNFTs);
+  const syncUserCollections = useMutation(api.nft.syncUserCollections);
 
   const nfts = useQuery(
-    api.functions.nft.getUserNFTs,
+    api.nft.getUserNFTs,
     selectedAccount ? { address: selectedAccount.address } : 'skip',
   );
   const collections = useQuery(
-    api.functions.nft.getUserCollections,
+    api.nft.getUserCollections,
     selectedAccount ? { address: selectedAccount.address } : 'skip',
   );
   const lastSyncTime = useQuery(
-    api.functions.nft.getLastSyncTime,
+    api.nft.getLastSyncTime,
     selectedAccount ? { address: selectedAccount.address } : 'skip',
   );
 

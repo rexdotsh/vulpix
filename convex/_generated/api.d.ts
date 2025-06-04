@@ -13,10 +13,10 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as functions_heuristGen from "../functions/heuristGen.js";
-import type * as functions_images from "../functions/images.js";
-import type * as functions_nft from "../functions/nft.js";
-import type * as functions_users from "../functions/users.js";
+import type * as heuristGen from "../heuristGen.js";
+import type * as images from "../images.js";
+import type * as nft from "../nft.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -27,10 +27,10 @@ import type * as functions_users from "../functions/users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  "functions/heuristGen": typeof functions_heuristGen;
-  "functions/images": typeof functions_images;
-  "functions/nft": typeof functions_nft;
-  "functions/users": typeof functions_users;
+  heuristGen: typeof heuristGen;
+  images: typeof images;
+  nft: typeof nft;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
