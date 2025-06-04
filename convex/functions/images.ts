@@ -78,6 +78,7 @@ export const markImageAsFailed = internalMutation({
   },
 });
 
+// TODO: implement history page on @/generate.tsx
 export const getUserImages = query({
   args: { userAddress: v.string() },
   handler: async (ctx, args) => {
@@ -100,5 +101,28 @@ export const getImageGeneration = query({
   args: { imageGenId: v.id('imageGenerations') },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.imageGenId);
+  },
+});
+
+export const updateImageIpfsUrl = mutation({
+  args: {
+    imageUrl: v.string(),
+    ipfsUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const imageGen = await ctx.db
+      .query('imageGenerations')
+      .filter((q) => q.eq(q.field('imageUrl'), args.imageUrl))
+      .first();
+
+    if (!imageGen) {
+      throw new Error('Image generation not found');
+    }
+
+    await ctx.db.patch(imageGen._id, {
+      ipfsUrl: args.ipfsUrl,
+    });
+
+    return imageGen._id;
   },
 });

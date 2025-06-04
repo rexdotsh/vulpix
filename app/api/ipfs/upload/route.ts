@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Buffer, Blob } from 'node:buffer';
 import { pinata } from '@/lib/pinata';
+import { api } from '@/convex/_generated/api';
+import { fetchMutation } from 'convex/nextjs';
 
 export async function POST(req: Request) {
   try {
@@ -21,6 +23,16 @@ export async function POST(req: Request) {
       blob as unknown as File,
     );
     const ipfsUrl = await pinata.gateways.public.convert(uploadResult.cid);
+
+    try {
+      await fetchMutation(api.functions.images.updateImageIpfsUrl, {
+        imageUrl: url,
+        ipfsUrl,
+      });
+    } catch (dbError) {
+      console.warn('Failed to update ipfsUrl in database:', dbError);
+      // continue even if database update fails
+    }
 
     return NextResponse.json({ url: ipfsUrl }, { status: 200 });
   } catch (error: any) {

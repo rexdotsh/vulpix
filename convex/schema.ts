@@ -25,5 +25,6 @@ export default defineSchema({
     error: v.optional(v.string()),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
+    ipfsUrl: v.optional(v.string()), // optional until image is uploaded to IPFS
   }).index('by_user', ['userAddress']),
 });
