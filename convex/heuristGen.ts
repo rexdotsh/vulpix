@@ -32,7 +32,7 @@ export const callHeuristAPI = internalAction({
         ...(args.seed !== undefined && { seed: args.seed }),
       });
 
-      await ctx.runMutation(internal.functions.images.saveGeneratedImage, {
+      await ctx.runMutation(internal.images.saveGeneratedImage, {
         imageGenId: args.imageGenId,
         imageUrl: result.url,
       });
@@ -42,7 +42,7 @@ export const callHeuristAPI = internalAction({
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error occurred';
 
-      await ctx.runMutation(internal.functions.images.markImageAsFailed, {
+      await ctx.runMutation(internal.images.markImageAsFailed, {
         imageGenId: args.imageGenId,
         error: errorMessage,
       });

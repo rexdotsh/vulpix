@@ -42,7 +42,7 @@ export const generateImage = mutation({
     const { userAddress, ...rest } = args;
     await ctx.scheduler.runAfter(
       0,
-      internal.functions.heuristGen.callHeuristAPI,
+      internal.heuristGen.callHeuristAPI,
       { imageGenId, ...rest },
     );
 
