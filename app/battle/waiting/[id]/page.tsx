@@ -114,17 +114,19 @@ export default function BattleWinningPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">NFT Collection</p>
-                  <p className="font-medium">{battleRoom.nftCollection}</p>
+                  <p className="font-medium">
+                    {battleRoom.inviterNftCollection}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">NFT Item</p>
-                  <p className="font-medium">{battleRoom.nftItem}</p>
+                  <p className="font-medium">{battleRoom.inviterNftItem}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Creator</p>
                   <p className="font-medium text-xs">
-                    {battleRoom.userAddress.slice(0, 8)}...
-                    {battleRoom.userAddress.slice(-6)}
+                    {battleRoom.inviterAddress.slice(0, 8)}...
+                    {battleRoom.inviterAddress.slice(-6)}
                   </p>
                 </div>
                 <div>
@@ -172,8 +174,7 @@ export default function BattleWinningPage() {
                 <Button
                   variant="default"
                   onClick={() =>
-                    navigator.share &&
-                    navigator.share({
+                    navigator.share?.({
                       title: 'Join my NFT Battle!',
                       text: 'Challenge me to an epic NFT battle!',
                       url: shareUrl,
