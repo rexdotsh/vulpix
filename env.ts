@@ -7,7 +7,7 @@ export const env = createEnv({
     DIRECT_URL: z.string().min(1),
     HEURIST_API_KEY: z.string().min(1).regex(/[-#]/),
     PINATA_JWT: z.string().min(1),
-    CONVEX_DEPLOYMENT: z.string().min(1),
+    CONVEX_DEPLOYMENT: z.string().min(1).optional(),
     // necessary only for prod on vercel
     CONVEX_DEPLOY_KEY: z.string().min(1).optional(),
   },
