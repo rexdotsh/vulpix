@@ -14,7 +14,8 @@ export const env = createEnv({
   },
   client: {
     NEXT_PUBLIC_GATEWAY_URL: z.string().min(1),
-    NEXT_PUBLIC_CONVEX_URL: z.string().min(1).url(),
+    // don't need on prod
+    NEXT_PUBLIC_CONVEX_URL: z.string().min(1).url().optional(),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
