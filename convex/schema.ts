@@ -27,4 +27,28 @@ export default defineSchema({
     completedAt: v.optional(v.number()),
     ipfsUrl: v.optional(v.string()), // optional until image is uploaded to IPFS
   }).index('by_user', ['userAddress']),
+
+  nftCollections: defineTable({
+    collectionId: v.string(),
+    owner: v.string(),
+    userAddress: v.id('users'),
+    details: v.any(),
+    metadata: v.any(),
+    lastSynced: v.number(),
+  })
+    .index('by_user', ['userAddress'])
+    .index('by_collection_id', ['collectionId']),
+
+  nftItems: defineTable({
+    collectionId: v.string(),
+    itemId: v.string(),
+    owner: v.string(),
+    userAddress: v.id('users'),
+    itemDetails: v.any(),
+    itemMetadata: v.any(),
+    lastSynced: v.number(),
+  })
+    .index('by_user', ['userAddress'])
+    .index('by_collection', ['collectionId'])
+    .index('by_item', ['collectionId', 'itemId']),
 });

@@ -15,6 +15,8 @@ import type {
 } from "convex/server";
 import type * as functions_heuristGen from "../functions/heuristGen.js";
 import type * as functions_images from "../functions/images.js";
+import type * as functions_nft from "../functions/nft.js";
+import type * as functions_users from "../functions/users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -27,6 +29,8 @@ import type * as functions_images from "../functions/images.js";
 declare const fullApi: ApiFromModules<{
   "functions/heuristGen": typeof functions_heuristGen;
   "functions/images": typeof functions_images;
+  "functions/nft": typeof functions_nft;
+  "functions/users": typeof functions_users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
