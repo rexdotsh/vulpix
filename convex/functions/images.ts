@@ -50,6 +50,31 @@ export const generateImage = mutation({
   },
 });
 
+export const uploadImageToIpfs = mutation({
+  args: {
+    imageUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.scheduler.runAfter(0, internal.functions.ipfsUpload.ipfsUpload, {
+      imageUrl: args.imageUrl,
+    });
+
+    return { scheduled: true };
+  },
+});
+
+export const saveIpfsUpload = internalMutation({
+  args: {
+    originalUrl: v.string(),
+    cid: v.string(),
+    ipfsUrl: v.string(),
+    createdAt: v.number(),
+  },
+  handler: (ctx, args) => {
+    return ctx.db.insert('ipfsUploads', args);
+  },
+});
+
 export const saveGeneratedImage = internalMutation({
   args: {
     imageGenId: v.id('imageGenerations'),
@@ -78,6 +103,7 @@ export const markImageAsFailed = internalMutation({
   },
 });
 
+// TODO: history page on @/generate
 export const getUserImages = query({
   args: { userAddress: v.string() },
   handler: async (ctx, args) => {

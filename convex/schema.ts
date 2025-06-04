@@ -26,4 +26,11 @@ export default defineSchema({
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
   }).index('by_user', ['userAddress']),
+
+  ipfsUploads: defineTable({
+    originalUrl: v.string(),
+    cid: v.string(),
+    ipfsUrl: v.string(),
+    createdAt: v.number(),
+  }).index('by_originalUrl', ['originalUrl']),
 });
