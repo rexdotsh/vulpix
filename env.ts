@@ -7,15 +7,13 @@ export const env = createEnv({
     DIRECT_URL: z.string().min(1),
     HEURIST_API_KEY: z.string().min(1).regex(/[-#]/),
     PINATA_JWT: z.string().min(1),
-    // necessary only for development
-    CONVEX_DEPLOYMENT: z.string().min(1).optional(),
+    CONVEX_DEPLOYMENT: z.string().min(1),
     // necessary only for prod on vercel
     CONVEX_DEPLOY_KEY: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_GATEWAY_URL: z.string().min(1),
-    // don't need on prod
-    NEXT_PUBLIC_CONVEX_URL: z.string().min(1).url().optional(),
+    NEXT_PUBLIC_CONVEX_URL: z.string().min(1),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
