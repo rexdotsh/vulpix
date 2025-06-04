@@ -2,19 +2,16 @@ name: Format & Lint Check
 
 on:
   push:
-    branches: ["main"]
   pull_request:
-    branches: ["main"]
-
 jobs:
-  format:
-    name: Format & Lint Check
+  quality:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Biome CLI
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Biome
         uses: biomejs/setup-biome@v2
         with:
           version: 1.9.4
-
       - name: Run Biome
-        run: biome ci
+        run: biome ci .
