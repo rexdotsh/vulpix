@@ -43,26 +43,30 @@ import type { UserCollection } from '@/lib/assetHubNFTManager';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
+import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
 
 export function ImageGenerator() {
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [generatedImageDimensions, setGeneratedImageDimensions] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
-
-  // minting logic !!
-  const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
-  const { selectedAccount, getInjector } = usePolkadot();
+  const [isMinting, setIsMinting] = useState(false);
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
-  const [isMinting, setIsMinting] = useState(false);
+
+  const [generatedImage, setGeneratedImage] = useState<{
+    url: string | null;
+    dimensions: { width: number; height: number } | null;
+  }>({
+    url: null,
+    dimensions: null,
+  });
 
   const [imageGenId, setImageGenId] = useState<Id<'imageGenerations'> | null>(
     null,
   );
+
+  const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
+  const { selectedAccount, getInjector } = usePolkadot();
+
   const generateImageMutation = useMutation(api.functions.images.generateImage);
   const imageQuery = useQuery(
     api.functions.images.getImageGeneration,
@@ -73,87 +77,27 @@ export function ImageGenerator() {
     if (!selectedAccount?.address || !nftManager || !isAssetHubInitialized)
       return;
     (async () => {
-      try {
-        const cols = await nftManager.getUserCollections(
-          selectedAccount.address,
-        );
-        setCollections(cols);
-      } catch (e) {
-        console.error('Error fetching collections:', e);
-      }
+      const cols = await getUserCollections(
+        nftManager,
+        selectedAccount.address,
+      );
+      setCollections(cols);
     })();
   }, [selectedAccount?.address, nftManager, isAssetHubInitialized]);
 
   const handleMint = async () => {
-    if (!selectedAccount) {
-      toast.error('Wallet not connected');
-      return;
-    }
-    if (!nftManager) {
-      toast.error('AssetHub not initialized');
-      return;
-    }
+    if (!generatedImage.url || !selectedAccount) return;
+
     setIsMinting(true);
-    try {
-      const injector = await getInjector(selectedAccount.address);
-      if (!injector) throw new Error('Failed to get injector');
-      let collectionId = selectedCollectionId;
-      // create new collection if needed
-      if (
-        collectionId === 'new' ||
-        (!collectionId && newCollectionName.trim())
-      ) {
-        const createResult = await nftManager.createCollection(
-          selectedAccount.address,
-          injector,
-        );
-        collectionId = createResult.collectionId;
-        if (newCollectionName.trim()) {
-          await nftManager.setCollectionMetadata(
-            selectedAccount.address,
-            injector,
-            collectionId,
-            JSON.stringify({ name: newCollectionName }),
-          );
-        }
-      }
-
-      const uploadRes = await fetch('/api/ipfs/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: generatedImage }),
-      });
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok)
-        throw new Error(uploadData.error || 'IPFS upload failed');
-      const ipfsUrl: string = uploadData.url;
-      const ipfsHash = ipfsUrl.split('/ipfs/')[1]; // we use this for metadata
-
-      const itemId = await nftManager.getNextItemId(collectionId);
-      await nftManager.mintNFT(
-        selectedAccount.address,
-        injector,
-        collectionId,
-        itemId,
-        selectedAccount.address,
-      );
-
-      await nftManager.setNFTMetadata(
-        selectedAccount.address,
-        injector,
-        collectionId,
-        itemId,
-        JSON.stringify({ image: `ipfs://${ipfsHash}` }),
-      );
-      toast.success(
-        `NFT minted in collection ${collectionId} with item ID ${itemId}`,
-      );
-    } catch (e: any) {
-      console.error('Minting error:', e);
-      toast.error(e.message || 'Error minting NFT');
-    } finally {
-      setIsMinting(false);
-    }
+    await mintImageAsNFT({
+      nftManager,
+      selectedAccount,
+      getInjector,
+      selectedCollectionId,
+      newCollectionName,
+      imageUrl: generatedImage.url,
+    });
+    setIsMinting(false);
   };
 
   const form = useForm<GenerateImageFormInput>({
@@ -176,8 +120,7 @@ export function ImageGenerator() {
       return;
     }
     setIsLoading(true);
-    setGeneratedImage(null);
-    setGeneratedImageDimensions(null);
+    setGeneratedImage({ url: null, dimensions: null });
     setImageGenId(null);
     toast.info('Generating image...');
     try {
@@ -193,9 +136,12 @@ export function ImageGenerator() {
         seed: data.seed,
       });
       setImageGenId(id);
-      setGeneratedImageDimensions({
-        width: data.width ?? 1024,
-        height: data.height ?? 768,
+      setGeneratedImage({
+        url: null,
+        dimensions: {
+          width: data.width ?? 1024,
+          height: data.height ?? 768,
+        },
       });
     } catch (err: any) {
       console.error('Error starting image generation:', err);
@@ -216,7 +162,10 @@ export function ImageGenerator() {
 
   useEffect(() => {
     if (imageQuery?.imageUrl) {
-      setGeneratedImage(imageQuery.imageUrl);
+      setGeneratedImage({
+        url: imageQuery.imageUrl,
+        dimensions: generatedImage.dimensions,
+      });
       toast.success('Image generated successfully!');
       setIsLoading(false);
     } else if (imageQuery?.status === 'failed') {
@@ -495,18 +444,18 @@ export function ImageGenerator() {
                 <p>Generating your masterpiece...</p>
               </div>
             )}
-            {!isLoading && generatedImage && generatedImageDimensions && (
+            {!isLoading && generatedImage.url && generatedImage.dimensions && (
               <Image
-                src={generatedImage}
+                src={generatedImage.url}
                 alt="Generated image"
-                width={generatedImageDimensions.width}
-                height={generatedImageDimensions.height}
+                width={generatedImage.dimensions.width}
+                height={generatedImage.dimensions.height}
                 className="rounded-md object-contain max-w-full max-h-full"
                 priority
                 unoptimized
               />
             )}
-            {!isLoading && !generatedImage && (
+            {!isLoading && !generatedImage.url && (
               <div className="text-center text-muted-foreground p-8">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -534,12 +483,12 @@ export function ImageGenerator() {
               </div>
             )}
           </CardContent>
-          {generatedImage && (
+          {generatedImage.url && (
             <CardFooter className="pt-4 flex flex-col items-center space-y-4 w-full">
               <div className="flex space-x-2">
                 <Button variant="outline" asChild>
                   <a
-                    href={generatedImage}
+                    href={generatedImage.url}
                     download={`generated_image_${Date.now()}.png`}
                   >
                     Download Image
