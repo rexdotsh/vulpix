@@ -320,7 +320,6 @@ export function WalletLinking({
           )}
         </div>
 
-        {/* Help Text */}
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-sm">

@@ -199,6 +199,19 @@ export default defineSchema({
     userAddress: v.id('users'),
     itemDetails: v.any(),
     itemMetadata: v.any(),
+    stats: v.optional(
+      v.object({
+        attack: v.number(),
+        defense: v.number(),
+        intelligence: v.number(),
+        luck: v.number(),
+        speed: v.number(),
+        strength: v.number(),
+        nftType: v.number(), // 0 = fire, 1 = water, 2 = grass
+        maxHealth: v.number(),
+        generatedAt: v.number(), // timestamp when stats were generated
+      }),
+    ),
     lastSynced: v.number(),
   })
     .index('by_user', ['userAddress'])

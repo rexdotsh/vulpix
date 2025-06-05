@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
-import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import {
   Card,
   CardContent,
@@ -16,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -24,33 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Users,
-  Clock,
-  Copy,
-  Check,
-  Loader2,
-  Swords,
-  Shield,
-  Zap,
-  Brain,
-  Dices,
-  Target,
-} from 'lucide-react';
+import { Users, Copy, Check, Loader2, Swords } from 'lucide-react';
+import { NFTStatsDisplay } from '@/components/battle/NFTStatsDisplay';
+import { BattleHeader } from '@/components/battle/BattleHeader';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
 import { decodeHexMetadata } from '@/lib/utils';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
-
-const CONTRACT_ADDRESS = '0x6761CD4db5D747562bf6DACA6eC92ed277Af4F98';
-const NFT_TYPE_NAMES = ['Fire', 'Water', 'Grass'];
-const NFT_TYPE_COLORS = {
-  0: 'bg-red-500',
-  1: 'bg-blue-500',
-  2: 'bg-green-500',
-};
+import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
 
 declare global {
   interface Window {
@@ -58,75 +39,10 @@ declare global {
   }
 }
 
-function NFTStatsDisplay({ stats }: { stats: any }) {
-  const typeName = NFT_TYPE_NAMES[stats.nftType];
-  const typeColor =
-    NFT_TYPE_COLORS[stats.nftType as keyof typeof NFT_TYPE_COLORS];
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Type</span>
-        <Badge className={`${typeColor} text-white`}>{typeName}</Badge>
-      </div>
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="flex justify-between">
-          <span className="flex items-center gap-1">
-            <Swords className="h-3 w-3" />
-            Attack:
-          </span>
-          <span className="font-medium">{stats.attack}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="flex items-center gap-1">
-            <Shield className="h-3 w-3" />
-            Defense:
-          </span>
-          <span className="font-medium">{stats.defense}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="flex items-center gap-1">
-            <Zap className="h-3 w-3" />
-            Speed:
-          </span>
-          <span className="font-medium">{stats.speed}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="flex items-center gap-1">
-            <Target className="h-3 w-3" />
-            Strength:
-          </span>
-          <span className="font-medium">{stats.strength}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="flex items-center gap-1">
-            <Brain className="h-3 w-3" />
-            Intelligence:
-          </span>
-          <span className="font-medium">{stats.intelligence}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="flex items-center gap-1">
-            <Dices className="h-3 w-3" />
-            Luck:
-          </span>
-          <span className="font-medium">{stats.luck}</span>
-        </div>
-      </div>
-      <Separator />
-      <div className="flex justify-between font-semibold">
-        <span>Max Health:</span>
-        <span className="text-green-600">{stats.maxHealth}</span>
-      </div>
-    </div>
-  );
-}
-
 export default function LobbyPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { selectedAccount, getInjector } = usePolkadot();
-  const { nftManager, isInitialized } = useAssetHub();
+  const { selectedAccount } = usePolkadot();
   const { nfts } = useNFTs();
 
   const [selectedNFT, setSelectedNFT] = useState<any>(null);
@@ -141,7 +57,6 @@ export default function LobbyPage() {
       ? `${window.location.origin}/battle/lobby/${lobbyId}`
       : '';
 
-  // Queries and mutations
   const lobby = useQuery(api.battle.getLobby, { lobbyId });
   const updateLobbyNFT = useMutation(api.battle.updateLobbyNFT);
   const startBattleFromLobby = useMutation(api.battle.startBattleFromLobby);
@@ -154,7 +69,6 @@ export default function LobbyPage() {
   const isJoiner = selectedAccount?.address === lobby?.joinedPlayerAddress;
   const isInLobby = isCreator || isJoiner;
 
-  // Auto-join if not in lobby and lobby exists
   useEffect(() => {
     if (lobby && selectedAccount && !isInLobby && lobby.status === 'waiting') {
       joinLobby({
@@ -165,44 +79,11 @@ export default function LobbyPage() {
     }
   }, [lobby, selectedAccount, isInLobby]);
 
-  // Redirect to battle if started
   useEffect(() => {
     if (lobby?.status === 'started') {
-      // Find the battle and redirect
-      // We'll need to implement a way to get battle ID from lobby
       router.push('/battle');
     }
   }, [lobby?.status, router]);
-
-  const generateStatsFromNFT = (nft: any) => {
-    const metadata = decodeHexMetadata(nft.itemMetadata?.data);
-    const hash = `${metadata?.name || ''}${nft.collection}${nft.item}`;
-    let hashValue = 0;
-    for (let i = 0; i < hash.length; i++) {
-      hashValue = hashValue * 31 + hash.charCodeAt(i);
-    }
-
-    const rand = (min: number, max: number, seed: number) => {
-      const x = Math.sin(seed) * 10000;
-      return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
-    };
-
-    const stats = {
-      attack: rand(20, 80, hashValue + 1),
-      defense: rand(20, 80, hashValue + 2),
-      intelligence: rand(10, 60, hashValue + 3),
-      luck: rand(5, 50, hashValue + 5),
-      speed: rand(10, 70, hashValue + 6),
-      strength: rand(20, 80, hashValue + 7),
-      nftType: Math.abs(hashValue) % 3,
-      maxHealth: 0,
-    };
-
-    stats.maxHealth = Math.floor(
-      50 + stats.strength * 0.5 + stats.defense * 0.3,
-    );
-    return stats;
-  };
 
   const handleNFTSelect = async (nft: any) => {
     if (!selectedAccount || !isInLobby) return;
@@ -467,34 +348,15 @@ export default function LobbyPage() {
   const bothPlayersReady =
     lobby.creatorNFT?.isReady && lobby.joinerNFT?.isReady;
   const canStartBattle = bothPlayersReady && isCreator && talismanConnected;
-  const timeLeft = Math.max(
-    0,
-    Math.ceil((lobby.expiresAt - Date.now()) / 60000),
-  );
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={() => router.push('/battle')}>
-                ← Back to Arena
-              </Button>
-              <Separator orientation="vertical" className="h-4" />
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                <span className="font-semibold">Battle Lobby</span>
-                <Badge variant="outline">{lobbyId}</Badge>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span className="text-sm">{timeLeft}m left</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <BattleHeader
+        title="Battle Lobby"
+        backHref="/battle"
+        backLabel="Back to Arena"
+        battleId={lobbyId}
+      />
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-6">
@@ -632,9 +494,7 @@ export default function LobbyPage() {
                         <h4 className="text-sm font-medium mb-2">
                           Battle Stats
                         </h4>
-                        <NFTStatsDisplay
-                          stats={generateStatsFromNFT(selectedNFT)}
-                        />
+                        <NFTStatsDisplay stats={selectedNFT.stats} />
                       </div>
                     )}
 
@@ -759,9 +619,7 @@ export default function LobbyPage() {
                           <h4 className="text-sm font-medium mb-2">
                             Battle Stats
                           </h4>
-                          <NFTStatsDisplay
-                            stats={generateStatsFromNFT(selectedNFT)}
-                          />
+                          <NFTStatsDisplay stats={selectedNFT.stats} />
                         </div>
                       )}
 

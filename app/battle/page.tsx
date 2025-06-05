@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -40,6 +39,8 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { BattleHeader } from '@/components/battle/BattleHeader';
+import { formatTimeLeft, getPlayerDisplayName } from '@/lib/battle-utils';
 
 export default function BattlePage() {
   const router = useRouter();
@@ -140,28 +141,11 @@ export default function BattlePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-xl font-bold text-foreground hover:text-foreground/80"
-              >
-                AssetHub NFT Manager
-              </Link>
-              <Separator orientation="vertical" className="h-4" />
-              <div className="flex items-center gap-2">
-                <Swords className="h-5 w-5" />
-                <span className="font-semibold">Battle Arena</span>
-              </div>
-            </div>
-            <Link href="/dashboard">
-              <Button variant="outline">Back to Dashboard</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <BattleHeader
+        title="Battle Arena"
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
+      />
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
@@ -361,10 +345,7 @@ export default function BattlePage() {
                               <div className="text-right">
                                 <p className="text-sm">
                                   <Clock className="h-4 w-4 inline mr-1" />
-                                  {Math.ceil(
-                                    (lobby.expiresAt - Date.now()) / 60000,
-                                  )}
-                                  m left
+                                  {formatTimeLeft(lobby.expiresAt)}
                                 </p>
                               </div>
                               <Button
@@ -423,10 +404,14 @@ export default function BattlePage() {
                             selectedAccount?.address;
                           const opponent =
                             battle.player1Address === selectedAccount?.address
-                              ? battle.player2Name ||
-                                battle.player2Address.slice(0, 8)
-                              : battle.player1Name ||
-                                battle.player1Address.slice(0, 8);
+                              ? getPlayerDisplayName(
+                                  battle.player2Address,
+                                  battle.player2Name,
+                                )
+                              : getPlayerDisplayName(
+                                  battle.player1Address,
+                                  battle.player1Name,
+                                );
 
                           return (
                             <div
@@ -536,10 +521,14 @@ export default function BattlePage() {
                             selectedAccount?.address;
                           const opponent =
                             battle.player1Address === selectedAccount?.address
-                              ? battle.player2Name ||
-                                battle.player2Address.slice(0, 8)
-                              : battle.player1Name ||
-                                battle.player1Address.slice(0, 8);
+                              ? getPlayerDisplayName(
+                                  battle.player2Address,
+                                  battle.player2Name,
+                                )
+                              : getPlayerDisplayName(
+                                  battle.player1Address,
+                                  battle.player1Name,
+                                );
 
                           return (
                             <div

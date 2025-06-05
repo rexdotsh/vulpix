@@ -7,7 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
-import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
+import {} from '@/lib/utils';
 import {
   Card,
   CardContent,
@@ -16,248 +16,26 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import {
-  Swords,
-  Shield,
-  Zap,
-  Brain,
-  Target,
-  Dices,
   Clock,
   Loader2,
   Trophy,
-  ExternalLink,
-  ArrowLeft,
   AlertCircle,
+  Swords,
+  ExternalLink,
 } from 'lucide-react';
+import { NFTCard } from '@/components/battle/NFTCard';
+import { MoveHistoryCard } from '@/components/battle/MoveHistoryCard';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import Image from 'next/image';
 import Link from 'next/link';
-
-const CONTRACT_ADDRESS = '0x6761CD4db5D747562bf6DACA6eC92ed277Af4F98';
-const NFT_TYPE_NAMES = ['Fire', 'Water', 'Grass'];
-const NFT_TYPE_COLORS = {
-  0: 'bg-red-500 text-white',
-  1: 'bg-blue-500 text-white',
-  2: 'bg-green-500 text-white',
-};
+import { BattleHeader } from '@/components/battle/BattleHeader';
+import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
 
 declare global {
   interface Window {
     talismanEth: any;
   }
-}
-
-interface NFTCardProps {
-  title: string;
-  playerAddress: string;
-  playerName?: string;
-  nftData: any;
-  stats: any;
-  currentHealth: number;
-  maxHealth: number;
-  isCurrentPlayer: boolean;
-  isCurrentTurn: boolean;
-}
-
-function NFTCard({
-  title,
-  playerAddress,
-  playerName,
-  nftData,
-  stats,
-  currentHealth,
-  maxHealth,
-  isCurrentPlayer,
-  isCurrentTurn,
-}: NFTCardProps) {
-  const metadata = decodeHexMetadata(nftData.itemMetadata?.data);
-  const imageUrl = getIpfsImageUrl(metadata);
-  const healthPercentage = (currentHealth / maxHealth) * 100;
-  const typeName = NFT_TYPE_NAMES[stats.nftType];
-  const typeColor =
-    NFT_TYPE_COLORS[stats.nftType as keyof typeof NFT_TYPE_COLORS];
-
-  return (
-    <Card
-      className={`w-full max-w-md ${isCurrentPlayer ? 'ring-2 ring-blue-500' : ''} ${isCurrentTurn ? 'ring-2 ring-yellow-500' : ''}`}
-    >
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{title}</CardTitle>
-          <div className="flex items-center gap-2">
-            <Badge className={typeColor}>{typeName}</Badge>
-            {isCurrentTurn && (
-              <Badge variant="default" className="animate-pulse">
-                Turn
-              </Badge>
-            )}
-          </div>
-        </div>
-        <CardDescription>
-          {playerName ||
-            `${playerAddress.slice(0, 6)}...${playerAddress.slice(-4)}`}
-          {isCurrentPlayer && <span className="text-blue-500"> (You)</span>}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* NFT Image */}
-        {imageUrl && (
-          <div className="aspect-square relative rounded-lg overflow-hidden bg-muted">
-            <Image
-              src={imageUrl}
-              alt={metadata?.name || 'NFT'}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-        )}
-
-        {/* NFT Info */}
-        <div className="space-y-2">
-          <h4 className="font-semibold">{metadata?.name || 'Unknown NFT'}</h4>
-          <p className="text-sm text-muted-foreground">
-            Collection: {nftData.collection.slice(0, 8)}...
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Item: {nftData.item.slice(0, 8)}...
-          </p>
-        </div>
-
-        {/* Health Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Health</span>
-            <span className="font-medium">
-              {currentHealth}/{maxHealth}
-            </span>
-          </div>
-          <Progress
-            value={healthPercentage}
-            className="h-3"
-            style={
-              {
-                '--progress-background':
-                  healthPercentage > 50
-                    ? '#22c55e'
-                    : healthPercentage > 25
-                      ? '#eab308'
-                      : '#ef4444',
-              } as React.CSSProperties
-            }
-          />
-        </div>
-
-        <Separator />
-
-        {/* Battle Stats */}
-        <div className="space-y-2">
-          <h5 className="font-medium text-sm">Battle Stats</h5>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Swords className="h-3 w-3" />
-                Attack:
-              </span>
-              <span className="font-medium">{stats.attack}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                Defense:
-              </span>
-              <span className="font-medium">{stats.defense}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Zap className="h-3 w-3" />
-                Speed:
-              </span>
-              <span className="font-medium">{stats.speed}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Target className="h-3 w-3" />
-                Strength:
-              </span>
-              <span className="font-medium">{stats.strength}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Brain className="h-3 w-3" />
-                Intelligence:
-              </span>
-              <span className="font-medium">{stats.intelligence}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Dices className="h-3 w-3" />
-                Luck:
-              </span>
-              <span className="font-medium">{stats.luck}</span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function MoveHistoryCard({ moves }: { moves: any[] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Battle Log</CardTitle>
-        <CardDescription>Recent moves and actions</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {moves.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No moves yet. The battle is about to begin!
-            </p>
-          ) : (
-            moves
-              .slice(-10)
-              .reverse()
-              .map((move, index) => (
-                <div
-                  key={`${move.turnNumber}-${index}`}
-                  className="flex items-center justify-between p-2 bg-muted rounded text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Turn {move.turnNumber}:</span>
-                    <span>
-                      {move.player.slice(0, 6)}... {move.action}
-                    </span>
-                    {move.damage && (
-                      <Badge
-                        variant={move.wasCritical ? 'destructive' : 'secondary'}
-                      >
-                        {move.damage} dmg {move.wasCritical && '(CRIT!)'}
-                      </Badge>
-                    )}
-                  </div>
-                  <Link
-                    href={`https://blockscout-asset-hub.parity-chains-scw.parity.io/tx/${move.txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Link>
-                </div>
-              ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 export default function BattlePlayPage() {
@@ -298,7 +76,7 @@ export default function BattlePlayPage() {
           } else {
             setConnectionStatus('Connected');
           }
-        } catch (error) {
+        } catch (error: any) {
           setConnectionStatus('Talisman connection error');
         }
       }
@@ -363,10 +141,13 @@ export default function BattlePlayPage() {
         battle.contractBattleId,
       );
 
+      // TODO: dont just any, use type
       const turnExecutedEvent = turnEvents.find(
-        (e) => e.name === 'TurnExecuted',
+        (e: any) => e.name === 'TurnExecuted',
       );
-      const battleEndedEvent = turnEvents.find((e) => e.name === 'BattleEnded');
+      const battleEndedEvent = turnEvents.find(
+        (e: any) => e.name === 'BattleEnded',
+      );
 
       // 6. Update Convex with results
       await updateTurnResult({
@@ -503,41 +284,15 @@ export default function BattlePlayPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={() => router.push('/battle')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Arena
-              </Button>
-              <Separator orientation="vertical" className="h-4" />
-              <div className="flex items-center gap-2">
-                <Swords className="h-5 w-5" />
-                <span className="font-semibold">Battle Arena</span>
-                <Badge variant="outline">{battleId}</Badge>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              {battle.creationTxHash && (
-                <Link
-                  href={`https://blockscout-asset-hub.parity-chains-scw.parity.io/tx/${battle.creationTxHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-                >
-                  View on Explorer <ExternalLink className="h-3 w-3" />
-                </Link>
-              )}
-              <Badge variant={gameFinished ? 'destructive' : 'default'}>
-                {gameFinished
-                  ? 'Finished'
-                  : `Turn ${battle.gameState.turnNumber}`}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </header>
+      <BattleHeader
+        title="Battle Arena"
+        backHref="/battle"
+        backLabel="Back to Arena"
+        battleId={battleId}
+        txHash={battle.creationTxHash}
+        status={gameFinished ? 'finished' : battle.gameState.status}
+        turnNumber={battle.gameState.turnNumber}
+      />
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-6">
