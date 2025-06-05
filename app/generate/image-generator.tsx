@@ -33,10 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { availableModels } from '@/lib/availableModels';
-import {
-  generateImageFormSchema,
-  type GenerateImageFormInput,
-} from '@/lib/validationSchemas';
+import { z } from 'zod';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import type { UserCollection } from '@/lib/assetHubNFTManager';
@@ -44,6 +41,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
+import { useNFTs } from '@/hooks/useNFTs';
 
 export function ImageGenerator() {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,12 +64,26 @@ export function ImageGenerator() {
 
   const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
   const { selectedAccount, getInjector } = usePolkadot();
+  const { syncFromAssetHub } = useNFTs();
 
   const generateImageMutation = useMutation(api.images.generateImage);
   const imageQuery = useQuery(
     api.images.getImageGeneration,
     imageGenId ? { imageGenId } : 'skip',
   );
+
+  const generateImageFormSchema = z.object({
+    model: z.string().min(1, 'Model is required.'),
+    prompt: z.string().min(1, 'Prompt is required.'),
+    neg_prompt: z.string().optional(),
+    num_iterations: z.number().min(1).max(100).optional(),
+    guidance_scale: z.number().min(1).max(20).optional(),
+    width: z.number().min(256).max(2048).optional(),
+    height: z.number().min(256).max(2048).optional(),
+    seed: z.number().int().optional(),
+  });
+
+  type GenerateImageFormInput = z.infer<typeof generateImageFormSchema>;
 
   useEffect(() => {
     if (!selectedAccount?.address || !nftManager || !isAssetHubInitialized)
@@ -89,7 +101,7 @@ export function ImageGenerator() {
     if (!generatedImage.url || !selectedAccount) return;
 
     setIsMinting(true);
-    await mintImageAsNFT({
+    const result = await mintImageAsNFT({
       nftManager,
       selectedAccount,
       getInjector,
@@ -97,6 +109,15 @@ export function ImageGenerator() {
       newCollectionName,
       imageUrl: generatedImage.url,
     });
+
+    if (result && syncFromAssetHub) {
+      try {
+        await syncFromAssetHub();
+      } catch (error) {
+        console.error('Error syncing after mint:', error);
+      }
+    }
+
     setIsMinting(false);
   };
 
