@@ -14,9 +14,8 @@ const heroImages = Array.from(
 
 const navItems = [
   { href: '/', label: 'home', active: true },
-  { href: '/about', label: 'about' },
-  { href: '/contact', label: 'contact' },
-  { href: '/dashboard', label: 'the app' },
+  { href: '/dashboard', label: 'dashboard' },
+  { href: '#about', label: 'about' },
 ];
 
 const NavLink = ({
@@ -408,7 +407,7 @@ export default function Page() {
           transition={{ duration: 0.5, delay: 1.5 }}
         >
           <span className="font-helvetica text-white uppercase tracking-tight text-sm md:text-base">
-            Go down or smth
+            check it out
           </span>
         </motion.button>
       )}

@@ -149,7 +149,7 @@
   --font-sans: Geist, sans-serif;
   --font-serif: Geist Mono, monospace;
   --font-mono: Geist Mono, monospace;
-  --font-garamond: 'ITC Garamond Std Light Condensed', serif;
+  --font-garamond: 'ITC Garamond Std Light Condensed', sans-serif;
   --radius: 0.625rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -181,4 +181,28 @@
 
 body {
   letter-spacing: var(--tracking-normal);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--muted);
 }

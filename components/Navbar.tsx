@@ -14,6 +14,10 @@ const navigation = [
 
 export function Navbar() {
   const pathname = usePathname();
+  // don't render navbar on home page
+  if (pathname === '/') {
+    return null;
+  }
 
   const isActive = (href: string) =>
     pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
