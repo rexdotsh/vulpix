@@ -45,7 +45,7 @@ import { PageStateCard } from '@/components/battle/PageStateCard';
 
 export default function BattlePage() {
   const router = useRouter();
-  const { selectedAccount, isReady } = usePolkadot();
+  const { selectedAccount, isReady, isInitialized } = usePolkadot();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [joinLobbyId, setJoinLobbyId] = useState('');
 
@@ -119,6 +119,15 @@ export default function BattlePage() {
     if (!joinLobbyId.trim()) return;
     await handleJoinLobby(joinLobbyId.toUpperCase());
   };
+
+  if (!isInitialized) {
+    return (
+      <PageStateCard
+        variant="loading"
+        message="Initializing wallet connection..."
+      />
+    );
+  }
 
   if (!isReady) {
     return (

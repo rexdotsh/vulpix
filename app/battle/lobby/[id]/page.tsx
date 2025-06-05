@@ -30,7 +30,7 @@ import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
 export default function LobbyPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { selectedAccount } = usePolkadot();
+  const { selectedAccount, isInitialized } = usePolkadot();
   const { nfts } = useNFTs();
 
   const [selectedNFT, setSelectedNFT] = useState<any>(null);
@@ -226,6 +226,15 @@ export default function LobbyPage() {
       toast.error('Failed to copy link');
     }
   };
+
+  if (!isInitialized) {
+    return (
+      <PageStateCard
+        variant="loading"
+        message="Initializing wallet connection..."
+      />
+    );
+  }
 
   if (!selectedAccount) {
     return (
