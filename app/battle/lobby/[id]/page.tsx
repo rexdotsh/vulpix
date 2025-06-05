@@ -16,6 +16,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Users, Copy, Check, Loader2, Swords } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { BattleHeader } from '@/components/battle/BattleHeader';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 import { NFTSelector } from '@/components/battle/NFTSelector';
@@ -26,6 +33,7 @@ import { useNFTs } from '@/hooks/useNFTs';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
 import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
+import { WalletLinking } from '@/components/WalletLinking';
 
 export default function LobbyPage() {
   const { id } = useParams();
@@ -37,6 +45,7 @@ export default function LobbyPage() {
   const [isReady, setIsReady] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isStartingBattle, setIsStartingBattle] = useState(false);
+  const [showWalletLinking, setShowWalletLinking] = useState(false);
 
   const {
     isConnected: talismanConnected,
@@ -51,6 +60,10 @@ export default function LobbyPage() {
       : '';
 
   const lobby = useQuery(api.battle.getLobby, { lobbyId });
+  const linkStatus = useQuery(
+    api.battle.getUserLinkStatus,
+    selectedAccount ? { polkadotAddress: selectedAccount.address } : 'skip',
+  );
   const playersEthAddresses = useQuery(
     api.battle.getBattlePlayersEthAddresses,
     lobby?.joinedPlayerAddress ? { lobbyId } : 'skip',
@@ -124,13 +137,14 @@ export default function LobbyPage() {
   };
 
   const handleStartBattle = async () => {
-    if (
-      !selectedAccount ||
-      !lobby ||
-      !talismanConnected ||
-      !playersEthAddresses
-    )
+    if (!selectedAccount || !lobby) return;
+
+    if (!linkStatus?.hasLinkedEthAddress) {
+      setShowWalletLinking(true);
       return;
+    }
+
+    if (!talismanConnected || !playersEthAddresses) return;
 
     setIsStartingBattle(true);
 
@@ -276,9 +290,24 @@ export default function LobbyPage() {
         battleId={lobbyId}
       />
 
+      <Dialog open={showWalletLinking} onOpenChange={setShowWalletLinking}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Link Your Wallets</DialogTitle>
+            <DialogDescription>
+              You need to link your Ethereum wallet to start battles
+            </DialogDescription>
+          </DialogHeader>
+          <WalletLinking
+            onLinkingComplete={() => {
+              setShowWalletLinking(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          {/* Lobby Status */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">

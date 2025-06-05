@@ -37,7 +37,7 @@ import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
 export default function BattlePlayPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { selectedAccount, getInjector, isInitialized } = usePolkadot();
+  const { selectedAccount, isInitialized } = usePolkadot();
   const [isExecutingTurn, setIsExecutingTurn] = useState(false);
   const {
     isConnected: talismanConnected,
