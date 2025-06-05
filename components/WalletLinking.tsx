@@ -1,27 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Wallet,
-  Link,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  ExternalLink,
-} from 'lucide-react';
+import { Wallet, Link, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 declare global {
@@ -32,25 +18,13 @@ declare global {
 
 interface WalletLinkingProps {
   onLinkingComplete?: () => void;
-  showTitle?: boolean;
 }
 
-export function WalletLinking({
-  onLinkingComplete,
-  showTitle = true,
-}: WalletLinkingProps) {
+export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
   const { selectedAccount } = usePolkadot();
   const [isLinking, setIsLinking] = useState(false);
   const [talismanConnected, setTalismanConnected] = useState(false);
   const [ethAddress, setEthAddress] = useState<string>('');
-
-  // Query user's link status
-  const linkStatus = useQuery(
-    api.battle.getUserLinkStatus,
-    selectedAccount ? { polkadotAddress: selectedAccount.address } : 'skip',
-  );
-
-  // Mutation to link addresses
   const linkEthereumAddress = useMutation(api.users.linkEthereumAddress);
 
   useEffect(() => {
@@ -169,166 +143,130 @@ export function WalletLinking({
     );
   }
 
-  // If already linked, show success state
-  if (linkStatus?.hasLinkedEthAddress) {
-    return (
-      <Card className="border-primary bg-primary/10">
-        <CardHeader>
-          {showTitle && (
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <CheckCircle className="h-5 w-5" />
-              Wallets Linked
-            </CardTitle>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Polkadot:</span>
-              <Badge variant="outline" className="font-mono text-xs">
-                {selectedAccount.address.slice(0, 8)}...
-                {selectedAccount.address.slice(-6)}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Ethereum:</span>
-              <Badge variant="outline" className="font-mono text-xs">
-                {linkStatus.ethAddress?.slice(0, 8)}...
-                {linkStatus.ethAddress?.slice(-6)}
-              </Badge>
-            </div>
-          </div>
-          <p className="text-sm text-primary">
-            ✅ Ready for battles! Your wallets are linked and ready to use.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        {showTitle && (
-          <>
-            <CardTitle className="flex items-center gap-2">
-              <Link className="h-5 w-5" />
-              Link Your Wallets
-            </CardTitle>
-            <CardDescription>
-              Connect both Polkadot and Ethereum addresses to participate in
-              battles
-            </CardDescription>
-          </>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Current Status */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-primary" />
-              <span className="text-sm">Polkadot Wallet</span>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between py-3 border-b">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Wallet className="h-4 w-4 text-primary" />
             </div>
+            <div>
+              <p className="font-medium">Polkadot Wallet</p>
+              <p className="text-sm text-muted-foreground">
+                {selectedAccount.meta.name || 'Connected'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
             <Badge variant="outline" className="font-mono text-xs">
-              {selectedAccount.address.slice(0, 8)}...
-              {selectedAccount.address.slice(-6)}
+              {selectedAccount.address.slice(0, 6)}...
+              {selectedAccount.address.slice(-4)}
             </Badge>
+            <div className="w-2 h-2 bg-primary rounded-full" />
           </div>
+        </div>
 
-          <div
-            className={`flex items-center justify-between p-3 rounded-lg ${
-              talismanConnected ? 'bg-primary/10' : 'bg-muted'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {talismanConnected ? (
-                <CheckCircle className="h-4 w-4 text-primary" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-muted-foreground" />
-              )}
-              <span className="text-sm">Ethereum Wallet (Talisman)</span>
+        <div className="flex items-center justify-between py-3 border-b">
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                talismanConnected ? 'bg-primary/10' : 'bg-muted'
+              }`}
+            >
+              <Wallet
+                className={`h-4 w-4 ${
+                  talismanConnected ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              />
             </div>
-            {talismanConnected ? (
+            <div>
+              <p className="font-medium">Ethereum Wallet</p>
+              <p className="text-sm text-muted-foreground">
+                {talismanConnected ? 'Talisman Extension' : 'Not connected'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {talismanConnected && (
               <Badge variant="outline" className="font-mono text-xs">
-                {ethAddress.slice(0, 8)}...{ethAddress.slice(-6)}
+                {ethAddress.slice(0, 6)}...{ethAddress.slice(-4)}
               </Badge>
-            ) : (
-              <span className="text-sm text-muted-foreground">
-                Not connected
-              </span>
             )}
+            <div
+              className={`w-2 h-2 rounded-full ${
+                talismanConnected ? 'bg-primary' : 'bg-muted-foreground/30'
+              }`}
+            />
           </div>
         </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          {!window.talismanEth && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="flex items-center justify-between">
-                <span>Talisman wallet extension required</span>
-                <Button variant="outline" size="sm" asChild>
-                  <a
-                    href="https://talisman.xyz"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1"
-                  >
-                    Install <ExternalLink className="h-3 w-3" />
-                  </a>
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
+      {/* Actions */}
+      <div className="space-y-3">
+        {!window.talismanEth && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Talisman wallet extension required</span>
+              <Button variant="outline" size="sm" asChild>
+                <a
+                  href="https://talisman.xyz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1"
+                >
+                  Install <ExternalLink className="h-3 w-3" />
+                </a>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
-          {window.talismanEth && !talismanConnected && (
-            <Button onClick={connectTalisman} className="w-full">
-              <Wallet className="h-4 w-4 mr-2" />
-              Connect Talisman Wallet
+        {window.talismanEth && !talismanConnected && (
+          <Button onClick={connectTalisman} className="w-full" size="lg">
+            <Wallet className="h-4 w-4 mr-2" />
+            Connect Talisman Wallet
+          </Button>
+        )}
+
+        {talismanConnected && (
+          <div className="space-y-3">
+            <Button
+              onClick={switchToAssetHubNetwork}
+              variant="outline"
+              className="w-full"
+            >
+              Switch to AssetHub Network
             </Button>
-          )}
 
-          {talismanConnected && (
-            <div className="space-y-2">
-              <Button
-                onClick={switchToAssetHubNetwork}
-                variant="outline"
-                className="w-full"
-              >
-                Switch to AssetHub Network
-              </Button>
+            <Button
+              onClick={handleLinkAddresses}
+              disabled={isLinking}
+              className="w-full"
+              size="lg"
+            >
+              {isLinking ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Linking Wallets...
+                </>
+              ) : (
+                <>
+                  <Link className="h-4 w-4 mr-2" />
+                  Link Wallet Addresses
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
 
-              <Button
-                onClick={handleLinkAddresses}
-                disabled={isLinking}
-                className="w-full"
-              >
-                {isLinking ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Linking Wallets...
-                  </>
-                ) : (
-                  <>
-                    <Link className="h-4 w-4 mr-2" />
-                    Link Wallet Addresses
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="text-sm">
-            <strong>Why link wallets?</strong> Battles use your Polkadot address
-            for NFT ownership and your Ethereum address for smart contract
-            interactions via PolkaVM.
-          </AlertDescription>
-        </Alert>
-      </CardContent>
-    </Card>
+      <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg border">
+        <strong>Why link wallets?</strong> Battles use your Polkadot address for
+        NFT ownership and your Ethereum address for smart contract interactions
+        via PolkaVM.
+      </div>
+    </div>
   );
 }

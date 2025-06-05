@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { PolkadotProvider } from '@/lib/providers/PolkadotProvider';
-import { WalletConnection } from '@/components/wallet-connection';
+import { WalletConnection } from '@/components/WalletConnection';
 import { AssetHubProvider } from '@/lib/providers/AssetHubProvider';
 import { ConvexClientProvider } from '@/lib/providers/ConvexClientProvider';
 import { Toaster } from '@/components/ui/sonner';
