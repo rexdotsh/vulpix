@@ -6,7 +6,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { ethers } from 'ethers';
-import { NFTBattleGameABI } from '@/lib/contractABI';
+import { NFTBattleGameABI } from '@/lib/contract/contractABI';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
