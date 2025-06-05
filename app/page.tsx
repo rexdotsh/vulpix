@@ -7,6 +7,7 @@ import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { cn } from '@/lib/utils';
 import HeroSection from '@/components/hero/HeroSection';
 import AboutSection from '@/components/hero/CircleSection';
+import CreateSection from '@/components/hero/CreateSection';
 
 const navItems = [
   { href: '/', label: 'home', active: true },
@@ -271,6 +272,7 @@ export default function Page() {
 
       <HeroSection />
       <AboutSection />
+      <CreateSection />
     </div>
   );
 }
