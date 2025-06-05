@@ -36,6 +36,7 @@ export default defineSchema({
     inviterNftItem: v.string(),
     // Joiner details (optional until someone joins)
     joinerAddress: v.optional(v.string()),
+    joinerEthAddress: v.optional(v.string()),
     joinerNftCollection: v.optional(v.string()),
     joinerNftItem: v.optional(v.string()),
     roomFull: v.boolean(),

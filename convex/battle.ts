@@ -54,6 +54,7 @@ export const joinBattleRoom = mutation({
   args: {
     roomId: v.string(),
     joinerAddress: v.string(),
+    joinerEthAddress: v.string(),
     joinerNftCollection: v.string(),
     joinerNftItem: v.string(),
   },
@@ -66,6 +67,7 @@ export const joinBattleRoom = mutation({
     if (room && !room.roomFull) {
       await ctx.db.patch(room._id, {
         joinerAddress: args.joinerAddress,
+        joinerEthAddress: args.joinerEthAddress,
         joinerNftCollection: args.joinerNftCollection,
         joinerNftItem: args.joinerNftItem,
         roomFull: true,

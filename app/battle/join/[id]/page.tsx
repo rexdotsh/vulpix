@@ -15,6 +15,13 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ethers } from 'ethers';
+
+declare global {
+  interface Window {
+    talismanEth: any;
+  }
+}
 
 export default function BattleJoinPage() {
   const { id } = useParams();
@@ -26,6 +33,7 @@ export default function BattleJoinPage() {
   const [userNFTs, setUserNFTs] = useState<any[]>([]);
   const [selectedNFT, setSelectedNFT] = useState<any>(null);
   const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
+  const [talismanConnected, setTalismanConnected] = useState(false);
 
   const roomId = Array.isArray(id) ? id[0] : (id ?? '');
   const battleRoom = useQuery(api.battle.getBattleRoom, { roomId });
@@ -56,14 +64,48 @@ export default function BattleJoinPage() {
     }
   }, [battleRoom?.roomFull, roomId, router]);
 
+  const connectTalismanWallet = async () => {
+    if (!window.talismanEth) {
+      console.error('Talisman wallet not found');
+      return false;
+    }
+
+    try {
+      const accounts = await window.talismanEth.request({
+        method: 'eth_requestAccounts',
+      });
+
+      if (accounts && accounts.length > 0) {
+        setTalismanConnected(true);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to connect Talisman wallet:', error);
+      return false;
+    }
+  };
+
   const handleJoinBattle = async () => {
     if (!selectedNFT || !selectedAccount) return;
 
     setIsJoining(true);
     try {
+      if (!talismanConnected) {
+        const connected = await connectTalismanWallet();
+        if (!connected) {
+          throw new Error('Failed to connect to Talisman wallet');
+        }
+      }
+
+      const provider = new ethers.BrowserProvider(window.talismanEth);
+      const signer = await provider.getSigner();
+      const ethAddress = await signer.getAddress();
+
       await joinBattleRoom({
         roomId,
         joinerAddress: selectedAccount.address,
+        joinerEthAddress: ethAddress,
         joinerNftCollection: selectedNFT.collection,
         joinerNftItem: selectedNFT.item,
       });
