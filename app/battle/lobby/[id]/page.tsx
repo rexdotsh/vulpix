@@ -15,29 +15,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Users, Copy, Check, Loader2, Swords } from 'lucide-react';
-import { NFTStatsDisplay } from '@/components/battle/NFTStatsDisplay';
 import { BattleHeader } from '@/components/battle/BattleHeader';
+import { PageStateCard } from '@/components/battle/PageStateCard';
+import { NFTSelector } from '@/components/battle/NFTSelector';
+import { useTalismanWallet } from '@/hooks/useTalismanWallet';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
-import { decodeHexMetadata } from '@/lib/utils';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
 import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
-
-declare global {
-  interface Window {
-    talismanEth: any;
-  }
-}
 
 export default function LobbyPage() {
   const { id } = useParams();
@@ -49,7 +37,12 @@ export default function LobbyPage() {
   const [isReady, setIsReady] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isStartingBattle, setIsStartingBattle] = useState(false);
-  const [talismanConnected, setTalismanConnected] = useState(false);
+
+  const {
+    isConnected: talismanConnected,
+    connectWallet: connectTalismanWallet,
+    switchToAssetHubNetwork,
+  } = useTalismanWallet();
 
   const lobbyId = Array.isArray(id) ? id[0] : (id ?? '');
   const shareUrl =
@@ -127,68 +120,6 @@ export default function LobbyPage() {
       console.error('Failed to update ready state:', error);
       setIsReady(!newReadyState); // Revert on error
       toast.error('Failed to update ready state');
-    }
-  };
-
-  const connectTalismanWallet = async () => {
-    if (!window.talismanEth) {
-      toast.error('Talisman wallet not found');
-      return false;
-    }
-
-    try {
-      const accounts = await window.talismanEth.request({
-        method: 'eth_requestAccounts',
-      });
-
-      if (accounts && accounts.length > 0) {
-        setTalismanConnected(true);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Failed to connect Talisman wallet:', error);
-      toast.error('Failed to connect Talisman wallet');
-      return false;
-    }
-  };
-
-  const switchToAssetHubNetwork = async () => {
-    try {
-      const chainId = `0x190f1b45`;
-      await window.talismanEth.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId }],
-      });
-    } catch (switchError: any) {
-      if (switchError.code === 4902 || switchError.code === -32603) {
-        try {
-          const chainId = `0x190f1b45`;
-          await window.talismanEth.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId,
-                chainName: 'Asset Hub Testnet',
-                nativeCurrency: {
-                  name: 'Asset Hub Token',
-                  symbol: 'PAS',
-                  decimals: 18,
-                },
-                rpcUrls: ['https://testnet-passet-hub-eth-rpc.polkadot.io'],
-                blockExplorerUrls: [
-                  'https://blockscout-passet-hub.parity-testnet.parity.io',
-                ],
-              },
-            ],
-          });
-        } catch (addError: any) {
-          // TODO: FIX
-          // throw addError;
-        }
-      } else {
-        throw switchError;
-      }
     }
   };
 
@@ -298,60 +229,27 @@ export default function LobbyPage() {
 
   if (!selectedAccount) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Wallet Required</h2>
-              <p className="text-muted-foreground mb-4">
-                Please connect your wallet to join this lobby.
-              </p>
-              <Button onClick={() => router.push('/')} className="w-full">
-                Connect Wallet
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PageStateCard
+        title="Wallet Required"
+        message="Please connect your wallet to join this lobby."
+        buttonText="Connect Wallet"
+        redirectTo="/"
+      />
     );
   }
 
   if (!lobby) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center">
-              <Loader2 className="h-8 w-8 animate-spin mb-4" />
-              <p className="text-center text-muted-foreground">
-                Loading lobby...
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <PageStateCard variant="loading" message="Loading lobby..." />;
   }
 
   if (lobby.status === 'expired' || lobby.status === 'cancelled') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">
-                Lobby {lobby.status}
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                This lobby is no longer available.
-              </p>
-              <Button onClick={() => router.push('/battle')} className="w-full">
-                Back to Battle Arena
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PageStateCard
+        title={`Lobby ${lobby.status}`}
+        message="This lobby is no longer available."
+        buttonText="Back to Battle Arena"
+        redirectTo="/battle"
+      />
     );
   }
 
@@ -449,76 +347,13 @@ export default function LobbyPage() {
               </CardHeader>
               <CardContent>
                 {isCreator ? (
-                  <div className="space-y-4">
-                    {/* NFT Selection */}
-                    <div>
-                      <label
-                        htmlFor="nft-select"
-                        className="text-sm font-medium mb-2 block"
-                      >
-                        Select Your NFT
-                      </label>
-                      {!nfts || nfts.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
-                          No NFTs available. Please mint some NFTs first.
-                        </p>
-                      ) : (
-                        <Select
-                          value={
-                            selectedNFT
-                              ? `${selectedNFT.collection}-${selectedNFT.item}`
-                              : ''
-                          }
-                          onValueChange={(value) => {
-                            const nft = nfts.find(
-                              (n) => `${n.collection}-${n.item}` === value,
-                            );
-                            if (nft) handleNFTSelect(nft);
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose an NFT" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {nfts.map((nft) => {
-                              const metadata = decodeHexMetadata(
-                                nft.itemMetadata?.data,
-                              );
-                              return (
-                                <SelectItem
-                                  key={`${nft.collection}-${nft.item}`}
-                                  value={`${nft.collection}-${nft.item}`}
-                                >
-                                  {metadata?.name || `Item #${nft.item}`}{' '}
-                                  (Collection: {nft.collection.slice(0, 8)}...)
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-
-                    {/* NFT Stats */}
-                    {selectedNFT && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-2">
-                          Battle Stats
-                        </h4>
-                        <NFTStatsDisplay stats={selectedNFT.stats} />
-                      </div>
-                    )}
-
-                    {/* Ready Button */}
-                    <Button
-                      onClick={handleReadyToggle}
-                      disabled={!selectedNFT}
-                      variant={isReady ? 'default' : 'outline'}
-                      className="w-full"
-                    >
-                      {isReady ? 'Ready!' : 'Mark as Ready'}
-                    </Button>
-                  </div>
+                  <NFTSelector
+                    nfts={nfts || []}
+                    selectedNFT={selectedNFT}
+                    onNFTSelect={handleNFTSelect}
+                    isReady={isReady}
+                    onReadyToggle={handleReadyToggle}
+                  />
                 ) : (
                   <div className="space-y-4">
                     {lobby.creatorNFT ? (
@@ -573,77 +408,13 @@ export default function LobbyPage() {
               <CardContent>
                 {lobby.joinedPlayerAddress ? (
                   isJoiner ? (
-                    <div className="space-y-4">
-                      {/* NFT Selection */}
-                      <div>
-                        <label
-                          htmlFor="nft-select"
-                          className="text-sm font-medium mb-2 block"
-                        >
-                          Select Your NFT
-                        </label>
-                        {!nfts || nfts.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
-                            No NFTs available. Please mint some NFTs first.
-                          </p>
-                        ) : (
-                          <Select
-                            value={
-                              selectedNFT
-                                ? `${selectedNFT.collection}-${selectedNFT.item}`
-                                : ''
-                            }
-                            onValueChange={(value) => {
-                              const nft = nfts.find(
-                                (n) => `${n.collection}-${n.item}` === value,
-                              );
-                              if (nft) handleNFTSelect(nft);
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choose an NFT" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {nfts.map((nft) => {
-                                const metadata = decodeHexMetadata(
-                                  nft.itemMetadata?.data,
-                                );
-                                return (
-                                  <SelectItem
-                                    key={`${nft.collection}-${nft.item}`}
-                                    value={`${nft.collection}-${nft.item}`}
-                                  >
-                                    {metadata?.name || `Item #${nft.item}`}{' '}
-                                    (Collection: {nft.collection.slice(0, 8)}
-                                    ...)
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-
-                      {/* NFT Stats */}
-                      {selectedNFT && (
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">
-                            Battle Stats
-                          </h4>
-                          <NFTStatsDisplay stats={selectedNFT.stats} />
-                        </div>
-                      )}
-
-                      {/* Ready Button */}
-                      <Button
-                        onClick={handleReadyToggle}
-                        disabled={!selectedNFT}
-                        variant={isReady ? 'default' : 'outline'}
-                        className="w-full"
-                      >
-                        {isReady ? 'Ready!' : 'Mark as Ready'}
-                      </Button>
-                    </div>
+                    <NFTSelector
+                      nfts={nfts || []}
+                      selectedNFT={selectedNFT}
+                      onNFTSelect={handleNFTSelect}
+                      isReady={isReady}
+                      onReadyToggle={handleReadyToggle}
+                    />
                   ) : (
                     <div className="space-y-4">
                       {lobby.joinerNFT ? (
@@ -690,7 +461,7 @@ export default function LobbyPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {!talismanConnected && isCreator && (
+                {isCreator && (
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">
                       Connect Talisman wallet to create battle on blockchain
@@ -699,24 +470,21 @@ export default function LobbyPage() {
                       onClick={connectTalismanWallet}
                       variant="outline"
                       className="w-full"
+                      disabled={talismanConnected}
                     >
-                      Connect Talisman Wallet
+                      {talismanConnected
+                        ? 'Talisman Connected'
+                        : 'Connect Talisman Wallet'}
                     </Button>
-                  </div>
-                )}
-
-                {talismanConnected && isCreator && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Switch to AssetHub network for battle transactions
-                    </p>
-                    <Button
-                      onClick={switchToAssetHubNetwork}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      Switch to AssetHub Network
-                    </Button>
+                    {talismanConnected && (
+                      <Button
+                        onClick={switchToAssetHubNetwork}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Switch to AssetHub Network
+                      </Button>
+                    )}
                   </div>
                 )}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -26,24 +26,25 @@ import {
 } from 'lucide-react';
 import { NFTCard } from '@/components/battle/NFTCard';
 import { MoveHistoryCard } from '@/components/battle/MoveHistoryCard';
+import { PageStateCard } from '@/components/battle/PageStateCard';
+import { useTalismanWallet } from '@/hooks/useTalismanWallet';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { BattleHeader } from '@/components/battle/BattleHeader';
 import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
 
-declare global {
-  interface Window {
-    talismanEth: any;
-  }
-}
-
 export default function BattlePlayPage() {
   const { id } = useParams();
   const router = useRouter();
   const { selectedAccount, getInjector } = usePolkadot();
   const [isExecutingTurn, setIsExecutingTurn] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('');
+  const {
+    isConnected: talismanConnected,
+    connectionStatus,
+    setConnectionStatus,
+    connectWallet,
+  } = useTalismanWallet();
 
   const battleId = Array.isArray(id) ? id[0] : (id ?? '');
 
@@ -58,32 +59,6 @@ export default function BattlePlayPage() {
   const isParticipant = isPlayer1 || isPlayer2;
   const isMyTurn = battle?.gameState.currentTurn === selectedAccount?.address;
   const isPending = !!battle?.gameState.pendingTurn;
-
-  useEffect(() => {
-    // Auto-connect to Talisman if not connected
-    const checkTalisman = async () => {
-      if (
-        window.talismanEth &&
-        isParticipant &&
-        battle?.gameState.status === 'active'
-      ) {
-        try {
-          const accounts = await window.talismanEth.request({
-            method: 'eth_accounts',
-          });
-          if (accounts.length === 0) {
-            setConnectionStatus('Please connect Talisman wallet');
-          } else {
-            setConnectionStatus('Connected');
-          }
-        } catch (error: any) {
-          setConnectionStatus('Talisman connection error');
-        }
-      }
-    };
-
-    checkTalisman();
-  }, [isParticipant, battle?.gameState.status]);
 
   const handleExecuteTurn = async () => {
     if (!selectedAccount || !battle || !isMyTurn || isPending) return;
@@ -201,80 +176,30 @@ export default function BattlePlayPage() {
     }
   };
 
-  const connectTalisman = async () => {
-    try {
-      if (!window.talismanEth) {
-        toast.error('Talisman wallet not found. Please install Talisman.');
-        return;
-      }
-
-      await window.talismanEth.request({
-        method: 'eth_requestAccounts',
-      });
-
-      setConnectionStatus('Connected to Talisman');
-      toast.success('Talisman wallet connected!');
-    } catch (error: any) {
-      setConnectionStatus(`Connection failed: ${error.message}`);
-      toast.error('Failed to connect Talisman wallet');
-    }
-  };
-
   if (!selectedAccount) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Wallet Required</h2>
-              <p className="text-muted-foreground mb-4">
-                Please connect your wallet to view this battle.
-              </p>
-              <Button onClick={() => router.push('/')} className="w-full">
-                Connect Wallet
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PageStateCard
+        title="Wallet Required"
+        message="Please connect your wallet to view this battle."
+        buttonText="Connect Wallet"
+        redirectTo="/"
+      />
     );
   }
 
   if (!battle) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center">
-              <Loader2 className="h-8 w-8 animate-spin mb-4" />
-              <p className="text-center text-muted-foreground">
-                Loading battle...
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <PageStateCard variant="loading" message="Loading battle..." />;
   }
 
   if (!isParticipant) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <AlertCircle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Spectator Mode</h2>
-              <p className="text-muted-foreground mb-4">
-                You are viewing this battle as a spectator.
-              </p>
-              <Button onClick={() => router.push('/battle')} className="w-full">
-                Back to Battle Arena
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PageStateCard
+        icon={<AlertCircle className="h-12 w-12 text-yellow-500" />}
+        title="Spectator Mode"
+        message="You are viewing this battle as a spectator."
+        buttonText="Back to Battle Arena"
+        redirectTo="/battle"
+      />
     );
   }
 
@@ -426,9 +351,9 @@ export default function BattlePlayPage() {
                         </div>
                       )}
 
-                      {!window.talismanEth && (
+                      {!talismanConnected && (
                         <Button
-                          onClick={connectTalisman}
+                          onClick={connectWallet}
                           variant="outline"
                           className="w-full"
                         >

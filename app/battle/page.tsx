@@ -41,6 +41,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { BattleHeader } from '@/components/battle/BattleHeader';
 import { formatTimeLeft, getPlayerDisplayName } from '@/lib/battle-utils';
+import { PageStateCard } from '@/components/battle/PageStateCard';
 
 export default function BattlePage() {
   const router = useRouter();
@@ -121,21 +122,12 @@ export default function BattlePage() {
 
   if (!isReady) {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Wallet Required</CardTitle>
-            <CardDescription>
-              Connect your wallet to access the battle arena
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/">Connect Wallet</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <PageStateCard
+        title="Wallet Required"
+        message="Connect your wallet to access the battle arena"
+        buttonText="Connect Wallet"
+        redirectTo="/"
+      />
     );
   }
 
@@ -554,10 +546,6 @@ export default function BattlePage() {
                                   </div>
                                   <p className="text-sm text-muted-foreground">
                                     {battle.gameState.turnNumber} turns •{' '}
-                                    {/* {formatDistanceToNow(battle.finishedAt!, {
-                                      addSuffix: true,
-                                    })} */}
-                                    {/* TODO: FIX */}
                                     {battle.finishedAt
                                       ? formatDistanceToNow(battle.finishedAt, {
                                           addSuffix: true,
