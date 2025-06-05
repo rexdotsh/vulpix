@@ -39,7 +39,6 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { BattleHeader } from '@/components/battle/BattleHeader';
 import { formatTimeLeft, getPlayerDisplayName } from '@/lib/battle-utils';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 
@@ -138,14 +137,8 @@ export default function BattlePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <BattleHeader
-        title="Battle Arena"
-        backHref="/dashboard"
-        backLabel="Back to Dashboard"
-      />
-
-      <main className="container mx-auto px-4 py-8">
+    <div className="bg-background">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-foreground">
@@ -563,7 +556,7 @@ export default function BattlePage() {
             </TabsContent>
           </Tabs>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

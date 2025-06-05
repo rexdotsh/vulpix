@@ -31,7 +31,6 @@ import { useTalismanWallet } from '@/hooks/useTalismanWallet';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
-import { BattleHeader } from '@/components/battle/BattleHeader';
 import { env } from '@/env';
 
 export default function BattlePlayPage() {
@@ -218,18 +217,32 @@ export default function BattlePlayPage() {
   const isWinner = winner === selectedAccount.address;
 
   return (
-    <div className="min-h-screen bg-background">
-      <BattleHeader
-        title="Battle Arena"
-        backHref="/battle"
-        backLabel="Back to Arena"
-        battleId={battleId}
-        txHash={battle.creationTxHash}
-        status={gameFinished ? 'finished' : battle.gameState.status}
-        turnNumber={battle.gameState.turnNumber}
-      />
+    <div className="bg-background">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Battle Arena</h1>
+            <p className="text-sm text-muted-foreground">
+              Battle ID: {battleId} • Turn {battle.gameState.turnNumber}
+              {battle.creationTxHash && (
+                <Link
+                  href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${battle.creationTxHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 text-blue-500 hover:underline"
+                >
+                  View Creation Tx
+                </Link>
+              )}
+            </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/battle">← Back to Arena</Link>
+          </Button>
+        </div>
+      </div>
 
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Battle Status */}
           {gameFinished && (
@@ -418,7 +431,7 @@ export default function BattlePlayPage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

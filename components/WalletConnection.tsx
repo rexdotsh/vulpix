@@ -30,22 +30,20 @@ export function WalletConnection() {
 
   if (!isReady) {
     return (
-      <div className="absolute top-4 right-4">
-        <Button
-          onClick={enableExtensions}
-          disabled={isConnecting}
-          variant="outline"
-          size="sm"
-        >
-          <Wallet className="h-4 w-4 mr-2" />
-          {isConnecting ? 'Connecting...' : 'Connect'}
-        </Button>
-      </div>
+      <Button
+        onClick={enableExtensions}
+        disabled={isConnecting}
+        variant="outline"
+        size="sm"
+      >
+        <Wallet className="h-4 w-4 mr-2" />
+        {isConnecting ? 'Connecting...' : 'Connect'}
+      </Button>
     );
   }
 
   return (
-    <div className="absolute top-4 right-4">
+    <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
@@ -23,7 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { BattleHeader } from '@/components/battle/BattleHeader';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 import { NFTSelector } from '@/components/battle/NFTSelector';
 import { useTalismanWallet } from '@/hooks/useTalismanWallet';
@@ -295,13 +295,18 @@ export default function LobbyPage() {
     bothPlayersReady && isCreator && talismanConnected && playersEthAddresses;
 
   return (
-    <div className="min-h-screen bg-background">
-      <BattleHeader
-        title="Battle Lobby"
-        backHref="/battle"
-        backLabel="Back to Arena"
-        battleId={lobbyId}
-      />
+    <div className="bg-background">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Battle Lobby</h1>
+            <p className="text-sm text-muted-foreground">Lobby ID: {lobbyId}</p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/battle">← Back to Arena</Link>
+          </Button>
+        </div>
+      </div>
 
       <Dialog open={showWalletLinking} onOpenChange={setShowWalletLinking}>
         <DialogContent className="max-w-2xl">

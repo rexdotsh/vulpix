@@ -13,9 +13,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
 import { PageStateCard } from '@/components/battle/PageStateCard';
@@ -115,23 +113,8 @@ export default function Dashboard() {
   const isLoading = userNFTs === undefined;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/"
-              className="text-xl font-bold text-foreground hover:text-foreground/80"
-            >
-              AssetHub NFT Manager
-            </Link>
-            <Separator orientation="vertical" className="h-4" />
-            <span className="text-muted-foreground">Dashboard</span>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
+    <div className="bg-background">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">My NFTs</h1>
@@ -153,12 +136,6 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <Button asChild variant="default">
-              <Link href="/battle">
-                <Swords className="h-4 w-4 mr-2" />
-                Battle Arena
-              </Link>
-            </Button>
             <Button
               variant="outline"
               onClick={() => syncFromAssetHub()}
@@ -168,10 +145,6 @@ export default function Dashboard() {
                 ? 'Syncing...'
                 : 'Sync from AssetHub'}
             </Button>
-            <Badge variant="secondary" className="text-sm">
-              {selectedAccount?.meta.name ||
-                selectedAccount?.address.slice(0, 8)}
-            </Badge>
           </div>
         </div>
 
@@ -347,7 +320,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-      </main>
+      </div>
     </div>
   );
 }
