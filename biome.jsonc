@@ -78,7 +78,8 @@
         "noUselessElse": "off" // Stylistic opinion
       },
       "suspicious": {
-        "noExplicitAny": "off" // We trust Vercelians to use any only when necessary
+        "noExplicitAny": "off", // We trust Vercelians to use any only when necessary
+        "noArrayIndexKey": "off" // fuck you that's why
       },
       "nursery": {
         "noStaticElementInteractions": "warn",
