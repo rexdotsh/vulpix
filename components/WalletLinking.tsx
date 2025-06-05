@@ -172,10 +172,10 @@ export function WalletLinking({
   // If already linked, show success state
   if (linkStatus?.hasLinkedEthAddress) {
     return (
-      <Card className="border-green-500 bg-green-50 dark:bg-green-950">
+      <Card className="border-primary bg-primary/10">
         <CardHeader>
           {showTitle && (
-            <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
+            <CardTitle className="flex items-center gap-2 text-primary">
               <CheckCircle className="h-5 w-5" />
               Wallets Linked
             </CardTitle>
@@ -198,7 +198,7 @@ export function WalletLinking({
               </Badge>
             </div>
           </div>
-          <p className="text-sm text-green-700 dark:text-green-300">
+          <p className="text-sm text-primary">
             ✅ Ready for battles! Your wallets are linked and ready to use.
           </p>
         </CardContent>
@@ -227,7 +227,7 @@ export function WalletLinking({
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-primary" />
               <span className="text-sm">Polkadot Wallet</span>
             </div>
             <Badge variant="outline" className="font-mono text-xs">
@@ -238,14 +238,14 @@ export function WalletLinking({
 
           <div
             className={`flex items-center justify-between p-3 rounded-lg ${
-              talismanConnected ? 'bg-green-50 dark:bg-green-950' : 'bg-muted'
+              talismanConnected ? 'bg-primary/10' : 'bg-muted'
             }`}
           >
             <div className="flex items-center gap-2">
               {talismanConnected ? (
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-primary" />
               ) : (
-                <AlertCircle className="h-4 w-4 text-yellow-500" />
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
               )}
               <span className="text-sm">Ethereum Wallet (Talisman)</span>
             </div>

@@ -70,20 +70,22 @@ export function WalletConnection() {
               <div className="flex items-center gap-1">
                 {isInitializing ? (
                   <>
-                    <div className="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500" />
-                    <span className="text-xs text-gray-600">Connecting...</span>
+                    <div className="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-primary" />
+                    <span className="text-xs text-muted-foreground">
+                      Connecting...
+                    </span>
                   </>
                 ) : isInitialized ? (
                   <>
-                    <Wifi className="h-3 w-3 text-green-600" />
-                    <span className="text-xs text-green-600 font-medium">
+                    <Wifi className="h-3 w-3 text-primary" />
+                    <span className="text-xs text-primary font-medium">
                       AssetHub
                     </span>
                   </>
                 ) : (
                   <>
-                    <WifiOff className="h-3 w-3 text-red-500" />
-                    <span className="text-xs text-red-500 font-medium">
+                    <WifiOff className="h-3 w-3 text-destructive" />
+                    <span className="text-xs text-destructive font-medium">
                       Disconnected
                     </span>
                   </>
@@ -94,9 +96,9 @@ export function WalletConnection() {
 
           <DropdownMenuSeparator />
 
-          <div className="px-3 py-3 bg-gray-50/50 dark:bg-gray-800/50 border-l-4 border-blue-500 mx-2 my-2 rounded-r">
+          <div className="px-3 py-3 bg-muted/50 border-l-4 border-primary mx-2 my-2 rounded-r">
             <div className="flex items-center justify-between mb-1">
-              <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+              <div className="font-medium text-sm text-foreground">
                 Current Account
               </div>
               <Badge variant="outline" className="text-xs">
@@ -107,7 +109,7 @@ export function WalletConnection() {
               {selectedAccount?.meta.name ||
                 `Account ${selectedAccountIndex + 1}`}
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 font-mono break-all leading-relaxed">
+            <div className="text-xs text-muted-foreground font-mono break-all leading-relaxed">
               {selectedAccount?.address}
             </div>
           </div>
@@ -115,7 +117,7 @@ export function WalletConnection() {
           {accounts.length > 1 && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
+              <DropdownMenuLabel className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
                 Switch Account ({accounts.length} available)
               </DropdownMenuLabel>
 
@@ -124,7 +126,7 @@ export function WalletConnection() {
                   <DropdownMenuItem
                     key={account.address}
                     onClick={() => selectAccount(index)}
-                    className="px-3 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 focus:bg-gray-50 dark:focus:bg-gray-800/50"
+                    className="px-3 py-3 cursor-pointer hover:bg-accent focus:bg-accent"
                   >
                     <div className="flex items-start justify-between w-full gap-2">
                       <div className="flex-1 min-w-0">
@@ -133,10 +135,10 @@ export function WalletConnection() {
                             {account.meta.name || `Account ${index + 1}`}
                           </div>
                           {index === selectedAccountIndex && (
-                            <Check className="h-4 w-4 text-green-600 flex-shrink-0" />
+                            <Check className="h-4 w-4 text-primary flex-shrink-0" />
                           )}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
+                        <div className="text-xs text-muted-foreground font-mono truncate">
                           {account.address}
                         </div>
                       </div>
@@ -151,7 +153,7 @@ export function WalletConnection() {
 
           <DropdownMenuItem
             onClick={disconnectExtensions}
-            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 focus:bg-red-50 dark:focus:bg-red-900/20"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
           >
             <WifiOff className="h-4 w-4 mr-2" />
             Disconnect Wallet

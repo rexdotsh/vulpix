@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
-import { useRouter } from 'next/navigation';
+import { PageStateCard } from '@/components/battle/PageStateCard';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
@@ -40,8 +40,11 @@ function NFTLoadingSkeleton() {
 }
 
 export default function Dashboard() {
-  const { isReady, selectedAccount } = usePolkadot();
-  const router = useRouter();
+  const {
+    isReady,
+    selectedAccount,
+    isInitialized: isPolkadotInitialized,
+  } = usePolkadot();
   const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
   const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
@@ -79,6 +82,15 @@ export default function Dashboard() {
       performBackgroundSync();
     }
   }, [isReady, selectedAccount, isInitialized]);
+
+  if (!isPolkadotInitialized) {
+    return (
+      <PageStateCard
+        variant="loading"
+        message="Initializing wallet connection..."
+      />
+    );
+  }
 
   if (!isReady) {
     return (
