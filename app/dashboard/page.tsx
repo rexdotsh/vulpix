@@ -19,9 +19,10 @@ import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
 import { useRouter } from 'next/navigation';
-import { useMutation } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
+import { Swords } from 'lucide-react';
 
 function NFTLoadingSkeleton() {
   return (
@@ -44,7 +45,6 @@ export default function Dashboard() {
   const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
   const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
-  const createBattleRoom = useMutation(api.battle.createBattleRoom);
 
   const {
     nfts: userNFTs,
@@ -54,6 +54,11 @@ export default function Dashboard() {
     burnNFT,
     initializeUser,
   } = useNFTs();
+
+  const activeBattles = useQuery(
+    api.battle.getUserActiveBattles,
+    selectedAccount ? { userAddress: selectedAccount.address } : 'skip',
+  );
 
   useEffect(() => {
     if (isReady && selectedAccount) {
@@ -136,6 +141,12 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center space-x-3">
+            <Button asChild variant="default">
+              <Link href="/battle">
+                <Swords className="h-4 w-4 mr-2" />
+                Battle Arena
+              </Link>
+            </Button>
             <Button
               variant="outline"
               onClick={() => syncFromAssetHub()}
@@ -151,6 +162,68 @@ export default function Dashboard() {
             </Badge>
           </div>
         </div>
+
+        {activeBattles && activeBattles.length > 0 && (
+          <Card className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
+                <Swords className="h-5 w-5" />
+                Active Battles ({activeBattles.length})
+              </CardTitle>
+              <CardDescription>
+                You have ongoing battles that need your attention
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {activeBattles.slice(0, 3).map((battle) => {
+                  const isMyTurn =
+                    battle.gameState.currentTurn === selectedAccount?.address;
+                  const opponent =
+                    battle.player1Address === selectedAccount?.address
+                      ? battle.player2Name || battle.player2Address.slice(0, 8)
+                      : battle.player1Name || battle.player1Address.slice(0, 8);
+
+                  return (
+                    <div
+                      key={battle._id}
+                      className="flex items-center justify-between p-3 bg-background rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            isMyTurn
+                              ? 'bg-green-500 animate-pulse'
+                              : 'bg-yellow-500'
+                          }`}
+                        />
+                        <div>
+                          <p className="font-medium">vs {opponent}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isMyTurn ? 'Your turn' : 'Waiting for opponent'} •
+                            Turn {battle.gameState.turnNumber}
+                          </p>
+                        </div>
+                      </div>
+                      <Button asChild size="sm">
+                        <Link href={`/battle/play/${battle.battleId}`}>
+                          {isMyTurn ? 'Play Turn' : 'View Battle'}
+                        </Link>
+                      </Button>
+                    </div>
+                  );
+                })}
+                {activeBattles.length > 3 && (
+                  <Button asChild variant="outline" className="w-full mt-2">
+                    <Link href="/battle">
+                      View All Battles ({activeBattles.length})
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -197,7 +270,7 @@ export default function Dashboard() {
                       )}
                     </div>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="flex gap-2">
                     <Button
                       variant="destructive"
                       size="sm"
@@ -224,25 +297,13 @@ export default function Dashboard() {
                     <Button
                       variant="default"
                       size="sm"
-                      className="ml-2"
-                      onClick={async () => {
-                        if (!selectedAccount) return;
-                        const battleRoomId = Math.random()
-                          .toString(16)
-                          .slice(2, 8)
-                          .padStart(6, '0');
-
-                        await createBattleRoom({
-                          roomId: battleRoomId,
-                          nftCollection: nft.collection,
-                          nftItem: nft.item,
-                          userAddress: selectedAccount.address,
-                        });
-
-                        router.push(`/battle/waiting/${battleRoomId}`);
-                      }}
+                      className="flex-1"
+                      asChild
                     >
-                      Battle
+                      <Link href="/battle">
+                        <Swords className="h-4 w-4 mr-1" />
+                        Battle
+                      </Link>
                     </Button>
                   </CardFooter>
                 </Card>

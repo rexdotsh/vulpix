@@ -50,3 +50,37 @@ export const getUser = query({
       .first();
   },
 });
+
+export const linkEthereumAddress = mutation({
+  args: {
+    polkadotAddress: v.string(),
+    ethereumAddress: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_address', (q) => q.eq('address', args.polkadotAddress))
+      .first();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await ctx.db.patch(user._id, {
+      ethAddress: args.ethereumAddress,
+      linkedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+export const getUserByEthAddress = query({
+  args: { ethAddress: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('users')
+      .withIndex('by_eth_address', (q) => q.eq('ethAddress', args.ethAddress))
+      .first();
+  },
+});
