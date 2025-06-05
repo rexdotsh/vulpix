@@ -41,6 +41,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
+import { useNFTs } from '@/hooks/useNFTs';
 
 export function ImageGenerator() {
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +64,7 @@ export function ImageGenerator() {
 
   const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
   const { selectedAccount, getInjector } = usePolkadot();
+  const { syncFromAssetHub } = useNFTs();
 
   const generateImageMutation = useMutation(api.images.generateImage);
   const imageQuery = useQuery(
@@ -99,7 +101,7 @@ export function ImageGenerator() {
     if (!generatedImage.url || !selectedAccount) return;
 
     setIsMinting(true);
-    await mintImageAsNFT({
+    const result = await mintImageAsNFT({
       nftManager,
       selectedAccount,
       getInjector,
@@ -107,6 +109,15 @@ export function ImageGenerator() {
       newCollectionName,
       imageUrl: generatedImage.url,
     });
+
+    if (result && syncFromAssetHub) {
+      try {
+        await syncFromAssetHub();
+      } catch (error) {
+        console.error('Error syncing after mint:', error);
+      }
+    }
+
     setIsMinting(false);
   };
 
