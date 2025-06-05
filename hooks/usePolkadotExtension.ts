@@ -3,6 +3,7 @@ import type {
   InjectedExtension,
 } from '@polkadot/extension-inject/types';
 import { useCallback, useEffect, useState } from 'react';
+import { isValidPolkadotAddress } from '@/lib/utils';
 
 // extend Window interface to include injectedWeb3
 declare global {
@@ -133,22 +134,31 @@ export const usePolkadotExtension = ({
       setExtensions(injectedExtensions);
 
       const unsubscribeFn = await web3AccountsSubscribe(
-        (injectedAccounts: InjectedAccountWithMeta[]) => {
-          setAccounts(injectedAccounts);
-          const hasAccounts = injectedAccounts.length > 0;
+        async (injectedAccounts: InjectedAccountWithMeta[]) => {
+          const validAccounts = injectedAccounts.filter((acc) =>
+            isValidPolkadotAddress(acc.address),
+          );
+          setAccounts(validAccounts);
+          const hasAccounts = validAccounts.length > 0;
           setIsReady(hasAccounts);
 
           if (hasAccounts) {
             // restore selected account index from localStorage
             const { selectedAccountIndex: storedIndex } = loadConnectionState();
             const validIndex =
-              storedIndex < injectedAccounts.length ? storedIndex : 0;
+              storedIndex < validAccounts.length ? storedIndex : 0;
             setSelectedAccountIndex(validIndex);
             saveConnectionState(true, validIndex);
           } else {
-            setError(
-              'No accounts found. Please create an account in your wallet extension.',
-            );
+            if (injectedAccounts.length > 0) {
+              setError(
+                'No valid Polkadot accounts found. This app only supports Polkadot/Substrate addresses. Please create a Polkadot account in your wallet extension.',
+              );
+            } else {
+              setError(
+                'No accounts found. Please create an account in your wallet extension.',
+              );
+            }
           }
 
           setIsInitialized(true);

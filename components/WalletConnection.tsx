@@ -5,6 +5,7 @@ import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useEffect } from 'react';
 
 export function WalletConnection() {
   const {
@@ -24,9 +26,16 @@ export function WalletConnection() {
     enableExtensions,
     selectAccount,
     disconnectExtensions,
+    error,
   } = usePolkadot();
 
   const { isInitialized, isInitializing } = useAssetHub();
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   if (!isReady) {
     return (
