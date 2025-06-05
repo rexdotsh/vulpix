@@ -6,7 +6,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { ethers } from 'ethers';
-import { NFTBattleGameABI } from '@/lib/contract/contractABI';
+import { VulpixPVMABI } from '@/lib/contract/contractABI';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,14 +25,13 @@ interface NFTStats {
   attack: number;
   defense: number;
   intelligence: number;
-  wisdom: number;
   luck: number;
   speed: number;
   strength: number;
   nftType: number;
 }
 
-const CONTRACT_ADDRESS = '0x44b04943ee9f06f2a0f7d28A295776cFa2ad54De';
+const CONTRACT_ADDRESS = '0x6761CD4db5D747562bf6DACA6eC92ed277Af4F98';
 const NFT_TYPE_NAMES = ['Fire', 'Water', 'Grass'];
 const NFT_TYPE_COLORS = {
   0: 'bg-red-500',
@@ -89,7 +88,6 @@ function NFTCard({
       attack: rand(20, 80, hashValue + 1),
       defense: rand(20, 80, hashValue + 2),
       intelligence: rand(10, 60, hashValue + 3),
-      wisdom: rand(10, 60, hashValue + 4),
       luck: rand(5, 50, hashValue + 5),
       speed: rand(10, 70, hashValue + 6),
       strength: rand(20, 80, hashValue + 7),
@@ -309,7 +307,7 @@ export default function BattlePlayPage() {
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         CONTRACT_ADDRESS,
-        NFTBattleGameABI,
+        VulpixPVMABI,
         signer,
       );
 
@@ -331,7 +329,6 @@ export default function BattlePlayPage() {
           attack: rand(20, 80, hashValue + 1),
           defense: rand(20, 80, hashValue + 2),
           intelligence: rand(10, 60, hashValue + 3),
-          wisdom: rand(10, 60, hashValue + 4),
           luck: rand(5, 50, hashValue + 5),
           speed: rand(10, 70, hashValue + 6),
           strength: rand(20, 80, hashValue + 7),
@@ -361,7 +358,6 @@ export default function BattlePlayPage() {
           attack: p1Stats.attack,
           defense: p1Stats.defense,
           intelligence: p1Stats.intelligence,
-          wisdom: p1Stats.wisdom,
           luck: p1Stats.luck,
           speed: p1Stats.speed,
           strength: p1Stats.strength,
@@ -371,7 +367,6 @@ export default function BattlePlayPage() {
           attack: p2Stats.attack,
           defense: p2Stats.defense,
           intelligence: p2Stats.intelligence,
-          wisdom: p2Stats.wisdom,
           luck: p2Stats.luck,
           speed: p2Stats.speed,
           strength: p2Stats.strength,

@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-/**
- * @title NFT Battle Game Contract (PolkaVM Optimized)
- * @dev Optimized for PolkaVM's register architecture and multi-dimensional gas model
- * @notice Turn-based battle mechanics with efficient state management and gas optimization
- */
-contract NFTBattleGameEVM {
+contract VulpixPVM {
     enum NFTType {
         Fire,
         Water,
@@ -17,7 +12,6 @@ contract NFTBattleGameEVM {
         uint128 attack;
         uint128 defense;
         uint128 intelligence;
-        uint128 wisdom;
         uint128 luck;
         uint128 speed;
         uint128 strength;
@@ -125,7 +119,6 @@ contract NFTBattleGameEVM {
         newBattle.player1CurrentHealth = _player1InitialHealth;
         newBattle.player2CurrentHealth = _player2InitialHealth;
 
-        // determine first player based on speed (no branching optimization)
         newBattle.currentPlayerTurn = _player1NFT.speed >= _player2NFT.speed
             ? newBattle.player1
             : newBattle.player2;
@@ -290,7 +283,7 @@ contract NFTBattleGameEVM {
 
         rawDamage = isCritical ? (rawDamage * 150) / 100 : rawDamage;
 
-        uint256 totalDefense = (_defender.defense / 4) + (_defender.wisdom / 8);
+        uint256 totalDefense = (_defender.defense / 4);
         uint256 damageReduction = (rawDamage * totalDefense) /
             (totalDefense + 25);
 
