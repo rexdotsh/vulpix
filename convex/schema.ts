@@ -104,6 +104,7 @@ export default defineSchema({
         strength: v.number(),
         nftType: v.number(),
         maxHealth: v.number(),
+        generatedAt: v.number(),
       }),
     }),
     player2NFT: v.object({
@@ -118,6 +119,7 @@ export default defineSchema({
         strength: v.number(),
         nftType: v.number(),
         maxHealth: v.number(),
+        generatedAt: v.number(),
       }),
     }),
 
