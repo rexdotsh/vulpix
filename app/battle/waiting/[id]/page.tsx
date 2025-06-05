@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { getBaseUrl } from '@/lib/utils';
 import { useEffect } from 'react';
 
 export default function BattleWaitingPage() {
@@ -22,7 +21,8 @@ export default function BattleWaitingPage() {
   const router = useRouter();
 
   const roomId = typeof params.id === 'string' ? params.id : '';
-  const shareUrl = `${getBaseUrl()}/battle/join/${roomId}`;
+  // should be fine as it's client side only
+  const shareUrl = `${window?.location?.origin || ''}/battle/join/${roomId}`;
 
   const battleRoom = useQuery(api.battle.getBattleRoom, { roomId });
 
