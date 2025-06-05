@@ -32,7 +32,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { BattleHeader } from '@/components/battle/BattleHeader';
-import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
+import { env } from '@/env';
 
 export default function BattlePlayPage() {
   const { id } = useParams();
@@ -81,7 +81,7 @@ export default function BattlePlayPage() {
       const provider = new ethers.BrowserProvider(window.talismanEth);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
+        env.CONTRACT_ADDRESS,
         VulpixPVMABI,
         signer,
       );

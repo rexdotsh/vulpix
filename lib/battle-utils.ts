@@ -1,7 +1,3 @@
-// Battle frontend utilities
-
-export const CONTRACT_ADDRESS = '0x6761CD4db5D747562bf6DACA6eC92ed277Af4F98';
-
 export const NFT_TYPE_COLORS = {
   0: 'bg-red-500 text-white',
   1: 'bg-blue-500 text-white',

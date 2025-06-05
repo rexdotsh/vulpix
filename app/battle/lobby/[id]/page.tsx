@@ -32,7 +32,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
-import { CONTRACT_ADDRESS } from '@/lib/battle-utils';
+import { env } from '@/env';
 import { WalletLinking } from '@/components/WalletLinking';
 
 export default function LobbyPage() {
@@ -159,7 +159,7 @@ export default function LobbyPage() {
       const provider = new ethers.BrowserProvider(window.talismanEth);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
+        env.CONTRACT_ADDRESS,
         VulpixPVMABI,
         signer,
       );

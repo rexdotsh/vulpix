@@ -10,12 +10,14 @@ export const env = createEnv({
     CONVEX_DEPLOYMENT: z.string().min(1).optional(),
     // necessary only for prod on vercel
     CONVEX_DEPLOY_KEY: z.string().min(1).optional(),
+    CONTRACT_ADDRESS: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_GATEWAY_URL: z.string().min(1),
     NEXT_PUBLIC_CONVEX_URL: z.string().min(1),
   },
   runtimeEnv: {
+    CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
     DATABASE_URL: process.env.DATABASE_URL,
     DIRECT_URL: process.env.DIRECT_URL,
     HEURIST_API_KEY: process.env.HEURIST_API_KEY,
