@@ -621,6 +621,38 @@ export const getBattlePlayersEthAddresses = query({
   },
 });
 
+export const getBattleFromLobby = query({
+  args: { lobbyId: v.string() },
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db
+      .query('lobbies')
+      .filter((q) => q.eq(q.field('lobbyId'), args.lobbyId))
+      .first();
+
+    if (!lobby) {
+      throw new Error('Lobby not found');
+    }
+
+    // if lobby is started, find the associated battle
+    if (lobby.status === 'started') {
+      const battle = await ctx.db
+        .query('battles')
+        .filter((q) =>
+          q.and(
+            q.eq(q.field('player1Address'), lobby.creatorAddress),
+            q.eq(q.field('player2Address'), lobby.joinedPlayerAddress),
+          ),
+        )
+        .order('desc')
+        .first();
+
+      return battle?.battleId || null;
+    }
+
+    return null;
+  },
+});
+
 const getPolkadotAddressFromEth = async (
   ctx: any,
   ethAddress: string,

@@ -68,6 +68,10 @@ export default function LobbyPage() {
     api.battle.getBattlePlayersEthAddresses,
     lobby?.joinedPlayerAddress ? { lobbyId } : 'skip',
   );
+  const battleIdFromLobby = useQuery(
+    api.battle.getBattleFromLobby,
+    lobby?.status === 'started' ? { lobbyId } : 'skip',
+  );
   const updateLobbyNFT = useMutation(api.battle.updateLobbyNFT);
   const startBattleFromLobby = useMutation(api.battle.startBattleFromLobby);
   const updateBattleContractInfo = useMutation(
@@ -90,10 +94,10 @@ export default function LobbyPage() {
   }, [lobby, selectedAccount, isInLobby]);
 
   useEffect(() => {
-    if (lobby?.status === 'started') {
-      router.push('/battle');
+    if (lobby?.status === 'started' && battleIdFromLobby) {
+      router.push(`/battle/play/${battleIdFromLobby}`);
     }
-  }, [lobby?.status, router]);
+  }, [lobby?.status, battleIdFromLobby, router]);
 
   const handleNFTSelect = async (nft: any) => {
     if (!selectedAccount || !isInLobby) return;
@@ -276,6 +280,15 @@ export default function LobbyPage() {
     );
   }
 
+  if (lobby.status === 'started') {
+    return (
+      <PageStateCard
+        variant="loading"
+        message="Battle is starting! Redirecting to battle arena..."
+      />
+    );
+  }
+
   const bothPlayersReady =
     lobby.creatorNFT?.isReady && lobby.joinerNFT?.isReady;
   const canStartBattle =
@@ -313,13 +326,20 @@ export default function LobbyPage() {
               <CardTitle className="flex items-center justify-between">
                 <span>Lobby Status</span>
                 <Badge
-                  variant={lobby.status === 'ready' ? 'default' : 'secondary'}
+                  variant={
+                    lobby.status === 'ready' ||
+                    lobby.status === ('started' as any) // don't know why this is crying
+                      ? 'default'
+                      : 'secondary'
+                  }
                 >
                   {lobby.status === 'waiting'
                     ? 'Waiting for Players'
                     : lobby.status === 'ready'
                       ? 'Ready to Start'
-                      : lobby.status}
+                      : lobby.status === 'started'
+                        ? 'Battle Starting...'
+                        : lobby.status}
                 </Badge>
               </CardTitle>
               <CardDescription>
