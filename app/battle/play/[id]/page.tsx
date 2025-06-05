@@ -81,7 +81,7 @@ export default function BattlePlayPage() {
       const provider = new ethers.BrowserProvider(window.talismanEth);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
-        env.CONTRACT_ADDRESS,
+        env.NEXT_PUBLIC_CONTRACT_ADDRESS,
         VulpixPVMABI,
         signer,
       );
