@@ -22,7 +22,10 @@ export default function BattleWaitingPage() {
 
   const roomId = typeof params.id === 'string' ? params.id : '';
   // should be fine as it's client side only
-  const shareUrl = `${window?.location?.origin || ''}/battle/join/${roomId}`;
+  const shareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/battle/join/${roomId}`
+      : '';
 
   const battleRoom = useQuery(api.battle.getBattleRoom, { roomId });
 
