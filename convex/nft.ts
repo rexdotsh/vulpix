@@ -115,6 +115,23 @@ export const syncUserNFTs = mutation({
     const now = Date.now();
     const collections = new Map();
 
+    const existingNfts = await ctx.db
+      .query('nftItems')
+      .withIndex('by_user', (q) => q.eq('userAddress', userId))
+      .collect();
+
+    const assetHubNftIds = new Set(
+      nfts.map((nft) => `${nft.collection}-${nft.item}`),
+    );
+
+    const nftsToDelete = existingNfts.filter(
+      (nft) => !assetHubNftIds.has(`${nft.collectionId}-${nft.itemId}`),
+    );
+
+    for (const nft of nftsToDelete) {
+      await ctx.db.delete(nft._id);
+    }
+
     for (const nft of nfts) {
       if (!collections.has(nft.collection)) {
         collections.set(nft.collection, {
@@ -164,6 +181,18 @@ export const syncUserNFTs = mutation({
       }
     }
 
+    const collectionsWithNfts = new Set(nfts.map((nft) => nft.collection));
+    const existingCollections = await ctx.db
+      .query('nftCollections')
+      .withIndex('by_user', (q) => q.eq('userAddress', userId))
+      .collect();
+
+    for (const collection of existingCollections) {
+      if (!collectionsWithNfts.has(collection.collectionId)) {
+        await ctx.db.delete(collection._id);
+      }
+    }
+
     for (const [collectionId, collectionData] of collections.entries()) {
       const existingCollection = await ctx.db
         .query('nftCollections')
@@ -182,7 +211,12 @@ export const syncUserNFTs = mutation({
       }
     }
 
-    return { success: true, syncedAt: now, nftCount: nfts.length };
+    return {
+      success: true,
+      syncedAt: now,
+      nftCount: nfts.length,
+      deletedCount: nftsToDelete.length,
+    };
   },
 });
 

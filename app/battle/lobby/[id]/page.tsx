@@ -368,11 +368,11 @@ export default function LobbyPage() {
                   </div>
                 </div>
                 {lobby.settings.isPrivate && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Input
                       value={shareUrl}
                       readOnly
-                      className="font-mono text-sm w-64"
+                      className="font-mono text-sm w-40 md:w-84 truncate"
                     />
                     <Button
                       variant="outline"

@@ -17,8 +17,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
 import { PageStateCard } from '@/components/battle/PageStateCard';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
 import { Swords } from 'lucide-react';
 
@@ -46,6 +44,9 @@ export default function Dashboard() {
   const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
   const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
+  const [optimisticallyRemovedNFTs, setOptimisticallyRemovedNFTs] = useState<
+    string[]
+  >([]);
 
   const {
     nfts: userNFTs,
@@ -55,11 +56,6 @@ export default function Dashboard() {
     burnNFT,
     initializeUser,
   } = useNFTs();
-
-  const activeBattles = useQuery(
-    api.battle.getUserActiveBattles,
-    selectedAccount ? { userAddress: selectedAccount.address } : 'skip',
-  );
 
   useEffect(() => {
     if (isReady && selectedAccount) {
@@ -148,152 +144,114 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {activeBattles && activeBattles.length > 0 && (
-          <Card className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
-                <Swords className="h-5 w-5" />
-                Active Battles ({activeBattles.length})
-              </CardTitle>
-              <CardDescription>
-                You have ongoing battles that need your attention
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {activeBattles.slice(0, 3).map((battle) => {
-                  const isMyTurn =
-                    battle.gameState.currentTurn === selectedAccount?.address;
-                  const opponent =
-                    battle.player1Address === selectedAccount?.address
-                      ? battle.player2Name || battle.player2Address.slice(0, 8)
-                      : battle.player1Name || battle.player1Address.slice(0, 8);
-
-                  return (
-                    <div
-                      key={battle._id}
-                      className="flex items-center justify-between p-3 bg-background rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            isMyTurn
-                              ? 'bg-green-500 animate-pulse'
-                              : 'bg-yellow-500'
-                          }`}
-                        />
-                        <div>
-                          <p className="font-medium">vs {opponent}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {isMyTurn ? 'Your turn' : 'Waiting for opponent'} •
-                            Turn {battle.gameState.turnNumber}
-                          </p>
-                        </div>
-                      </div>
-                      <Button asChild size="sm">
-                        <Link href={`/battle/play/${battle.battleId}`}>
-                          {isMyTurn ? 'Play Turn' : 'View Battle'}
-                        </Link>
-                      </Button>
-                    </div>
-                  );
-                })}
-                {activeBattles.length > 3 && (
-                  <Button asChild variant="outline" className="w-full mt-2">
-                    <Link href="/battle">
-                      View All Battles ({activeBattles.length})
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
+        {/* TODO: active battles */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
               <NFTLoadingSkeleton key={`skeleton-${Date.now()}-${i}`} />
             ))}
           </div>
-        ) : userNFTs && userNFTs.length > 0 ? (
+        ) : userNFTs &&
+          userNFTs.filter(
+            (nft) =>
+              !optimisticallyRemovedNFTs.includes(
+                `${nft.collection}-${nft.item}`,
+              ),
+          ).length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {userNFTs.map((nft) => {
-              const metadata = decodeHexMetadata(nft.itemMetadata?.data);
-              const imageUrl = getIpfsImageUrl(metadata);
+            {userNFTs
+              .filter(
+                (nft) =>
+                  !optimisticallyRemovedNFTs.includes(
+                    `${nft.collection}-${nft.item}`,
+                  ),
+              )
+              .map((nft) => {
+                const metadata = decodeHexMetadata(nft.itemMetadata?.data);
+                const imageUrl = getIpfsImageUrl(metadata);
 
-              return (
-                <Card
-                  key={`${nft.collection}-${nft.item}`}
-                  className="overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <CardContent className="p-0">
-                    {imageUrl && (
-                      <div className="aspect-square bg-muted">
-                        <img
-                          src={imageUrl}
-                          alt={metadata?.name || `NFT ${nft.item}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <CardTitle className="text-lg mb-2">
-                        {metadata?.name || `Item #${nft.item}`}
-                      </CardTitle>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <p>Collection: {nft.collection}</p>
-                        <p>Item: {nft.item}</p>
-                      </div>
-                      {metadata?.description && (
-                        <CardDescription className="mt-3 line-clamp-3">
-                          {metadata.description}
-                        </CardDescription>
+                return (
+                  <Card
+                    key={`${nft.collection}-${nft.item}`}
+                    className="overflow-hidden hover:shadow-lg transition-shadow"
+                  >
+                    <CardContent className="p-0">
+                      {imageUrl && (
+                        <div className="aspect-square bg-muted">
+                          <img
+                            src={imageUrl}
+                            alt={metadata?.name || `NFT ${nft.item}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
                       )}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex gap-2">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        const id = `${nft.collection}-${nft.item}`;
-                        setBurningItem(id);
-                        try {
-                          await burnNFT(nft.collection, nft.item);
-                        } catch (error) {
-                          console.error(error);
-                        } finally {
-                          setBurningItem(null);
+                      <div className="p-4">
+                        <CardTitle className="text-lg mb-2">
+                          {metadata?.name || `Item #${nft.item}`}
+                        </CardTitle>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <p>Collection: {nft.collection}</p>
+                          <p>Item: {nft.item}</p>
+                        </div>
+                        {metadata?.description && (
+                          <CardDescription className="mt-3 line-clamp-3">
+                            {metadata.description}
+                          </CardDescription>
+                        )}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={async () => {
+                          const id = `${nft.collection}-${nft.item}`;
+                          setBurningItem(id);
+
+                          try {
+                            await burnNFT(nft.collection, nft.item);
+
+                            // optimistically remove the NFT from UI
+                            setOptimisticallyRemovedNFTs((prev) => [
+                              ...prev,
+                              id,
+                            ]);
+
+                            // sync with AssetHub to confirm removal
+                            await syncFromAssetHub();
+                          } catch (error) {
+                            console.error(error);
+                          } finally {
+                            setBurningItem(null);
+                          }
+                        }}
+                        disabled={
+                          burningItem === `${nft.collection}-${nft.item}` ||
+                          !isInitialized
                         }
-                      }}
-                      disabled={
-                        burningItem === `${nft.collection}-${nft.item}` ||
-                        !isInitialized
-                      }
-                    >
-                      {burningItem === `${nft.collection}-${nft.item}`
-                        ? 'Burning...'
-                        : 'Burn'}
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex-1"
-                      asChild
-                    >
-                      <Link href="/battle">
-                        <Swords className="h-4 w-4 mr-1" />
-                        Battle
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              );
-            })}
+                      >
+                        {burningItem === `${nft.collection}-${nft.item}`
+                          ? 'Burning...'
+                          : 'Burn'}
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        asChild
+                      >
+                        <Link href="/battle">
+                          <Swords className="h-4 w-4 mr-1" />
+                          Battle
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
           </div>
         ) : (
           <Card className="text-center py-12">
