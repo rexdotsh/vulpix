@@ -12,26 +12,142 @@ const heroImages = Array.from(
   (_, i) => `/hero-parallax/${(i + 1).toString().padStart(2, '0')}.png`,
 );
 
+const navItems = [
+  { href: '/', label: 'home', active: true },
+  { href: '/about', label: 'about' },
+  { href: '/contact', label: 'contact' },
+  { href: '/dashboard', label: 'the app' },
+];
+
 const NavLink = ({
   href,
   children,
   active = false,
-}: { href: string; children: React.ReactNode; active?: boolean }) => (
+  onClick,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  active?: boolean;
+  onClick?: () => void;
+  className?: string;
+}) => (
   <Link
     href={href}
+    onClick={onClick}
     className={cn(
-      'font-garamond text-[32px] tracking-tighter uppercase text-white transition-opacity',
+      'font-garamond tracking-tighter uppercase text-white transition-opacity',
       !active && 'opacity-50 hover:opacity-70',
+      className,
     )}
   >
     {children}
   </Link>
 );
 
+const MobileNav = ({
+  isOpen,
+  onClose,
+}: { isOpen: boolean; onClose: () => void }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50"
+          onClick={onClose}
+        />
+        <motion.div
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', damping: 20 }}
+          className="fixed right-0 top-0 bottom-0 w-[85%] max-w-[400px] bg-[#1f1f1f] z-50 flex flex-col items-center justify-center gap-12 px-8"
+        >
+          <motion.div
+            className="absolute top-8 right-8"
+            initial={{ opacity: 0, rotate: -45 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            transition={{ delay: 0.2 }}
+            onClick={onClose}
+          >
+            <div className="w-8 h-8 relative cursor-pointer">
+              <span className="absolute top-1/2 left-0 w-full h-0.5 bg-white rotate-45" />
+              <span className="absolute top-1/2 left-0 w-full h-0.5 bg-white -rotate-45" />
+            </div>
+          </motion.div>
+
+          <div className="flex flex-col items-center gap-12">
+            {navItems.map((link, i) => (
+              <motion.div
+                key={link.href}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + i * 0.1 }}
+              >
+                <NavLink
+                  href={link.href}
+                  active={link.active}
+                  onClick={onClose}
+                  className="text-5xl font-garamond"
+                >
+                  {link.label}
+                </NavLink>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            className="absolute bottom-12 left-0 w-full flex justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="text-white/50 text-sm uppercase tracking-widest">
+              Navigation
+            </div>
+          </motion.div>
+        </motion.div>
+      </>
+    )}
+  </AnimatePresence>
+);
+
+const DesktopNav = () => (
+  <nav className="absolute top-13 left-1/2 -translate-x-1/2 w-[620px] h-[70px] bg-[#1f1f1f] rounded-full flex items-center justify-center z-50">
+    <div className="flex gap-13 items-center">
+      {navItems.map((link) => (
+        <NavLink
+          key={link.href}
+          href={link.href}
+          active={link.active}
+          className="text-[32px]"
+        >
+          {link.label}
+        </NavLink>
+      ))}
+    </div>
+  </nav>
+);
+
 export default function Page() {
   const { isInitialized, isInitializing } = useAssetHub();
   const [scope, animate] = useAnimate();
   const [showWalletStatus, setShowWalletStatus] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     animate(
@@ -140,39 +256,43 @@ export default function Page() {
       className="relative min-h-screen bg-background overflow-hidden"
       ref={scope}
     >
-      <nav className="absolute top-13 left-1/2 -translate-x-1/2 w-[620px] h-[70px] bg-[#1f1f1f] rounded-full flex items-center justify-center z-50">
-        <div className="flex gap-13 items-center">
-          <NavLink href="/" active>
-            home
-          </NavLink>
-          <NavLink href="/about">about</NavLink>
-          <NavLink href="/contact">contact</NavLink>
-          <NavLink href="/dashboard">the app</NavLink>
-        </div>
-      </nav>
+      {isMobile ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(true)}
+            className="fixed top-6 right-6 z-50 w-12 h-12 flex flex-col justify-center items-center gap-1.5 bg-[#1f1f1f]/90 backdrop-blur-sm rounded-full hover:scale-110 transition-transform"
+          >
+            <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
+            <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
+            <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
+          </button>
+          <MobileNav isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+        </>
+      ) : (
+        <DesktopNav />
+      )}
 
       <motion.div
-        // NOTE: z-1 here if i want the text above
-        // maybe on mobile i'll make it z-1. on pc z-0 is fine
-        className="absolute top-[30vh] left-1/2 -translate-x-1/2 w-full z-0"
+        className="absolute top-[25vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] md:z-0"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.88, delay: 0.5 }}
       >
-        <h1 className="font-garamond text-[15rem] text-white uppercase tracking-tighter text-center leading-[0.8]">
+        <h1 className="font-garamond text-[7rem] md:text-[15rem] text-white uppercase tracking-tighter text-center leading-[0.8] px-4 md:px-0">
           the best nft
           <br />
           bullshit ever
         </h1>
       </motion.div>
 
-      <Floating sensitivity={-1} className="overflow-hidden">
+      <Floating sensitivity={isMobile ? -0.5 : -1} className="overflow-hidden">
         {/* Left Column */}
-        <FloatingElement depth={2} className="top-[8%] left-[11%]">
+        <FloatingElement depth={2} className="top-[8%] left-[5%] md:left-[11%]">
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[0]}
-            className="w-32 md:w-48 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-20 sm:w-32 md:w-48 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
@@ -180,15 +300,18 @@ export default function Page() {
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[1]}
-            className="w-28 md:w-40 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-16 sm:w-28 md:w-40 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
-        <FloatingElement depth={4} className="top-[73%] left-[15%]">
+        <FloatingElement
+          depth={4}
+          className="top-[73%] left-[8%] md:left-[15%]"
+        >
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[2]}
-            className="w-40 md:w-52 aspect-[3/4] object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-24 sm:w-40 md:w-52 aspect-[3/4] object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
@@ -198,7 +321,7 @@ export default function Page() {
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[3]}
-            className="w-36 md:w-44 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-20 sm:w-36 md:w-44 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
@@ -206,7 +329,7 @@ export default function Page() {
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[4]}
-            className="w-24 md:w-32 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-16 sm:w-24 md:w-32 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
@@ -214,33 +337,42 @@ export default function Page() {
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[5]}
-            className="w-32 md:w-40 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-20 sm:w-32 md:w-40 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
 
         {/* Right Column */}
-        <FloatingElement depth={2} className="top-[2%] left-[75%]">
+        <FloatingElement
+          depth={2}
+          className="top-[2%] left-[70%] md:left-[75%]"
+        >
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[6]}
-            className="w-36 md:w-48 aspect-[3/4] object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-20 sm:w-36 md:w-48 aspect-[3/4] object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
-        <FloatingElement depth={1} className="top-[35%] left-[85%]">
+        <FloatingElement
+          depth={1}
+          className="top-[35%] left-[80%] md:left-[85%]"
+        >
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[7]}
-            className="w-32 md:w-40 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-20 sm:w-32 md:w-40 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
-        <FloatingElement depth={3} className="top-[60%] left-[80%]">
+        <FloatingElement
+          depth={3}
+          className="top-[60%] left-[75%] md:left-[80%]"
+        >
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[8]}
-            className="w-28 md:w-36 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-16 sm:w-28 md:w-36 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
@@ -250,7 +382,7 @@ export default function Page() {
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[9]}
-            className="w-24 md:w-32 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-16 sm:w-24 md:w-32 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
@@ -258,29 +390,31 @@ export default function Page() {
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[10]}
-            className="w-28 md:w-36 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
+            className="w-16 sm:w-28 md:w-36 aspect-square object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-sm"
             alt="NFT artwork"
           />
         </FloatingElement>
       </Floating>
 
-      <motion.button
-        type="button"
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 w-52 h-[51px] bg-[#1f1f1f] rounded-full flex items-center justify-center z-50"
-        onClick={() =>
-          window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })
-        }
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 1.5 }}
-      >
-        <span className="font-helvetica text-white uppercase tracking-tight">
-          Go down or smth
-        </span>
-      </motion.button>
+      {(!isMobile || !isMenuOpen) && (
+        <motion.button
+          type="button"
+          className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-40 md:w-52 h-[40px] md:h-[51px] bg-[#1f1f1f] rounded-full flex items-center justify-center z-50"
+          onClick={() =>
+            window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })
+          }
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1.5 }}
+        >
+          <span className="font-helvetica text-white uppercase tracking-tight text-sm md:text-base">
+            Go down or smth
+          </span>
+        </motion.button>
+      )}
 
       <AnimatePresence mode="wait">
-        {showWalletStatus && (
+        {showWalletStatus && !isMobile && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
