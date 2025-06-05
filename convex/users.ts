@@ -66,8 +66,10 @@ export const linkEthereumAddress = mutation({
       throw new Error('User not found');
     }
 
+    const normalizedEthAddress = args.ethereumAddress.toLowerCase();
+
     await ctx.db.patch(user._id, {
-      ethAddress: args.ethereumAddress,
+      ethAddress: normalizedEthAddress,
       linkedAt: Date.now(),
     });
 
@@ -78,9 +80,13 @@ export const linkEthereumAddress = mutation({
 export const getUserByEthAddress = query({
   args: { ethAddress: v.string() },
   handler: async (ctx, args) => {
+    const normalizedEthAddress = args.ethAddress.toLowerCase();
+
     return await ctx.db
       .query('users')
-      .withIndex('by_eth_address', (q) => q.eq('ethAddress', args.ethAddress))
+      .withIndex('by_eth_address', (q) =>
+        q.eq('ethAddress', normalizedEthAddress),
+      )
       .first();
   },
 });

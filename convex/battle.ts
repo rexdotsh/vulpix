@@ -398,6 +398,27 @@ export const updateTurnResult = mutation({
       throw new Error('Battle not found');
     }
 
+    const currentTurnPolkadotAddress = await getPolkadotAddressFromEth(
+      ctx,
+      args.newGameState.currentTurn,
+    );
+    if (!currentTurnPolkadotAddress) {
+      throw new Error(
+        'Could not find Polkadot address for current turn player',
+      );
+    }
+
+    let winnerPolkadotAddress = args.newGameState.winner;
+    if (args.newGameState.winner && args.newGameState.isFinished) {
+      const polkadotWinner = await getPolkadotAddressFromEth(
+        ctx,
+        args.newGameState.winner,
+      );
+      if (polkadotWinner) {
+        winnerPolkadotAddress = polkadotWinner;
+      }
+    }
+
     // Add move to history
     const newMove = {
       turnNumber: args.newGameState.turnNumber,
@@ -406,7 +427,7 @@ export const updateTurnResult = mutation({
       damage: args.moveData.damage,
       wasCritical: args.moveData.wasCritical,
       targetHealth:
-        args.newGameState.currentTurn === battle.player1Address
+        currentTurnPolkadotAddress === battle.player1Address
           ? args.newGameState.player2Health
           : args.newGameState.player1Health,
       txHash: args.txHash,
@@ -417,12 +438,12 @@ export const updateTurnResult = mutation({
     await ctx.db.patch(battle._id, {
       gameState: {
         ...(battle.gameState || {}),
-        currentTurn: args.newGameState.currentTurn,
+        currentTurn: currentTurnPolkadotAddress,
         player1Health: args.newGameState.player1Health,
         player2Health: args.newGameState.player2Health,
         turnNumber: args.newGameState.turnNumber,
         status: args.newGameState.isFinished ? 'finished' : 'active',
-        winner: args.newGameState.winner,
+        winner: winnerPolkadotAddress,
         pendingTurn: undefined,
       },
       moves: [...battle.moves, newMove],
@@ -563,3 +584,55 @@ export const getUserBattleHistory = query({
       .slice(0, 50);
   },
 });
+
+export const getBattlePlayersEthAddresses = query({
+  args: { lobbyId: v.string() },
+  handler: async (ctx, args) => {
+    const lobby = await ctx.db
+      .query('lobbies')
+      .filter((q) => q.eq(q.field('lobbyId'), args.lobbyId))
+      .first();
+
+    if (!lobby || !lobby.joinedPlayerAddress) {
+      throw new Error('Lobby not found or incomplete');
+    }
+
+    const creator = await ctx.db
+      .query('users')
+      .withIndex('by_address', (q) => q.eq('address', lobby.creatorAddress))
+      .first();
+
+    const joiner = await ctx.db
+      .query('users')
+      .withIndex(
+        'by_address',
+        (q) => q.eq('address', lobby.joinedPlayerAddress as string), // don't know why this is crying
+      )
+      .first();
+
+    if (!creator?.ethAddress || !joiner?.ethAddress) {
+      throw new Error('Both players must have linked Ethereum addresses');
+    }
+
+    return {
+      creatorEthAddress: creator.ethAddress,
+      joinerEthAddress: joiner.ethAddress,
+    };
+  },
+});
+
+const getPolkadotAddressFromEth = async (
+  ctx: any,
+  ethAddress: string,
+): Promise<string | null> => {
+  const normalizedEthAddress = ethAddress.toLowerCase();
+
+  const user = await ctx.db
+    .query('users')
+    .withIndex('by_eth_address', (q: any) =>
+      q.eq('ethAddress', normalizedEthAddress),
+    )
+    .first();
+
+  return user?.address || null;
+};

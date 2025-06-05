@@ -58,6 +58,10 @@ export default function LobbyPage() {
       : '';
 
   const lobby = useQuery(api.battle.getLobby, { lobbyId });
+  const playersEthAddresses = useQuery(
+    api.battle.getBattlePlayersEthAddresses,
+    lobby?.joinedPlayerAddress ? { lobbyId } : 'skip',
+  );
   const updateLobbyNFT = useMutation(api.battle.updateLobbyNFT);
   const startBattleFromLobby = useMutation(api.battle.startBattleFromLobby);
   const updateBattleContractInfo = useMutation(
@@ -189,7 +193,13 @@ export default function LobbyPage() {
   };
 
   const handleStartBattle = async () => {
-    if (!selectedAccount || !lobby || !talismanConnected) return;
+    if (
+      !selectedAccount ||
+      !lobby ||
+      !talismanConnected ||
+      !playersEthAddresses
+    )
+      return;
 
     setIsStartingBattle(true);
 
@@ -211,7 +221,7 @@ export default function LobbyPage() {
 
       // 3. Create battle on smart contract
       const tx = await contract.createBattle(
-        lobby.joinedPlayerAddress, // player2 address
+        playersEthAddresses.joinerEthAddress, // player2 ETH address
         {
           attack: battleData.player1Stats.attack,
           defense: battleData.player1Stats.defense,
@@ -347,7 +357,8 @@ export default function LobbyPage() {
 
   const bothPlayersReady =
     lobby.creatorNFT?.isReady && lobby.joinerNFT?.isReady;
-  const canStartBattle = bothPlayersReady && isCreator && talismanConnected;
+  const canStartBattle =
+    bothPlayersReady && isCreator && talismanConnected && playersEthAddresses;
 
   return (
     <div className="min-h-screen bg-background">
@@ -746,6 +757,8 @@ export default function LobbyPage() {
                       'Waiting for Players to Ready Up'
                     ) : !talismanConnected ? (
                       'Connect Talisman Wallet First'
+                    ) : !playersEthAddresses ? (
+                      'Waiting for Ethereum Address Linking'
                     ) : (
                       <>
                         <Swords className="h-4 w-4 mr-2" />
