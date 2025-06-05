@@ -28,6 +28,20 @@ export default defineSchema({
     ipfsUrl: v.optional(v.string()), // optional until image is uploaded to IPFS
   }).index('by_user', ['userAddress']),
 
+  battleRooms: defineTable({
+    roomId: v.string(),
+    // Inviter details
+    inviterAddress: v.string(),
+    inviterNftCollection: v.string(),
+    inviterNftItem: v.string(),
+    // Joiner details (optional until someone joins)
+    joinerAddress: v.optional(v.string()),
+    joinerNftCollection: v.optional(v.string()),
+    joinerNftItem: v.optional(v.string()),
+    roomFull: v.boolean(),
+    createdAt: v.number(),
+  }).index('by_roomId', ['roomId']),
+
   nftCollections: defineTable({
     collectionId: v.string(),
     owner: v.string(),
