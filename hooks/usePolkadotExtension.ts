@@ -3,6 +3,7 @@ import type {
   InjectedExtension,
 } from '@polkadot/extension-inject/types';
 import { useCallback, useEffect, useState } from 'react';
+import { isValidPolkadotAddress } from '@/lib/utils';
 
 // extend Window interface to include injectedWeb3
 declare global {
@@ -18,6 +19,7 @@ export interface UsePolkadotExtensionProps {
 
 export interface UsePolkadotExtensionReturn {
   // Connection state
+  isInitialized: boolean;
   isReady: boolean;
   isConnecting: boolean;
   error: string | null;
@@ -44,6 +46,7 @@ export const usePolkadotExtension = ({
   appName,
   enableOnMount = false,
 }: UsePolkadotExtensionProps): UsePolkadotExtensionReturn => {
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +110,7 @@ export const usePolkadotExtension = ({
       setError(
         'No Polkadot extensions found. Please install Polkadot.js, Talisman, or another compatible wallet.',
       );
+      setIsInitialized(true);
       return;
     }
 
@@ -130,23 +134,34 @@ export const usePolkadotExtension = ({
       setExtensions(injectedExtensions);
 
       const unsubscribeFn = await web3AccountsSubscribe(
-        (injectedAccounts: InjectedAccountWithMeta[]) => {
-          setAccounts(injectedAccounts);
-          const hasAccounts = injectedAccounts.length > 0;
+        async (injectedAccounts: InjectedAccountWithMeta[]) => {
+          const validAccounts = injectedAccounts.filter((acc) =>
+            isValidPolkadotAddress(acc.address),
+          );
+          setAccounts(validAccounts);
+          const hasAccounts = validAccounts.length > 0;
           setIsReady(hasAccounts);
 
           if (hasAccounts) {
             // restore selected account index from localStorage
             const { selectedAccountIndex: storedIndex } = loadConnectionState();
             const validIndex =
-              storedIndex < injectedAccounts.length ? storedIndex : 0;
+              storedIndex < validAccounts.length ? storedIndex : 0;
             setSelectedAccountIndex(validIndex);
             saveConnectionState(true, validIndex);
           } else {
-            setError(
-              'No accounts found. Please create an account in your wallet extension.',
-            );
+            if (injectedAccounts.length > 0) {
+              setError(
+                'No valid Polkadot accounts found. This app only supports Polkadot/Substrate addresses. Please create a Polkadot account in your wallet extension.',
+              );
+            } else {
+              setError(
+                'No accounts found. Please create an account in your wallet extension.',
+              );
+            }
           }
+
+          setIsInitialized(true);
         },
       );
 
@@ -160,6 +175,7 @@ export const usePolkadotExtension = ({
       );
       setIsReady(false);
       saveConnectionState(false);
+      setIsInitialized(true);
     } finally {
       setIsConnecting(false);
     }
@@ -205,18 +221,33 @@ export const usePolkadotExtension = ({
     saveConnectionState(false);
   }, [unsubscribe, saveConnectionState]);
 
-  // auto-reconnect on mount if previously connected
   useEffect(() => {
-    const { connected } = loadConnectionState();
+    const initializeConnection = async () => {
+      // if not in browser, mark as initialized immediately
+      if (typeof window === 'undefined') {
+        setIsInitialized(true);
+        return;
+      }
 
-    if (
-      (enableOnMount || connected) &&
-      !isReady &&
-      !isConnecting &&
-      isExtensionAvailable
-    ) {
-      enableExtensions();
-    }
+      const { connected } = loadConnectionState();
+
+      if (
+        (enableOnMount || connected) &&
+        !isReady &&
+        !isConnecting &&
+        isExtensionAvailable
+      ) {
+        await enableExtensions();
+      } else {
+        // if we're not going to try connecting, mark as initialized
+        setIsInitialized(true);
+      }
+    };
+
+    // use a small delay to let the page settle and extensions load
+    const timeoutId = setTimeout(initializeConnection, 50);
+
+    return () => clearTimeout(timeoutId);
   }, [
     enableOnMount,
     isReady,
@@ -235,6 +266,7 @@ export const usePolkadotExtension = ({
   }, [unsubscribe]);
 
   return {
+    isInitialized,
     isReady,
     isConnecting,
     error,

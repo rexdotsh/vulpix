@@ -13,15 +13,12 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
-import { useRouter } from 'next/navigation';
-import { useMutation } from 'convex/react';
-import { api } from '@/convex/_generated/api';
+import { PageStateCard } from '@/components/battle/PageStateCard';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
+import { Swords } from 'lucide-react';
 
 function NFTLoadingSkeleton() {
   return (
@@ -39,12 +36,17 @@ function NFTLoadingSkeleton() {
 }
 
 export default function Dashboard() {
-  const { isReady, selectedAccount } = usePolkadot();
-  const router = useRouter();
+  const {
+    isReady,
+    selectedAccount,
+    isInitialized: isPolkadotInitialized,
+  } = usePolkadot();
   const { isInitialized } = useAssetHub();
   const [burningItem, setBurningItem] = useState<string | null>(null);
   const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
-  const createBattleRoom = useMutation(api.battle.createBattleRoom);
+  const [optimisticallyRemovedNFTs, setOptimisticallyRemovedNFTs] = useState<
+    string[]
+  >([]);
 
   const {
     nfts: userNFTs,
@@ -75,6 +77,15 @@ export default function Dashboard() {
     }
   }, [isReady, selectedAccount, isInitialized]);
 
+  if (!isPolkadotInitialized) {
+    return (
+      <PageStateCard
+        variant="loading"
+        message="Initializing wallet connection..."
+      />
+    );
+  }
+
   if (!isReady) {
     return (
       <div className="container mx-auto py-8">
@@ -98,23 +109,8 @@ export default function Dashboard() {
   const isLoading = userNFTs === undefined;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/"
-              className="text-xl font-bold text-foreground hover:text-foreground/80"
-            >
-              AssetHub NFT Manager
-            </Link>
-            <Separator orientation="vertical" className="h-4" />
-            <span className="text-muted-foreground">Dashboard</span>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
+    <div className="bg-background">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">My NFTs</h1>
@@ -145,109 +141,117 @@ export default function Dashboard() {
                 ? 'Syncing...'
                 : 'Sync from AssetHub'}
             </Button>
-            <Badge variant="secondary" className="text-sm">
-              {selectedAccount?.meta.name ||
-                selectedAccount?.address.slice(0, 8)}
-            </Badge>
           </div>
         </div>
 
+        {/* TODO: active battles */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
               <NFTLoadingSkeleton key={`skeleton-${Date.now()}-${i}`} />
             ))}
           </div>
-        ) : userNFTs && userNFTs.length > 0 ? (
+        ) : userNFTs &&
+          userNFTs.filter(
+            (nft) =>
+              !optimisticallyRemovedNFTs.includes(
+                `${nft.collection}-${nft.item}`,
+              ),
+          ).length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {userNFTs.map((nft) => {
-              const metadata = decodeHexMetadata(nft.itemMetadata?.data);
-              const imageUrl = getIpfsImageUrl(metadata);
+            {userNFTs
+              .filter(
+                (nft) =>
+                  !optimisticallyRemovedNFTs.includes(
+                    `${nft.collection}-${nft.item}`,
+                  ),
+              )
+              .map((nft) => {
+                const metadata = decodeHexMetadata(nft.itemMetadata?.data);
+                const imageUrl = getIpfsImageUrl(metadata);
 
-              return (
-                <Card
-                  key={`${nft.collection}-${nft.item}`}
-                  className="overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <CardContent className="p-0">
-                    {imageUrl && (
-                      <div className="aspect-square bg-muted">
-                        <img
-                          src={imageUrl}
-                          alt={metadata?.name || `NFT ${nft.item}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <CardTitle className="text-lg mb-2">
-                        {metadata?.name || `Item #${nft.item}`}
-                      </CardTitle>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <p>Collection: {nft.collection}</p>
-                        <p>Item: {nft.item}</p>
-                      </div>
-                      {metadata?.description && (
-                        <CardDescription className="mt-3 line-clamp-3">
-                          {metadata.description}
-                        </CardDescription>
+                return (
+                  <Card
+                    key={`${nft.collection}-${nft.item}`}
+                    className="overflow-hidden hover:shadow-lg transition-shadow"
+                  >
+                    <CardContent className="p-0">
+                      {imageUrl && (
+                        <div className="aspect-square bg-muted">
+                          <img
+                            src={imageUrl}
+                            alt={metadata?.name || `NFT ${nft.item}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
                       )}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        const id = `${nft.collection}-${nft.item}`;
-                        setBurningItem(id);
-                        try {
-                          await burnNFT(nft.collection, nft.item);
-                        } catch (error) {
-                          console.error(error);
-                        } finally {
-                          setBurningItem(null);
+                      <div className="p-4">
+                        <CardTitle className="text-lg mb-2">
+                          {metadata?.name || `Item #${nft.item}`}
+                        </CardTitle>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <p>Collection: {nft.collection}</p>
+                          <p>Item: {nft.item}</p>
+                        </div>
+                        {metadata?.description && (
+                          <CardDescription className="mt-3 line-clamp-3">
+                            {metadata.description}
+                          </CardDescription>
+                        )}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={async () => {
+                          const id = `${nft.collection}-${nft.item}`;
+                          setBurningItem(id);
+
+                          try {
+                            await burnNFT(nft.collection, nft.item);
+
+                            // optimistically remove the NFT from UI
+                            setOptimisticallyRemovedNFTs((prev) => [
+                              ...prev,
+                              id,
+                            ]);
+
+                            // sync with AssetHub to confirm removal
+                            await syncFromAssetHub();
+                          } catch (error) {
+                            console.error(error);
+                          } finally {
+                            setBurningItem(null);
+                          }
+                        }}
+                        disabled={
+                          burningItem === `${nft.collection}-${nft.item}` ||
+                          !isInitialized
                         }
-                      }}
-                      disabled={
-                        burningItem === `${nft.collection}-${nft.item}` ||
-                        !isInitialized
-                      }
-                    >
-                      {burningItem === `${nft.collection}-${nft.item}`
-                        ? 'Burning...'
-                        : 'Burn'}
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="ml-2"
-                      onClick={async () => {
-                        if (!selectedAccount) return;
-                        const battleRoomId = Math.random()
-                          .toString(16)
-                          .slice(2, 8)
-                          .padStart(6, '0');
-
-                        await createBattleRoom({
-                          roomId: battleRoomId,
-                          nftCollection: nft.collection,
-                          nftItem: nft.item,
-                          userAddress: selectedAccount.address,
-                        });
-
-                        router.push(`/battle/waiting/${battleRoomId}`);
-                      }}
-                    >
-                      Battle
-                    </Button>
-                  </CardFooter>
-                </Card>
-              );
-            })}
+                      >
+                        {burningItem === `${nft.collection}-${nft.item}`
+                          ? 'Burning...'
+                          : 'Burn'}
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        asChild
+                      >
+                        <Link href="/battle">
+                          <Swords className="h-4 w-4 mr-1" />
+                          Battle
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
           </div>
         ) : (
           <Card className="text-center py-12">
@@ -274,7 +278,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-      </main>
+      </div>
     </div>
   );
 }

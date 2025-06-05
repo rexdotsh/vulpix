@@ -2,6 +2,39 @@ import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { getUserId } from './users';
 
+function generateNFTStats(collectionId: string, itemId: string, metadata: any) {
+  // create a hash from collection, item, and metadata
+  const metadataStr = metadata?.name || metadata?.description || '';
+  const hash = `${metadataStr}${collectionId}${itemId}`;
+
+  let hashValue = 0;
+  for (let i = 0; i < hash.length; i++) {
+    hashValue = hashValue * 31 + hash.charCodeAt(i);
+  }
+
+  const rand = (min: number, max: number, seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+  };
+
+  const stats = {
+    attack: rand(20, 80, hashValue + 1),
+    defense: rand(20, 80, hashValue + 2),
+    intelligence: rand(10, 60, hashValue + 3),
+    luck: rand(5, 50, hashValue + 5),
+    speed: rand(10, 70, hashValue + 6),
+    strength: rand(20, 80, hashValue + 7),
+    nftType: Math.abs(hashValue) % 3,
+    maxHealth: 0,
+    generatedAt: Date.now(),
+  };
+
+  // TODO: correct?
+  stats.maxHealth = Math.floor(50 + stats.strength * 0.5 + stats.defense * 0.3);
+
+  return stats;
+}
+
 export const getUserNFTs = query({
   args: {
     address: v.string(),
@@ -38,6 +71,7 @@ export const getUserNFTs = query({
       itemDetails: item.itemDetails,
       itemMetadata: item.itemMetadata,
       collectionMetadata: collections.get(item.collectionId)?.metadata || null,
+      stats: item.stats,
       lastSynced: item.lastSynced,
     }));
   },
@@ -81,6 +115,23 @@ export const syncUserNFTs = mutation({
     const now = Date.now();
     const collections = new Map();
 
+    const existingNfts = await ctx.db
+      .query('nftItems')
+      .withIndex('by_user', (q) => q.eq('userAddress', userId))
+      .collect();
+
+    const assetHubNftIds = new Set(
+      nfts.map((nft) => `${nft.collection}-${nft.item}`),
+    );
+
+    const nftsToDelete = existingNfts.filter(
+      (nft) => !assetHubNftIds.has(`${nft.collectionId}-${nft.itemId}`),
+    );
+
+    for (const nft of nftsToDelete) {
+      await ctx.db.delete(nft._id);
+    }
+
     for (const nft of nfts) {
       if (!collections.has(nft.collection)) {
         collections.set(nft.collection, {
@@ -100,16 +151,23 @@ export const syncUserNFTs = mutation({
         )
         .first();
 
+      const stats = generateNFTStats(
+        nft.collection,
+        nft.item,
+        nft.itemMetadata,
+      );
+
       if (existingNft) {
-        // update existing NFT
+        // update existing NFT with fresh stats
         await ctx.db.patch(existingNft._id, {
           owner: nft.owner,
           itemDetails: nft.itemDetails,
           itemMetadata: nft.itemMetadata,
+          stats,
           lastSynced: now,
         });
       } else {
-        // create new NFT
+        // create new NFT with stats
         await ctx.db.insert('nftItems', {
           collectionId: nft.collection,
           itemId: nft.item,
@@ -117,8 +175,21 @@ export const syncUserNFTs = mutation({
           userAddress: userId,
           itemDetails: nft.itemDetails,
           itemMetadata: nft.itemMetadata,
+          stats,
           lastSynced: now,
         });
+      }
+    }
+
+    const collectionsWithNfts = new Set(nfts.map((nft) => nft.collection));
+    const existingCollections = await ctx.db
+      .query('nftCollections')
+      .withIndex('by_user', (q) => q.eq('userAddress', userId))
+      .collect();
+
+    for (const collection of existingCollections) {
+      if (!collectionsWithNfts.has(collection.collectionId)) {
+        await ctx.db.delete(collection._id);
       }
     }
 
@@ -140,7 +211,12 @@ export const syncUserNFTs = mutation({
       }
     }
 
-    return { success: true, syncedAt: now, nftCount: nfts.length };
+    return {
+      success: true,
+      syncedAt: now,
+      nftCount: nfts.length,
+      deletedCount: nftsToDelete.length,
+    };
   },
 });
 

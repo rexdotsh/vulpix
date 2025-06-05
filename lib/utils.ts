@@ -5,6 +5,31 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function isValidPolkadotAddress(address: string): boolean {
+  try {
+    if (!address || typeof address !== 'string') {
+      return false;
+    }
+
+    if (address.length < 46 || address.length > 50) {
+      return false;
+    }
+
+    const validPrefixes = /^[1-9A-HJ-NP-Za-km-z]/;
+    if (!validPrefixes.test(address)) {
+      return false;
+    }
+
+    if (address.match(/^0x[a-fA-F0-9]{40}$/)) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const decodeHexMetadata = (hexString: string) => {
   try {
     if (!hexString || hexString === '0x') return null;

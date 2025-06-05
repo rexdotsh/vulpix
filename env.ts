@@ -12,10 +12,12 @@ export const env = createEnv({
     CONVEX_DEPLOY_KEY: z.string().min(1).optional(),
   },
   client: {
+    NEXT_PUBLIC_CONTRACT_ADDRESS: z.string().min(1),
     NEXT_PUBLIC_GATEWAY_URL: z.string().min(1),
     NEXT_PUBLIC_CONVEX_URL: z.string().min(1),
   },
   runtimeEnv: {
+    NEXT_PUBLIC_CONTRACT_ADDRESS: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
     DATABASE_URL: process.env.DATABASE_URL,
     DIRECT_URL: process.env.DIRECT_URL,
     HEURIST_API_KEY: process.env.HEURIST_API_KEY,
