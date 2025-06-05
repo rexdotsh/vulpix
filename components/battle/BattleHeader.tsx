@@ -44,7 +44,7 @@ export function BattleHeader({
           <div className="flex items-center gap-4">
             {txHash && (
               <Link
-                href={`https://blockscout-asset-hub.parity-chains-scw.parity.io/tx/${txHash}`}
+                href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"

@@ -123,7 +123,7 @@ export function WalletLinking({
                 },
                 rpcUrls: ['https://testnet-passet-hub-eth-rpc.polkadot.io'],
                 blockExplorerUrls: [
-                  'https://blockscout-asset-hub.parity-chains-scw.parity.io',
+                  'https://blockscout-passet-hub.parity-testnet.parity.io',
                 ],
               },
             ],

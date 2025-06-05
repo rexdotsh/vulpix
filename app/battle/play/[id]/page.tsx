@@ -384,7 +384,7 @@ export default function BattlePlayPage() {
                           </p>
                           {battle.gameState.pendingTurn?.txHash && (
                             <Link
-                              href={`https://blockscout-asset-hub.parity-chains-scw.parity.io/tx/${battle.gameState.pendingTurn.txHash}`}
+                              href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${battle.gameState.pendingTurn.txHash}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-500 hover:underline flex items-center gap-1 justify-center mt-2"

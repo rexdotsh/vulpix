@@ -58,7 +58,7 @@ export function MoveHistoryCard({ moves }: MoveHistoryCardProps) {
                     )}
                   </div>
                   <Link
-                    href={`https://blockscout-asset-hub.parity-chains-scw.parity.io/tx/${move.txHash}`}
+                    href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${move.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-foreground"
