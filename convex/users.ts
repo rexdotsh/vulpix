@@ -90,3 +90,41 @@ export const getUserByEthAddress = query({
       .first();
   },
 });
+
+export const requireLinkedAddresses = async (
+  ctx: any,
+  polkadotAddress: string,
+) => {
+  const user = await ctx.db
+    .query('users')
+    .withIndex('by_address', (q: any) => q.eq('address', polkadotAddress))
+    .first();
+
+  if (!user) {
+    throw new Error('User not found. Please connect your wallet first.');
+  }
+
+  if (!user.ethAddress) {
+    throw new Error(
+      'Please link your Ethereum address before joining battles.',
+    );
+  }
+
+  return user;
+};
+
+export const getPolkadotAddressFromEth = async (
+  ctx: any,
+  ethAddress: string,
+): Promise<string | null> => {
+  const normalizedEthAddress = ethAddress.toLowerCase();
+
+  const user = await ctx.db
+    .query('users')
+    .withIndex('by_eth_address', (q: any) =>
+      q.eq('ethAddress', normalizedEthAddress),
+    )
+    .first();
+
+  return user?.address || null;
+};

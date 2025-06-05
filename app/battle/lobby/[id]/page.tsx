@@ -59,25 +59,25 @@ export default function LobbyPage() {
       ? `${window.location.origin}/battle/lobby/${lobbyId}`
       : '';
 
-  const lobby = useQuery(api.battle.getLobby, { lobbyId });
+  const lobby = useQuery(api.lobby.getLobby, { lobbyId });
   const linkStatus = useQuery(
     api.battle.getUserLinkStatus,
     selectedAccount ? { polkadotAddress: selectedAccount.address } : 'skip',
   );
   const playersEthAddresses = useQuery(
-    api.battle.getBattlePlayersEthAddresses,
+    api.lobby.getBattlePlayersEthAddresses,
     lobby?.joinedPlayerAddress ? { lobbyId } : 'skip',
   );
   const battleIdFromLobby = useQuery(
-    api.battle.getBattleFromLobby,
+    api.lobby.getBattleFromLobby,
     lobby?.status === 'started' ? { lobbyId } : 'skip',
   );
-  const updateLobbyNFT = useMutation(api.battle.updateLobbyNFT);
-  const startBattleFromLobby = useMutation(api.battle.startBattleFromLobby);
+  const updateLobbyNFT = useMutation(api.lobby.updateLobbyNFT);
+  const startBattleFromLobby = useMutation(api.lobby.startBattleFromLobby);
   const updateBattleContractInfo = useMutation(
     api.battle.updateBattleContractInfo,
   );
-  const joinLobby = useMutation(api.battle.joinLobby);
+  const joinLobby = useMutation(api.lobby.joinLobby);
 
   const isCreator = selectedAccount?.address === lobby?.creatorAddress;
   const isJoiner = selectedAccount?.address === lobby?.joinedPlayerAddress;

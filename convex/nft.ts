@@ -2,9 +2,8 @@ import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { getUserId } from './users';
 
-// Generate deterministic stats from NFT metadata
 function generateNFTStats(collectionId: string, itemId: string, metadata: any) {
-  // Create a hash from collection, item, and metadata
+  // create a hash from collection, item, and metadata
   const metadataStr = metadata?.name || metadata?.description || '';
   const hash = `${metadataStr}${collectionId}${itemId}`;
 
@@ -13,7 +12,6 @@ function generateNFTStats(collectionId: string, itemId: string, metadata: any) {
     hashValue = hashValue * 31 + hash.charCodeAt(i);
   }
 
-  // Seeded random function
   const rand = (min: number, max: number, seed: number) => {
     const x = Math.sin(seed) * 10000;
     return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
@@ -31,7 +29,7 @@ function generateNFTStats(collectionId: string, itemId: string, metadata: any) {
     generatedAt: Date.now(),
   };
 
-  // Calculate max health based on strength and defense
+  // TODO: correct?
   stats.maxHealth = Math.floor(50 + stats.strength * 0.5 + stats.defense * 0.3);
 
   return stats;

@@ -50,8 +50,7 @@ export default function BattlePage() {
   const [joinLobbyId, setJoinLobbyId] = useState('');
   const [showWalletLinking, setShowWalletLinking] = useState(false);
 
-  // Queries
-  const publicLobbies = useQuery(api.battle.getPublicLobbies);
+  const publicLobbies = useQuery(api.lobby.getPublicLobbies);
   const activeBattles = useQuery(
     api.battle.getUserActiveBattles,
     selectedAccount ? { userAddress: selectedAccount.address } : 'skip',
@@ -65,14 +64,12 @@ export default function BattlePage() {
     selectedAccount ? { polkadotAddress: selectedAccount.address } : 'skip',
   );
 
-  // Mutations
-  const createLobby = useMutation(api.battle.createLobby);
-  const joinLobby = useMutation(api.battle.joinLobby);
+  const createLobby = useMutation(api.lobby.createLobby);
+  const joinLobby = useMutation(api.lobby.joinLobby);
 
   const handleCreateLobby = async (isPrivate: boolean) => {
     if (!selectedAccount) return;
 
-    // Check if wallets are linked
     if (!linkStatus?.hasLinkedEthAddress) {
       setShowWalletLinking(true);
       return;
