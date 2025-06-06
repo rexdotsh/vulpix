@@ -129,8 +129,8 @@ export function ImageGenerator() {
       neg_prompt: '',
       num_iterations: 25,
       guidance_scale: 7.5,
-      width: 1024,
-      height: 768,
+      width: 720,
+      height: 960,
       seed: undefined,
     },
   });
@@ -160,8 +160,8 @@ export function ImageGenerator() {
       setGeneratedImage({
         url: null,
         dimensions: {
-          width: data.width ?? 1024,
-          height: data.height ?? 768,
+          width: data.width ?? 720,
+          height: data.height ?? 960,
         },
       });
     } catch (err: any) {
@@ -287,13 +287,13 @@ export function ImageGenerator() {
                     name="width"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Width: {watchWidth ?? 1024}px</FormLabel>
+                        <FormLabel>Width: {watchWidth ?? 720}px</FormLabel>
                         <FormControl>
                           <Slider
                             min={256}
                             max={2048}
                             step={64}
-                            value={[field.value ?? 1024]}
+                            value={[field.value ?? 720]}
                             onValueChange={(val) => field.onChange(val[0])}
                           />
                         </FormControl>
@@ -307,13 +307,13 @@ export function ImageGenerator() {
                     name="height"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Height: {watchHeight ?? 768}px</FormLabel>
+                        <FormLabel>Height: {watchHeight ?? 960}px</FormLabel>
                         <FormControl>
                           <Slider
                             min={256}
                             max={2048}
                             step={64}
-                            value={[field.value ?? 768]}
+                            value={[field.value ?? 960]}
                             onValueChange={(val) => field.onChange(val[0])}
                           />
                         </FormControl>
