@@ -29,7 +29,7 @@ export const callGoogleAPI = internalAction({
                  Accessories should vary in rarity: common (baseball caps or beanies), uncommon (round or rectangular glasses), and rare (gold or silver necklaces). 
                  Facial expressions should be one of the following: happy, determined, or curious. 
                  Ensure each NFT has a distinct combination of these features to maximize uniqueness and collectibility.
-                 Note: Strictly stick to the user prompt. 
+                 Note: Strictly stick to the user prompt. The generated NFT should be of 1024x1024px.
                  User prompt: ${args.prompt}`,
       });
 
