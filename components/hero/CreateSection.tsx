@@ -38,6 +38,7 @@ export default function CreateSection() {
                 alt="Colorful NFT character"
                 width={300}
                 height={300}
+                style={{ height: 'auto' }}
                 className="w-24 h-24 sm:w-40 sm:h-40 md:w-60 md:h-60 lg:w-[300px] lg:h-[300px]"
               />
             </div>
@@ -68,6 +69,7 @@ export default function CreateSection() {
                 alt="NFT character with TV head"
                 width={300}
                 height={300}
+                style={{ height: 'auto' }}
                 className="w-24 h-24 sm:w-40 sm:h-40 md:w-60 md:h-60 lg:w-[300px] lg:h-[300px]"
               />
             </div>

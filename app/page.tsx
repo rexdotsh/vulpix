@@ -164,6 +164,10 @@ export default function Page() {
         >
           <motion.span
             className="inline-block rounded-full h-4 w-4 border-2 border-white mr-2"
+            style={{
+              borderTopColor: 'white',
+              borderRightColor: 'white',
+            }}
             animate={{
               rotate: 360,
               borderTopColor: 'transparent',

@@ -34,6 +34,7 @@ export default function AboutSection() {
                     src={image}
                     alt={`NFT ${index + 1}`}
                     fill
+                    sizes="(max-width: 768px) 96px, 224px"
                     className="object-cover"
                   />
                 </div>
