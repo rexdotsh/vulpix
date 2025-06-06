@@ -165,7 +165,7 @@ export function ImageGenerator() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 lg:mb-12">
           <div className="flex items-center justify-center mb-6">
             <div className="relative">
               <div className="absolute inset-0 bg-green-400 rounded-full blur-lg opacity-20 animate-pulse" />
@@ -188,18 +188,18 @@ export function ImageGenerator() {
               </div>
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent mb-4">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent mb-4">
             AI NFT Generation Studio
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Transform your imagination into stunning visuals with the power of
             AI
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-start">
           {/* Generation Form */}
-          <div>
+          <div className="lg:order-1">
             <Card className="border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors duration-300 backdrop-blur-sm bg-card/80">
               <CardHeader className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -222,7 +222,7 @@ export function ImageGenerator() {
                     </svg>
                   </div>
                   <div>
-                    <CardTitle className="text-2xl">
+                    <CardTitle className="text-xl lg:text-2xl">
                       Create Your Vision
                     </CardTitle>
                   </div>
@@ -233,13 +233,13 @@ export function ImageGenerator() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-0"
                 >
-                  <CardContent className="space-y-8">
+                  <CardContent className="space-y-6 lg:space-y-8">
                     <FormField
                       control={form.control}
                       name="prompt"
                       render={({ field }) => (
-                        <FormItem className="space-y-4">
-                          <FormLabel className="text-lg font-semibold flex items-center space-x-2">
+                        <FormItem className="space-y-3 lg:space-y-4">
+                          <FormLabel className="text-base lg:text-lg font-semibold flex items-center space-x-2">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="18"
@@ -259,7 +259,7 @@ export function ImageGenerator() {
                             <div className="relative">
                               <Input
                                 placeholder="A majestic dragon soaring through clouds at sunset, vibrant colors..."
-                                className="h-16 text-lg px-6 py-4 rounded-xl border-2 focus:border-primary transition-all duration-300 placeholder:text-muted-foreground/60 placeholder:opacity-75"
+                                className="h-12 lg:h-16 text-base lg:text-lg px-4 lg:px-6 py-3 lg:py-4 rounded-xl border-2 focus:border-primary transition-all duration-300 placeholder:text-muted-foreground/60 placeholder:opacity-75"
                                 {...field}
                               />
                               <div className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500">
@@ -280,7 +280,7 @@ export function ImageGenerator() {
                               </div>
                             </div>
                           </FormControl>
-                          <FormDescription className="text-base bg-muted/50 p-4 rounded-lg border-l-4 border-green-500">
+                          <FormDescription className="text-sm lg:text-base bg-muted/50 p-3 lg:p-4 rounded-lg border-l-4 border-green-500">
                             💡 <strong>Pro tip:</strong> Be detailed and
                             specific for the best results.
                           </FormDescription>
@@ -289,11 +289,11 @@ export function ImageGenerator() {
                       )}
                     />
                   </CardContent>
-                  <CardFooter className="pt-8">
+                  <CardFooter className="pt-6 lg:pt-8">
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-14 text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-lg hover:shadow-xl"
+                      className="w-full h-12 lg:h-14 text-base lg:text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-lg hover:shadow-xl"
                     >
                       {isLoading ? (
                         <>
@@ -350,10 +350,10 @@ export function ImageGenerator() {
           </div>
 
           {/* Preview Section */}
-          <div className="lg:sticky lg:top-8">
-            <Card className="w-[512px] h-[512px] mx-auto flex flex-col border-2 backdrop-blur-sm bg-card/80">
+          <div className="lg:order-2 lg:sticky lg:top-8">
+            <Card className="w-full max-w-[512px] aspect-square mx-auto flex flex-col border-2 backdrop-blur-sm bg-card/80">
               <CardHeader className="w-full border-b bg-muted/20">
-                <CardTitle className="text-center text-xl flex items-center justify-center space-x-2">
+                <CardTitle className="text-center text-lg lg:text-xl flex items-center justify-center space-x-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -398,10 +398,10 @@ export function ImageGenerator() {
                         />
                       </svg>
                     </div>
-                    <p className="text-lg font-medium">
+                    <p className="text-base lg:text-lg font-medium">
                       Generating your masterpiece...
                     </p>
-                    <p className="text-sm opacity-70 mt-1">
+                    <p className="text-xs lg:text-sm opacity-70 mt-1">
                       This may take a few moments
                     </p>
                   </div>
@@ -414,7 +414,7 @@ export function ImageGenerator() {
                       alt="Generated image"
                       width={1024}
                       height={1024}
-                      className="relative rounded-2xl object-contain w-full h-full max-w-[512px] max-h-[512px] shadow-2xl"
+                      className="relative rounded-2xl object-contain w-full h-full shadow-2xl"
                       priority
                       unoptimized
                     />
@@ -448,7 +448,7 @@ export function ImageGenerator() {
                         <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-semibold mb-3">
+                    <h3 className="text-lg lg:text-xl font-semibold mb-3">
                       Ready to Create?
                     </h3>
                   </div>

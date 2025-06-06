@@ -91,24 +91,22 @@ export function ImageHistory() {
   if (!images) {
     return (
       <div className="w-full max-w-[1800px] mx-auto px-4">
-        <div className="flex flex-wrap justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 justify-items-center">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
+            <Card
               key={i}
-              className="w-full sm:w-1/2 lg:w-1/3 p-8 flex justify-center"
+              className="overflow-hidden w-full max-w-[512px] aspect-square"
             >
-              <Card className="overflow-hidden w-[512px] h-[512px]">
-                <CardHeader className="p-4">
-                  <Skeleton className="h-4 w-2/3" />
-                </CardHeader>
-                <CardContent className="p-0 flex-grow">
-                  <Skeleton className="w-full h-full" />
-                </CardContent>
-                <CardFooter className="p-4">
-                  <Skeleton className="h-4 w-1/3" />
-                </CardFooter>
-              </Card>
-            </div>
+              <CardHeader className="p-4">
+                <Skeleton className="h-4 w-2/3" />
+              </CardHeader>
+              <CardContent className="p-0 flex-grow">
+                <Skeleton className="w-full h-full" />
+              </CardContent>
+              <CardFooter className="p-4">
+                <Skeleton className="h-4 w-1/3" />
+              </CardFooter>
+            </Card>
           ))}
         </div>
       </div>
@@ -125,9 +123,9 @@ export function ImageHistory() {
 
   return (
     <div className="space-y-6">
-      <div className="relative flex justify-center">
-        <div className="flex gap-4 items-center">
-          <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="text-sm font-medium">Search by date:</span>
             <Input
               type="date"
@@ -136,7 +134,7 @@ export function ImageHistory() {
               className="w-40"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="text-sm font-medium">Sort:</span>
             <Select
               value={sortOrder}
@@ -161,7 +159,7 @@ export function ImageHistory() {
               setSearchDate('');
               setSortOrder('newest');
             }}
-            className="text-sm absolute left-[calc(50%+16rem)] top-1/2 -translate-y-1/2"
+            className="text-sm"
           >
             Clear filters
           </Button>
@@ -176,14 +174,9 @@ export function ImageHistory() {
         </div>
       ) : (
         <div className="w-full max-w-[1800px] mx-auto px-4">
-          <div className="flex flex-wrap justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 justify-items-center">
             {filteredImages.map((image) => (
-              <div
-                key={image._id}
-                className="w-full sm:w-1/2 lg:w-1/3 p-8 flex justify-center"
-              >
-                <ImageCard image={image as unknown as ImageGen} />
-              </div>
+              <ImageCard key={image._id} image={image as unknown as ImageGen} />
             ))}
           </div>
         </div>
@@ -210,7 +203,7 @@ function ImageCard({ image }: { image: ImageGen }) {
 
   return (
     <>
-      <Card className="overflow-hidden flex flex-col w-[512px] h-[512px]">
+      <Card className="overflow-hidden flex flex-col w-full max-w-[512px] aspect-square">
         <CardHeader className="p-4">
           <CardTitle className="text-sm truncate">{image.prompt}</CardTitle>
         </CardHeader>
@@ -260,7 +253,7 @@ function ImageCard({ image }: { image: ImageGen }) {
             </div>
           )}
         </CardContent>
-        <CardFooter className="p-4 flex justify-between items-center">
+        <CardFooter className="p-4 flex flex-col sm:flex-row justify-between items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {new Date(image.createdAt).toLocaleDateString()}
           </span>
