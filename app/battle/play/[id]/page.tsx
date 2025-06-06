@@ -28,6 +28,7 @@ import { NFTCard } from '@/components/battle/NFTCard';
 import { MoveHistoryCard } from '@/components/battle/MoveHistoryCard';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 import { useTalismanWallet } from '@/hooks/useTalismanWallet';
+import { WalletConnection } from '@/components/WalletConnection';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -187,12 +188,19 @@ export default function BattlePlayPage() {
 
   if (!selectedAccount) {
     return (
-      <PageStateCard
-        title="Wallet Required"
-        message="Please connect your wallet to view this battle."
-        buttonText="Connect Wallet"
-        redirectTo="/"
-      />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Wallet Required</h2>
+              <p className="text-muted-foreground mb-4">
+                Please connect your wallet to view this battle.
+              </p>
+              <WalletConnection />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

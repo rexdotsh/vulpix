@@ -6,6 +6,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { WalletLinking } from '@/components/WalletLinking';
+import { WalletConnection } from '@/components/WalletConnection';
 import {
   Card,
   CardContent,
@@ -128,12 +129,19 @@ export default function BattlePage() {
 
   if (!isReady) {
     return (
-      <PageStateCard
-        title="Wallet Required"
-        message="Connect your wallet to access the battle arena"
-        buttonText="Connect Wallet"
-        redirectTo="/"
-      />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Wallet Required</h2>
+              <p className="text-muted-foreground mb-4">
+                Connect your wallet to access the battle arena
+              </p>
+              <WalletConnection />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

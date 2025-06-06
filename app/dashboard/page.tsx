@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import {
@@ -28,6 +27,7 @@ import { NFTStatsDisplay } from '@/components/battle/NFTStatsDisplay';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
 import { getNFTTypeName, getNFTTypeColor } from '@/lib/battle-utils';
 import { Trash2, RefreshCw, CheckCircle, Clock, Info } from 'lucide-react';
+import { WalletConnection } from '@/components/WalletConnection';
 
 function NFTLoadingSkeleton() {
   return (
@@ -143,9 +143,7 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/">Connect Wallet</Link>
-            </Button>
+            <WalletConnection />
           </CardContent>
         </Card>
       </div>

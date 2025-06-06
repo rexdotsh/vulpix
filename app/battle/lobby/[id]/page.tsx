@@ -34,6 +34,7 @@ import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
 import { env } from '@/env';
 import { WalletLinking } from '@/components/WalletLinking';
+import { WalletConnection } from '@/components/WalletConnection';
 
 export default function LobbyPage() {
   const { id } = useParams();
@@ -256,12 +257,19 @@ export default function LobbyPage() {
 
   if (!selectedAccount) {
     return (
-      <PageStateCard
-        title="Wallet Required"
-        message="Please connect your wallet to join this lobby."
-        buttonText="Connect Wallet"
-        redirectTo="/"
-      />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Wallet Required</h2>
+              <p className="text-muted-foreground mb-4">
+                Please connect your wallet to join this lobby.
+              </p>
+              <WalletConnection />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
