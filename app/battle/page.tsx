@@ -129,16 +129,16 @@ export default function BattlePage() {
 
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Wallet Required</h2>
-              <p className="text-muted-foreground mb-4">
-                Connect your wallet to access the battle arena
-              </p>
-              <WalletConnection />
-            </div>
+      <div className="container mx-auto py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Wallet Not Connected</CardTitle>
+            <CardDescription>
+              Please connect your wallet to access the battle arena
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WalletConnection />
           </CardContent>
         </Card>
       </div>
