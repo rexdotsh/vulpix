@@ -10,28 +10,74 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
 import { PageStateCard } from '@/components/battle/PageStateCard';
+import { NFTStatsDisplay } from '@/components/battle/NFTStatsDisplay';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
-import { Swords } from 'lucide-react';
+import { getNFTTypeName, getNFTTypeColor } from '@/lib/battle-utils';
+import { Trash2, RefreshCw, CheckCircle, Clock, Info } from 'lucide-react';
 
 function NFTLoadingSkeleton() {
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardContent className="p-0">
-        <Skeleton className="aspect-square w-full rounded-t-xl" />
-        <div className="p-4 space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-3 w-1/2" />
-          <Skeleton className="h-3 w-2/3" />
+        <Skeleton className="aspect-[3/4] w-full" />
+        <div className="p-6 space-y-3">
+          <Skeleton className="h-5 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-2/3" />
+          <div className="space-y-2 pt-2">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-3/4" />
+          </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function SyncStatus({
+  lastSyncTime,
+  isBackgroundSyncing,
+}: { lastSyncTime: Date | null; isBackgroundSyncing: boolean }) {
+  if (isBackgroundSyncing) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <RefreshCw className="h-4 w-4 animate-spin" />
+        <span>Syncing with AssetHub...</span>
+      </div>
+    );
+  }
+
+  if (lastSyncTime) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <CheckCircle className="h-4 w-4 text-green-500" />
+        <span>
+          Last synced {formatDistanceToNow(lastSyncTime, { addSuffix: true })}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Clock className="h-4 w-4" />
+      <span>Not synced yet</span>
+    </div>
   );
 }
 
@@ -107,178 +153,240 @@ export default function Dashboard() {
   }
 
   const isLoading = userNFTs === undefined;
+  const filteredNFTs =
+    userNFTs?.filter(
+      (nft) =>
+        !optimisticallyRemovedNFTs.includes(`${nft.collection}-${nft.item}`),
+    ) || [];
 
   return (
-    <div className="bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">My NFTs</h1>
-            <p className="text-muted-foreground mt-1">
-              {isLoading
-                ? 'Loading...'
-                : `${userNFTs?.length || 0} items found`}
-              {lastSyncTime && (
-                <span className="ml-2 text-sm">
-                  (Last synced:{' '}
-                  {formatDistanceToNow(lastSyncTime, { addSuffix: true })})
-                </span>
-              )}
-              {isBackgroundSyncing && (
-                <span className="ml-2 text-sm text-muted-foreground animate-pulse">
-                  (Syncing in background...)
-                </span>
-              )}
-            </p>
+    <TooltipProvider>
+      <div className="bg-background min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-4xl font-bold text-foreground">
+                  My Collection
+                </h1>
+                <p className="text-lg text-muted-foreground mt-2">
+                  {isLoading
+                    ? 'Loading your NFTs...'
+                    : `${filteredNFTs.length} ${filteredNFTs.length === 1 ? 'item' : 'items'} in your collection`}
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <SyncStatus
+                  lastSyncTime={lastSyncTime ? new Date(lastSyncTime) : null}
+                  isBackgroundSyncing={isBackgroundSyncing}
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => syncFromAssetHub()}
+                  disabled={isSyncing || isBackgroundSyncing || !isInitialized}
+                  className="min-w-[140px]"
+                >
+                  {isSyncing || isBackgroundSyncing ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Syncing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Sync NFTs
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="outline"
-              onClick={() => syncFromAssetHub()}
-              disabled={isSyncing || isBackgroundSyncing || !isInitialized}
-            >
-              {isSyncing || isBackgroundSyncing
-                ? 'Syncing...'
-                : 'Sync from AssetHub'}
-            </Button>
-          </div>
-        </div>
 
-        {/* TODO: active battles */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <NFTLoadingSkeleton key={`skeleton-${Date.now()}-${i}`} />
-            ))}
-          </div>
-        ) : userNFTs &&
-          userNFTs.filter(
-            (nft) =>
-              !optimisticallyRemovedNFTs.includes(
-                `${nft.collection}-${nft.item}`,
-              ),
-          ).length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {userNFTs
-              .filter(
-                (nft) =>
-                  !optimisticallyRemovedNFTs.includes(
-                    `${nft.collection}-${nft.item}`,
-                  ),
-              )
-              .map((nft) => {
+          {/* NFT Grid */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+              {[...Array(8)].map((_, i) => (
+                <NFTLoadingSkeleton key={`skeleton-${Date.now()}-${i}`} />
+              ))}
+            </div>
+          ) : filteredNFTs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+              {filteredNFTs.map((nft) => {
                 const metadata = decodeHexMetadata(nft.itemMetadata?.data);
                 const imageUrl = getIpfsImageUrl(metadata);
+                const typeName = getNFTTypeName(nft.stats?.nftType || 0);
+                const typeColor = getNFTTypeColor(nft.stats?.nftType || 0);
 
                 return (
                   <Card
                     key={`${nft.collection}-${nft.item}`}
-                    className="overflow-hidden hover:shadow-lg transition-shadow"
+                    className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-2 hover:border-primary/20"
                   >
                     <CardContent className="p-0">
-                      {imageUrl && (
-                        <div className="aspect-square bg-muted">
+                      {/* NFT Image */}
+                      <div className="aspect-[3/4] bg-muted relative overflow-hidden">
+                        {imageUrl ? (
                           <img
                             src={imageUrl}
                             alt={metadata?.name || `NFT ${nft.item}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                             }}
                           />
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <CardTitle className="text-lg mb-2">
-                          {metadata?.name || `Item #${nft.item}`}
-                        </CardTitle>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <p>Collection: {nft.collection}</p>
-                          <p>Item: {nft.item}</p>
-                        </div>
-                        {metadata?.description && (
-                          <CardDescription className="mt-3 line-clamp-3">
-                            {metadata.description}
-                          </CardDescription>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            <div className="text-center">
+                              <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-muted-foreground/10 flex items-center justify-center">
+                                <svg
+                                  className="w-8 h-8"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              </div>
+                              <p className="text-sm">No Image</p>
+                            </div>
+                          </div>
                         )}
+
+                        {/* Type Badge Overlay */}
+                        <div className="absolute top-3 right-3">
+                          <Badge className={`${typeColor} shadow-lg`}>
+                            {typeName}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* NFT Details */}
+                      <div className="p-4 space-y-3">
+                        {/* Title with ID info */}
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-lg line-clamp-1 flex-1">
+                            {metadata?.name || `Item #${nft.item}`}
+                          </CardTitle>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-1 cursor-help">
+                                <Info className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
+                                  ID
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="space-y-1">
+                                <p>Collection: {nft.collection}</p>
+                                <p>Item: {nft.item}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+
+                        <Separator />
+
+                        {/* Stats Display */}
+                        {nft.stats && (
+                          <div className="mb-4">
+                            <h4 className="font-semibold text-sm mb-2 text-foreground">
+                              Battle Stats
+                            </h4>
+                            <NFTStatsDisplay stats={nft.stats} />
+                          </div>
+                        )}
+
+                        {/* Burn Button */}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={async () => {
+                            const id = `${nft.collection}-${nft.item}`;
+                            setBurningItem(id);
+
+                            try {
+                              await burnNFT(nft.collection, nft.item);
+
+                              // optimistically remove the NFT from UI
+                              setOptimisticallyRemovedNFTs((prev) => [
+                                ...prev,
+                                id,
+                              ]);
+
+                              // sync with AssetHub to confirm removal
+                              await syncFromAssetHub();
+                            } catch (error) {
+                              console.error(error);
+                            } finally {
+                              setBurningItem(null);
+                            }
+                          }}
+                          disabled={
+                            burningItem === `${nft.collection}-${nft.item}` ||
+                            !isInitialized
+                          }
+                          className="w-full"
+                        >
+                          {burningItem === `${nft.collection}-${nft.item}` ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              Burning...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Burn NFT
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </CardContent>
-                    <CardFooter className="flex gap-2">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={async () => {
-                          const id = `${nft.collection}-${nft.item}`;
-                          setBurningItem(id);
-
-                          try {
-                            await burnNFT(nft.collection, nft.item);
-
-                            // optimistically remove the NFT from UI
-                            setOptimisticallyRemovedNFTs((prev) => [
-                              ...prev,
-                              id,
-                            ]);
-
-                            // sync with AssetHub to confirm removal
-                            await syncFromAssetHub();
-                          } catch (error) {
-                            console.error(error);
-                          } finally {
-                            setBurningItem(null);
-                          }
-                        }}
-                        disabled={
-                          burningItem === `${nft.collection}-${nft.item}` ||
-                          !isInitialized
-                        }
-                      >
-                        {burningItem === `${nft.collection}-${nft.item}`
-                          ? 'Burning...'
-                          : 'Burn'}
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="flex-1"
-                        asChild
-                      >
-                        <Link href="/battle">
-                          <Swords className="h-4 w-4 mr-1" />
-                          Battle
-                        </Link>
-                      </Button>
-                    </CardFooter>
                   </Card>
                 );
               })}
-          </div>
-        ) : (
-          <Card className="text-center py-12">
-            <CardContent>
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                <svg
-                  className="w-12 h-12 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            </div>
+          ) : (
+            <Card className="text-center py-16 border-dashed border-2">
+              <CardContent>
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+                  <svg
+                    className="w-12 h-12 text-muted-foreground"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <CardTitle className="text-2xl mb-3">No NFTs Found</CardTitle>
+                <CardDescription className="text-lg mb-6">
+                  This account doesn't have any NFTs on AssetHub yet.
+                </CardDescription>
+                <Button
+                  variant="outline"
+                  onClick={() => syncFromAssetHub()}
+                  disabled={isSyncing || !isInitialized}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <CardTitle className="text-xl mb-2">No NFTs Found</CardTitle>
-              <CardDescription>
-                This account doesn't have any NFTs on AssetHub yet.
-              </CardDescription>
-            </CardContent>
-          </Card>
-        )}
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Check Again
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
