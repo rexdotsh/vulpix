@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import {
@@ -32,7 +31,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { availableModels } from '@/lib/availableModels';
 import { z } from 'zod';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
@@ -52,10 +50,10 @@ export function ImageGenerator() {
 
   const [generatedImage, setGeneratedImage] = useState<{
     url: string | null;
-    dimensions: { width: number; height: number } | null;
+    dimensions: { width: number; height: number };
   }>({
     url: null,
-    dimensions: null,
+    dimensions: { width: 1024, height: 1024 },
   });
 
   const [imageGenId, setImageGenId] = useState<Id<'imageGenerations'> | null>(
@@ -75,13 +73,15 @@ export function ImageGenerator() {
   const generateImageFormSchema = z.object({
     model: z.string().min(1, 'Model is required.'),
     prompt: z.string().min(1, 'Prompt is required.'),
-    neg_prompt: z.string().optional(),
-    num_iterations: z.number().min(1).max(100).optional(),
-    guidance_scale: z.number().min(1).max(20).optional(),
-    width: z.number().min(256).max(2048).optional(),
-    height: z.number().min(256).max(2048).optional(),
-    seed: z.number().int().optional(),
   });
+
+  const availableModels = [
+    {
+      id: 'gemini-2.0-flash-exp',
+      description:
+        'Google Gemini 2.0 Flash with experimental image generation capabilities. Supports both text and image outputs.',
+    },
+  ];
 
   type GenerateImageFormInput = z.infer<typeof generateImageFormSchema>;
 
@@ -126,12 +126,6 @@ export function ImageGenerator() {
     defaultValues: {
       model: availableModels[0].id,
       prompt: '',
-      neg_prompt: '',
-      num_iterations: 25,
-      guidance_scale: 7.5,
-      width: 1024,
-      height: 768,
-      seed: undefined,
     },
   });
 
@@ -141,7 +135,7 @@ export function ImageGenerator() {
       return;
     }
     setIsLoading(true);
-    setGeneratedImage({ url: null, dimensions: null });
+    setGeneratedImage({ url: null, dimensions: { width: 1024, height: 1024 } });
     setImageGenId(null);
     toast.info('Generating image...');
     try {
@@ -149,20 +143,11 @@ export function ImageGenerator() {
         userAddress: selectedAccount.address,
         model: data.model,
         prompt: data.prompt,
-        negPrompt: data.neg_prompt || undefined,
-        numIterations: data.num_iterations,
-        guidanceScale: data.guidance_scale,
-        width: data.width,
-        height: data.height,
-        seed: data.seed,
       });
       setImageGenId(id);
       setGeneratedImage({
         url: null,
-        dimensions: {
-          width: data.width ?? 1024,
-          height: data.height ?? 768,
-        },
+        dimensions: { width: 1024, height: 1024 },
       });
     } catch (err: any) {
       console.error('Error starting image generation:', err);
@@ -176,16 +161,11 @@ export function ImageGenerator() {
     (m) => m.id === selectedModelId,
   )?.description;
 
-  const watchWidth = form.watch('width');
-  const watchHeight = form.watch('height');
-  const watchIterations = form.watch('num_iterations');
-  const watchGuidance = form.watch('guidance_scale');
-
   useEffect(() => {
     if (imageQuery?.imageUrl) {
       setGeneratedImage({
         url: imageQuery.imageUrl,
-        dimensions: generatedImage.dimensions,
+        dimensions: { width: 1024, height: 1024 },
       });
       toast.success('Image generated successfully!');
       setIsLoading(false);
@@ -253,145 +233,8 @@ export function ImageGenerator() {
                         />
                       </FormControl>
                       <FormDescription>
-                        Describe the image you want to create.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="neg_prompt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Negative Prompt (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., blurry, low quality, text, watermark"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Describe what to avoid in the image.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                  <FormField
-                    control={form.control}
-                    name="width"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Width: {watchWidth ?? 1024}px</FormLabel>
-                        <FormControl>
-                          <Slider
-                            min={256}
-                            max={2048}
-                            step={64}
-                            value={[field.value ?? 1024]}
-                            onValueChange={(val) => field.onChange(val[0])}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="height"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Height: {watchHeight ?? 768}px</FormLabel>
-                        <FormControl>
-                          <Slider
-                            min={256}
-                            max={2048}
-                            step={64}
-                            value={[field.value ?? 768]}
-                            onValueChange={(val) => field.onChange(val[0])}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="num_iterations"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Iterations: {watchIterations ?? 25}
-                        </FormLabel>
-                        <FormControl>
-                          <Slider
-                            min={1}
-                            max={100}
-                            step={1}
-                            value={[field.value ?? 25]}
-                            onValueChange={(val) => field.onChange(val[0])}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="guidance_scale"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Guidance Scale: {watchGuidance ?? 7.5}
-                        </FormLabel>
-                        <FormControl>
-                          <Slider
-                            min={1}
-                            max={20}
-                            step={0.5}
-                            value={[field.value ?? 7.5]}
-                            onValueChange={(val) => field.onChange(val[0])}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="seed"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Seed (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Leave blank for random"
-                          {...field}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            field.onChange(
-                              val === '' ? undefined : Number.parseInt(val, 10),
-                            );
-                          }}
-                          value={
-                            field.value === undefined ? '' : String(field.value)
-                          }
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        A specific seed for reproducible results. Random if
-                        blank.
+                        Describe the image you want to create. Be detailed and
+                        specific for best results.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -465,12 +308,12 @@ export function ImageGenerator() {
                 <p>Generating your masterpiece...</p>
               </div>
             )}
-            {!isLoading && generatedImage.url && generatedImage.dimensions && (
+            {!isLoading && generatedImage.url && (
               <Image
                 src={generatedImage.url}
                 alt="Generated image"
-                width={generatedImage.dimensions.width}
-                height={generatedImage.dimensions.height}
+                width={1024}
+                height={1024}
                 className="rounded-md object-contain max-w-full max-h-full"
                 priority
                 unoptimized
