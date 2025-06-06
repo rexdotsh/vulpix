@@ -9,8 +9,8 @@
     "build:dev": "next build --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "biome lint --write --unsafe",
-    "format": "biome format --write"
+    "lint": "biome lint --write --unsafe .",
+    "format": "biome format --write ."
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.19",
