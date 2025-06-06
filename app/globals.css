@@ -181,7 +181,7 @@
   src: url('/fonts/ITCGaramondStd-LtCond.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
-  font-display: swap;
+  font-display: fallback;
 }
 
 @layer base {
