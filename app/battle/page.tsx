@@ -41,6 +41,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { formatTimeLeft, getPlayerDisplayName } from '@/lib/battle-utils';
 import { PageStateCard } from '@/components/battle/PageStateCard';
+import { motion } from 'framer-motion';
 
 export default function BattlePage() {
   const router = useRouter();
@@ -137,17 +138,49 @@ export default function BattlePage() {
   }
 
   return (
-    <div className="bg-background">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-foreground">
-              ⚔️ Battle Arena
-            </h1>
-            <p className="text-lg text-muted-foreground">
+          {/* Header */}
+          <motion.div
+            className="text-center space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-5xl font-bold text-foreground">Battle Arena</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Challenge other players to epic NFT battles powered by PolkaVM
             </p>
-          </div>
+
+            {/* Stats */}
+            <div className="flex justify-center items-center gap-8 pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {publicLobbies?.length || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Active Lobbies
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {activeBattles?.length || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Your Battles
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {battleHistory?.length || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">Completed</div>
+              </div>
+            </div>
+          </motion.div>
 
           <Dialog open={showWalletLinking} onOpenChange={setShowWalletLinking}>
             <DialogContent className="max-w-2xl">
@@ -166,21 +199,33 @@ export default function BattlePage() {
             </DialogContent>
           </Dialog>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Action Cards */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             <Dialog
               open={isCreateDialogOpen}
               onOpenChange={setIsCreateDialogOpen}
             >
               <DialogTrigger asChild>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="flex flex-col items-center justify-center p-6 space-y-2">
-                    <Plus className="h-8 w-8 text-primary" />
-                    <h3 className="font-semibold">Create Battle</h3>
-                    <p className="text-sm text-muted-foreground text-center">
-                      Start a new battle lobby
-                    </p>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 400 }}
+                >
+                  <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
+                    <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
+                      <Plus className="h-10 w-10 text-primary" />
+                      <h3 className="text-lg font-semibold">Create Battle</h3>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Start a new battle lobby
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -220,341 +265,393 @@ export default function BattlePage() {
               </DialogContent>
             </Dialog>
 
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="flex flex-col items-center justify-center p-6 space-y-2">
-                <div className="space-y-3 w-full">
-                  <div className="flex flex-col items-center space-y-2">
-                    <Users className="h-8 w-8 text-primary" />
-                    <h3 className="font-semibold">Join by Code</h3>
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Enter lobby code"
-                      value={joinLobbyId}
-                      onChange={(e) =>
-                        setJoinLobbyId(e.target.value.toUpperCase())
-                      }
-                      className="text-center"
-                    />
-                    <Button
-                      onClick={handleJoinByCode}
-                      disabled={
-                        !joinLobbyId.trim() || !linkStatus?.hasLinkedEthAddress
-                      }
-                      className="w-full"
-                      size="sm"
-                    >
-                      Join Battle
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="flex flex-col items-center justify-center p-6 space-y-2">
-                <Activity className="h-8 w-8 text-primary" />
-                <h3 className="font-semibold">Quick Stats</h3>
-                <div className="text-center space-y-1">
-                  <p className="text-sm text-muted-foreground">
-                    Active: {activeBattles?.length || 0}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Completed: {battleHistory?.length || 0}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Tabs defaultValue="lobbies" className="space-y-6">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
-              <TabsTrigger value="lobbies">Public Lobbies</TabsTrigger>
-              <TabsTrigger value="active">Active Battles</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-            </TabsList>
-
-            {/* Public Lobbies */}
-            <TabsContent value="lobbies" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="h-5 w-5" />
-                    Public Battle Lobbies
-                  </CardTitle>
-                  <CardDescription>
-                    Join an open battle or create your own
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!publicLobbies ? (
-                    <div className="space-y-3">
-                      {[...Array(3)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-16 bg-muted animate-pulse rounded-lg"
-                        />
-                      ))}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400 }}
+            >
+              <Card className="hover:shadow-lg transition-all duration-200 border-2 border-transparent hover:border-primary/20">
+                <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
+                  <div className="space-y-4 w-full">
+                    <div className="flex flex-col items-center space-y-3">
+                      <Users className="h-10 w-10 text-primary" />
+                      <h3 className="text-lg font-semibold">Join by Code</h3>
                     </div>
-                  ) : publicLobbies.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="font-semibold mb-2">No Public Lobbies</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Be the first to create a public battle!
-                      </p>
-                      <Button onClick={() => handleCreateLobby(false)}>
-                        Create Public Battle
+                    <div className="space-y-3">
+                      <Input
+                        placeholder="Enter lobby code"
+                        value={joinLobbyId}
+                        onChange={(e) =>
+                          setJoinLobbyId(e.target.value.toUpperCase())
+                        }
+                        className="text-center font-mono"
+                      />
+                      <Button
+                        onClick={handleJoinByCode}
+                        disabled={
+                          !joinLobbyId.trim() ||
+                          !linkStatus?.hasLinkedEthAddress
+                        }
+                        className="w-full"
+                      >
+                        Join Battle
                       </Button>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {publicLobbies.map((lobby) => (
-                        <div
-                          key={lobby._id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold">
-                                  {lobby.creatorName || 'Anonymous'}
-                                </span>
-                                <Badge variant="outline" className="text-xs">
-                                  {lobby.lobbyId}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                Created{' '}
-                                {formatDistanceToNow(lobby.createdAt, {
-                                  addSuffix: true,
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="text-right">
-                              <p className="text-sm">
-                                <Clock className="h-4 w-4 inline mr-1" />
-                                {formatTimeLeft(lobby.expiresAt)}
-                              </p>
-                            </div>
-                            <Button
-                              onClick={() => handleJoinLobby(lobby.lobbyId)}
-                              size="sm"
-                            >
-                              Join
-                              <ArrowRight className="h-4 w-4 ml-1" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </motion.div>
 
-            {/* Active Battles */}
-            <TabsContent value="active" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Swords className="h-5 w-5" />
-                    Active Battles
-                  </CardTitle>
-                  <CardDescription>
-                    Continue your ongoing battles
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!activeBattles ? (
-                    <div className="space-y-3">
-                      {[...Array(2)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-16 bg-muted animate-pulse rounded-lg"
-                        />
-                      ))}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400 }}
+            >
+              <Card className="hover:shadow-lg transition-all duration-200 border-2 border-transparent hover:border-primary/20">
+                <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
+                  <Activity className="h-10 w-10 text-primary" />
+                  <h3 className="text-lg font-semibold">Battle Stats</h3>
+                  <div className="text-center space-y-2 w-full">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Active:
+                      </span>
+                      <span className="font-semibold">
+                        {activeBattles?.length || 0}
+                      </span>
                     </div>
-                  ) : activeBattles.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Swords className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="font-semibold mb-2">No Active Battles</h3>
-                      <p className="text-muted-foreground">
-                        Start a new battle to see it here
-                      </p>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Completed:
+                      </span>
+                      <span className="font-semibold">
+                        {battleHistory?.length || 0}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {activeBattles.map((battle) => {
-                        const isMyTurn =
-                          battle.gameState.currentTurn ===
-                          selectedAccount?.address;
-                        const opponent =
-                          battle.player1Address === selectedAccount?.address
-                            ? getPlayerDisplayName(
-                                battle.player2Address,
-                                battle.player2Name,
-                              )
-                            : getPlayerDisplayName(
-                                battle.player1Address,
-                                battle.player1Name,
-                              );
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Lobbies:
+                      </span>
+                      <span className="font-semibold">
+                        {publicLobbies?.length || 0}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
 
-                        return (
+          {/* Tabs Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Tabs defaultValue="lobbies" className="space-y-6">
+              <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+                <TabsTrigger value="lobbies">Public Lobbies</TabsTrigger>
+                <TabsTrigger value="active">Active Battles</TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
+              </TabsList>
+
+              {/* Public Lobbies */}
+              <TabsContent value="lobbies" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Public Battle Lobbies
+                    </CardTitle>
+                    <CardDescription>
+                      Join an open battle or create your own
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {!publicLobbies ? (
+                      <div className="space-y-3">
+                        {[...Array(3)].map((_, i) => (
                           <div
-                            key={battle._id}
+                            key={i}
+                            className="h-16 bg-muted animate-pulse rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    ) : publicLobbies.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="font-semibold mb-2">
+                          No Public Lobbies
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          Be the first to create a public battle!
+                        </p>
+                        <Button onClick={() => handleCreateLobby(false)}>
+                          Create Public Battle
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {publicLobbies.map((lobby) => (
+                          <div
+                            key={lobby._id}
                             className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
                           >
                             <div className="flex items-center space-x-4">
-                              <div
-                                className={`w-2 h-2 rounded-full ${
-                                  isMyTurn
-                                    ? 'bg-green-500 animate-pulse'
-                                    : 'bg-yellow-500'
-                                }`}
-                              />
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                               <div>
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold">
-                                    vs {opponent}
+                                    {lobby.creatorName || 'Anonymous'}
                                   </span>
-                                  <Badge
-                                    variant={isMyTurn ? 'default' : 'secondary'}
-                                  >
-                                    {isMyTurn ? 'Your Turn' : 'Waiting'}
+                                  <Badge variant="outline" className="text-xs">
+                                    {lobby.lobbyId}
                                   </Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
-                                  Turn {battle.gameState.turnNumber} •{' '}
-                                  {formatDistanceToNow(battle.lastActivity, {
+                                  Created{' '}
+                                  {formatDistanceToNow(lobby.createdAt, {
                                     addSuffix: true,
                                   })}
                                 </p>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <div className="text-right text-sm">
-                                <div className="flex items-center gap-1">
-                                  <div className="w-2 h-2 bg-red-500 rounded-full" />
-                                  <span>{battle.gameState.player1Health}</span>
-                                  <span className="text-muted-foreground">
-                                    vs
-                                  </span>
-                                  <span>{battle.gameState.player2Health}</span>
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                                </div>
+                              <div className="text-right">
+                                <p className="text-sm">
+                                  <Clock className="h-4 w-4 inline mr-1" />
+                                  {formatTimeLeft(lobby.expiresAt)}
+                                </p>
                               </div>
-                              <Button asChild size="sm">
-                                <Link href={`/battle/play/${battle.battleId}`}>
-                                  Continue
-                                  <ArrowRight className="h-4 w-4 ml-1" />
-                                </Link>
+                              <Button
+                                onClick={() => handleJoinLobby(lobby.lobbyId)}
+                                size="sm"
+                              >
+                                Join
+                                <ArrowRight className="h-4 w-4 ml-1" />
                               </Button>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            {/* Battle History */}
-            <TabsContent value="history" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5" />
-                    Battle History
-                  </CardTitle>
-                  <CardDescription>
-                    Your completed battles and results
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!battleHistory ? (
-                    <div className="space-y-3">
-                      {[...Array(3)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-16 bg-muted animate-pulse rounded-lg"
-                        />
-                      ))}
-                    </div>
-                  ) : battleHistory.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="font-semibold mb-2">No Battle History</h3>
-                      <p className="text-muted-foreground">
-                        Complete your first battle to see results here
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {battleHistory.map((battle) => {
-                        const won =
-                          battle.gameState.winner === selectedAccount?.address;
-                        const opponent =
-                          battle.player1Address === selectedAccount?.address
-                            ? getPlayerDisplayName(
-                                battle.player2Address,
-                                battle.player2Name,
-                              )
-                            : getPlayerDisplayName(
-                                battle.player1Address,
-                                battle.player1Name,
-                              );
-
-                        return (
+              {/* Active Battles */}
+              <TabsContent value="active" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Swords className="h-5 w-5" />
+                      Active Battles
+                    </CardTitle>
+                    <CardDescription>
+                      Continue your ongoing battles
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {!activeBattles ? (
+                      <div className="space-y-3">
+                        {[...Array(2)].map((_, i) => (
                           <div
-                            key={battle._id}
-                            className="flex items-center justify-between p-4 border rounded-lg"
-                          >
-                            <div className="flex items-center space-x-4">
-                              <div
-                                className={`w-2 h-2 rounded-full ${
-                                  won ? 'bg-green-500' : 'bg-red-500'
-                                }`}
-                              />
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold">
-                                    vs {opponent}
-                                  </span>
-                                  <Badge
-                                    variant={won ? 'default' : 'destructive'}
-                                  >
-                                    {won ? 'Victory' : 'Defeat'}
-                                  </Badge>
+                            key={i}
+                            className="h-16 bg-muted animate-pulse rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    ) : activeBattles.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Swords className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="font-semibold mb-2">
+                          No Active Battles
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Start a new battle to see it here
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {activeBattles.map((battle) => {
+                          const isMyTurn =
+                            battle.gameState.currentTurn ===
+                            selectedAccount?.address;
+                          const opponent =
+                            battle.player1Address === selectedAccount?.address
+                              ? getPlayerDisplayName(
+                                  battle.player2Address,
+                                  battle.player2Name,
+                                )
+                              : getPlayerDisplayName(
+                                  battle.player1Address,
+                                  battle.player1Name,
+                                );
+
+                          return (
+                            <div
+                              key={battle._id}
+                              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                            >
+                              <div className="flex items-center space-x-4">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    isMyTurn
+                                      ? 'bg-green-500 animate-pulse'
+                                      : 'bg-yellow-500'
+                                  }`}
+                                />
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold">
+                                      vs {opponent}
+                                    </span>
+                                    <Badge
+                                      variant={
+                                        isMyTurn ? 'default' : 'secondary'
+                                      }
+                                    >
+                                      {isMyTurn ? 'Your Turn' : 'Waiting'}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    Turn {battle.gameState.turnNumber} •{' '}
+                                    {formatDistanceToNow(battle.lastActivity, {
+                                      addSuffix: true,
+                                    })}
+                                  </p>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {battle.gameState.turnNumber} turns •{' '}
-                                  {battle.finishedAt
-                                    ? formatDistanceToNow(battle.finishedAt, {
-                                        addSuffix: true,
-                                      })
-                                    : 'Pending'}
-                                </p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <div className="text-right text-sm">
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-2 h-2 bg-red-500 rounded-full" />
+                                    <span>
+                                      {battle.gameState.player1Health}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      vs
+                                    </span>
+                                    <span>
+                                      {battle.gameState.player2Health}
+                                    </span>
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                  </div>
+                                </div>
+                                <Button asChild size="sm">
+                                  <Link
+                                    href={`/battle/play/${battle.battleId}`}
+                                  >
+                                    Continue
+                                    <ArrowRight className="h-4 w-4 ml-1" />
+                                  </Link>
+                                </Button>
                               </div>
                             </div>
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={`/battle/play/${battle.battleId}`}>
-                                View Replay
-                              </Link>
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Battle History */}
+              <TabsContent value="history" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5" />
+                      Battle History
+                    </CardTitle>
+                    <CardDescription>
+                      Your completed battles and results
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {!battleHistory ? (
+                      <div className="space-y-3">
+                        {[...Array(3)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-16 bg-muted animate-pulse rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    ) : battleHistory.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="font-semibold mb-2">
+                          No Battle History
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Complete your first battle to see results here
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {battleHistory.map((battle) => {
+                          const won =
+                            battle.gameState.winner ===
+                            selectedAccount?.address;
+                          const opponent =
+                            battle.player1Address === selectedAccount?.address
+                              ? getPlayerDisplayName(
+                                  battle.player2Address,
+                                  battle.player2Name,
+                                )
+                              : getPlayerDisplayName(
+                                  battle.player1Address,
+                                  battle.player1Name,
+                                );
+
+                          return (
+                            <div
+                              key={battle._id}
+                              className="flex items-center justify-between p-4 border rounded-lg"
+                            >
+                              <div className="flex items-center space-x-4">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    won ? 'bg-green-500' : 'bg-red-500'
+                                  }`}
+                                />
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold">
+                                      vs {opponent}
+                                    </span>
+                                    <Badge
+                                      variant={won ? 'default' : 'destructive'}
+                                    >
+                                      {won ? 'Victory' : 'Defeat'}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    {battle.gameState.turnNumber} turns •{' '}
+                                    {battle.finishedAt
+                                      ? formatDistanceToNow(battle.finishedAt, {
+                                          addSuffix: true,
+                                        })
+                                      : 'Pending'}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button variant="outline" size="sm" asChild>
+                                <Link href={`/battle/play/${battle.battleId}`}>
+                                  View Replay
+                                </Link>
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
         </div>
       </div>
     </div>

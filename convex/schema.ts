@@ -13,13 +13,7 @@ export default defineSchema({
   imageGenerations: defineTable({
     userAddress: v.id('users'),
     prompt: v.string(),
-    negPrompt: v.optional(v.string()),
     model: v.string(),
-    numIterations: v.optional(v.number()),
-    guidanceScale: v.optional(v.number()),
-    width: v.optional(v.number()),
-    height: v.optional(v.number()),
-    seed: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
     status: v.union(
       v.literal('pending'),

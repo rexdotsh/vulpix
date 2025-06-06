@@ -8,12 +8,6 @@ export const generateImage = mutation({
     userAddress: v.string(),
     model: v.string(),
     prompt: v.string(),
-    negPrompt: v.optional(v.string()),
-    numIterations: v.optional(v.number()),
-    guidanceScale: v.optional(v.number()),
-    width: v.optional(v.number()),
-    height: v.optional(v.number()),
-    seed: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const existingUser = await ctx.db
@@ -28,19 +22,13 @@ export const generateImage = mutation({
     const imageGenId = await ctx.db.insert('imageGenerations', {
       userAddress: userId,
       prompt: args.prompt,
-      negPrompt: args.negPrompt,
       model: args.model,
-      numIterations: args.numIterations,
-      guidanceScale: args.guidanceScale,
-      width: args.width,
-      height: args.height,
-      seed: args.seed,
       status: 'pending',
       createdAt: Date.now(),
     });
 
     const { userAddress, ...rest } = args;
-    await ctx.scheduler.runAfter(0, internal.heuristGen.callHeuristAPI, {
+    await ctx.scheduler.runAfter(0, internal.googleGen.callGoogleAPI, {
       imageGenId,
       ...rest,
     });

@@ -40,6 +40,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
+  --font-garamond: var(--font-garamond);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -61,6 +62,21 @@
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  
+  --animate-circling: circling;
+}
+
+@keyframes circling {
+  0% {
+    transform: rotate(calc(var(--circling-offset) * 1deg)) 
+              translate(calc(var(--circling-radius) * 1px), 0) 
+              rotate(calc(var(--circling-offset) * -1deg));
+  }
+  100% {
+    transform: rotate(calc(360deg + (var(--circling-offset) * 1deg))) 
+              translate(calc(var(--circling-radius) * 1px), 0) 
+              rotate(calc(-360deg + (var(--circling-offset) * -1deg)));
+  }
 }
 
 :root {
@@ -99,6 +115,7 @@
   --font-sans: Geist, sans-serif;
   --font-serif: Geist Mono, monospace;
   --font-mono: Geist Mono, monospace;
+  --font-garamond: 'ITC Garamond Std Light Condensed', serif;
   --radius: 0.625rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -147,6 +164,7 @@
   --font-sans: Geist, sans-serif;
   --font-serif: Geist Mono, monospace;
   --font-mono: Geist Mono, monospace;
+  --font-garamond: 'ITC Garamond Std Light Condensed', sans-serif;
   --radius: 0.625rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -156,6 +174,14 @@
   --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+}
+
+@font-face {
+  font-family: 'ITC Garamond Std Light Condensed';
+  src: url('/fonts/ITCGaramondStd-LtCond.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @layer base {
@@ -170,4 +196,28 @@
 
 body {
   letter-spacing: var(--tracking-normal);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--muted);
 }

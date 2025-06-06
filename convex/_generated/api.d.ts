@@ -14,7 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as battle from "../battle.js";
-import type * as heuristGen from "../heuristGen.js";
+import type * as googleGen from "../googleGen.js";
 import type * as images from "../images.js";
 import type * as lobby from "../lobby.js";
 import type * as nft from "../nft.js";
@@ -30,7 +30,7 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   battle: typeof battle;
-  heuristGen: typeof heuristGen;
+  googleGen: typeof googleGen;
   images: typeof images;
   lobby: typeof lobby;
   nft: typeof nft;
