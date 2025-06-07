@@ -114,7 +114,7 @@ const MobileNav = ({
 );
 
 const DesktopNav = () => (
-  <nav className="absolute top-13 left-1/2 -translate-x-1/2 w-[620px] h-[70px] bg-[#1f1f1f] rounded-full flex items-center justify-center z-50">
+  <nav className="hidden md:flex absolute top-13 left-1/2 -translate-x-1/2 w-[620px] h-[70px] bg-[#1f1f1f] rounded-full items-center justify-center z-50">
     <div className="flex gap-13 items-center">
       {navItems.map((link) => (
         <NavLink
@@ -130,21 +130,22 @@ const DesktopNav = () => (
   </nav>
 );
 
+const MobileNavButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="md:hidden fixed top-6 right-6 z-50 w-12 h-12 flex flex-col justify-center items-center gap-1.5 bg-[#1f1f1f]/90 backdrop-blur-sm rounded-full hover:scale-110 transition-transform"
+  >
+    <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
+    <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
+    <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
+  </button>
+);
+
 export default function Page() {
   const { isInitialized, isInitializing } = useAssetHub();
   const [showWalletStatus, setShowWalletStatus] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     if (isInitialized) {
@@ -246,30 +247,17 @@ export default function Page() {
 
   return (
     <div className="relative">
-      {isMobile ? (
-        <>
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen(true)}
-            className="fixed top-6 right-6 z-50 w-12 h-12 flex flex-col justify-center items-center gap-1.5 bg-[#1f1f1f]/90 backdrop-blur-sm rounded-full hover:scale-110 transition-transform"
-          >
-            <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
-            <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
-            <span className="w-5 h-0.5 bg-white rounded-full transition-transform" />
-          </button>
-          <MobileNav isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-        </>
-      ) : (
-        <DesktopNav />
-      )}
+      <DesktopNav />
+      <MobileNavButton onClick={() => setIsMenuOpen(true)} />
+      <MobileNav isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       <AnimatePresence mode="wait">
-        {showWalletStatus && !isMobile && (
+        {showWalletStatus && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
-            className="fixed top-4 right-4 bg-[#1f1f1f] px-4 py-2 rounded-full z-50 flex items-center min-w-[200px] justify-center"
+            className="hidden md:flex fixed top-4 right-4 bg-[#1f1f1f] px-4 py-2 rounded-full z-50 items-center min-w-[200px] justify-center"
           >
             {getWalletContent()}
           </motion.div>
