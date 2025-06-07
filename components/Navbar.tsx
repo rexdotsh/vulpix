@@ -14,8 +14,12 @@ const navigation = [
 
 export function Navbar() {
   const pathname = usePathname();
-  // don't render navbar on home page
-  if (pathname === '/') {
+  // don't render navbar on home page, /battle/lobby/[id], and /battle/play/[id]
+  if (
+    pathname === '/' ||
+    pathname.startsWith('/battle/lobby/') ||
+    pathname.startsWith('/battle/play/')
+  ) {
     return null;
   }
 
