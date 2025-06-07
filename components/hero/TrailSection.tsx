@@ -76,7 +76,8 @@ export default function TrailSection() {
               useInViewOptionsProp={{
                 once: false,
                 amount: 0.3,
-                margin: '0px 0px -30% 0px',
+                // the -40% controls how far down the user has to scroll to trigger the animation
+                margin: '0px 0px -40% 0px',
               }}
               mediaContainerClassName="w-full overflow-hidden mx-2 sm:mx-4 my-6 sm:my-8 rounded-3xl"
               className="text-6xl sm:text-7xl md:text-7xl lg:text-8xl font-bold flex flex-col items-center justify-center text-white uppercase tracking-tight"
