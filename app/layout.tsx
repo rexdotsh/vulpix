@@ -19,9 +19,17 @@ const geistMono = Geist_Mono({
 });
 
 const garamond = localFont({
-  src: '../public/fonts/ITCGaramondStd-LtCond.woff2',
+  src: './fonts/ITCGaramondStd-LtCond.woff2',
   variable: '--font-garamond',
   weight: '300',
+  style: 'normal',
+  display: 'fallback',
+});
+
+const megazoid = localFont({
+  src: './fonts/Megazoid-Regular.woff2',
+  variable: '--font-megazoid',
+  weight: '400',
   style: 'normal',
   display: 'fallback',
 });
@@ -39,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${garamond.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${garamond.variable} ${megazoid.variable} antialiased`}
       >
         <ConvexClientProvider>
           <PolkadotProvider>
