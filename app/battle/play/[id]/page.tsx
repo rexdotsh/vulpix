@@ -54,6 +54,27 @@ export default function BattlePlayPage() {
   const updateTurnResult = useMutation(api.battle.updateTurnResult);
   const revertPendingTurn = useMutation(api.battle.revertPendingTurn);
 
+  // Fetch NFT metadata for both players
+  const player1NFTMetadata = useQuery(
+    api.nft.getNFTMetadata,
+    battle
+      ? {
+          collection: battle.player1NFT.collection,
+          item: battle.player1NFT.item,
+        }
+      : 'skip',
+  );
+
+  const player2NFTMetadata = useQuery(
+    api.nft.getNFTMetadata,
+    battle
+      ? {
+          collection: battle.player2NFT.collection,
+          item: battle.player2NFT.item,
+        }
+      : 'skip',
+  );
+
   const isPlayer1 = selectedAccount?.address === battle?.player1Address;
   const isPlayer2 = selectedAccount?.address === battle?.player2Address;
   const isParticipant = isPlayer1 || isPlayer2;
@@ -274,7 +295,7 @@ export default function BattlePlayPage() {
                 nftData={{
                   collection: battle.player1NFT.collection,
                   item: battle.player1NFT.item,
-                  itemMetadata: { data: '' }, // We'd need to fetch this from your NFT system
+                  itemMetadata: player1NFTMetadata?.itemMetadata || undefined,
                 }}
                 stats={battle.player1NFT.stats}
                 currentHealth={battle.gameState.player1Health}
@@ -413,7 +434,7 @@ export default function BattlePlayPage() {
                 nftData={{
                   collection: battle.player2NFT.collection,
                   item: battle.player2NFT.item,
-                  itemMetadata: { data: '' }, // We'd need to fetch this from your NFT system
+                  itemMetadata: player2NFTMetadata?.itemMetadata || undefined,
                 }}
                 stats={battle.player2NFT.stats}
                 currentHealth={battle.gameState.player2Health}

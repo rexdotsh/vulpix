@@ -301,3 +301,25 @@ export const getLastSyncTime = query({
     return Math.max(nftTime, collectionTime) || null;
   },
 });
+
+export const getNFTMetadata = query({
+  args: {
+    collection: v.string(),
+    item: v.string(),
+  },
+  handler: async (ctx, { collection, item }) => {
+    const nftItem = await ctx.db
+      .query('nftItems')
+      .withIndex('by_item', (q) =>
+        q.eq('collectionId', collection).eq('itemId', item),
+      )
+      .first();
+
+    if (!nftItem) return null;
+
+    return {
+      itemMetadata: nftItem.itemMetadata,
+      itemDetails: nftItem.itemDetails,
+    };
+  },
+});
