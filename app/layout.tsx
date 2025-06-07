@@ -7,6 +7,7 @@ import { AssetHubProvider } from '@/lib/providers/AssetHubProvider';
 import { ConvexClientProvider } from '@/lib/providers/ConvexClientProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { Navbar } from '@/components/Navbar';
+import { Analytics } from '@vercel/analytics/react';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -55,6 +56,7 @@ export default function RootLayout({
               <Navbar />
               <Toaster richColors position="top-center" />
               {children}
+              <Analytics basePath="/monitor" />
             </AssetHubProvider>
           </PolkadotProvider>
         </ConvexClientProvider>
