@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
-import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { cn } from '@/lib/utils';
 import HeroSection from '@/components/hero/HeroSection';
 import AboutSection from '@/components/hero/CircleSection';
@@ -131,7 +130,6 @@ const DesktopNav = () => (
 
 export default function Page() {
   const { isInitialized, isInitializing } = useAssetHub();
-  const { isReady: isWalletConnected } = usePolkadot();
   const [showWalletStatus, setShowWalletStatus] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -147,13 +145,13 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (isInitialized && isWalletConnected) {
+    if (isInitialized) {
       const timer = setTimeout(() => {
         setShowWalletStatus(false);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [isInitialized, isWalletConnected]);
+  }, [isInitialized]);
 
   const getWalletContent = () => {
     if (isInitializing) {
@@ -186,7 +184,7 @@ export default function Page() {
       );
     }
 
-    if (isInitialized && isWalletConnected) {
+    if (isInitialized) {
       return (
         <motion.div
           className="flex items-center text-white"
@@ -236,61 +234,6 @@ export default function Page() {
             transition={{ duration: 0.3, delay: 0.4 }}
           >
             Connected Successfully
-          </motion.span>
-        </motion.div>
-      );
-    }
-
-    if (isInitialized && !isWalletConnected) {
-      return (
-        <motion.div
-          className="flex items-center text-white"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <motion.div
-            className="relative mr-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <motion.circle
-                cx="10"
-                cy="10"
-                r="9"
-                stroke="currentColor"
-                strokeWidth="2"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-                className="text-red-500"
-              />
-              <motion.path
-                d="M7 7L13 13M13 7L7 13"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                className="text-red-500"
-              />
-            </svg>
-          </motion.div>
-          <motion.span
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
-          >
-            No Wallet Connected
           </motion.span>
         </motion.div>
       );
