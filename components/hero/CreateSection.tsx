@@ -6,6 +6,7 @@ import { useMousePosition } from '@/hooks/use-mouse-position';
 import PixelateSvgFilter from '@/components/fancy/pixelate-svg-filter';
 import { motion } from 'motion/react';
 import UnderlineToBackground from '@/components/fancy/underline-to-background';
+import Link from 'next/link';
 
 export default function CreateSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,14 +52,16 @@ export default function CreateSection() {
               className="text-6xl sm:text-7xl md:text-9xl lg:text-[15rem] font-bold leading-none mt-0 md:-mt-4 lg:-mt-9 tracking-[-0.1rem] lg:tracking-[-0.8rem]"
               whileHover="target"
             >
-              <UnderlineToBackground
-                label="NFTs"
-                targetTextColor="#ffffff"
-                className="text-[#22ff88] cursor-pointer inline-block pr-4"
-                underlineHeightRatio={0}
-                underlinePaddingRatio={0}
-                transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-              />
+              <Link href="/generate">
+                <UnderlineToBackground
+                  label="NFTs"
+                  targetTextColor="#ffffff"
+                  className="text-[#22ff88] cursor-pointer inline-block pr-4"
+                  underlineHeightRatio={0}
+                  underlinePaddingRatio={0}
+                  transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+                />
+              </Link>
             </motion.div>
             <div
               className="relative ml-2 sm:ml-4 md:ml-8 mt-2 md:mt-0"

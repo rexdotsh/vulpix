@@ -316,7 +316,6 @@ export function ImageGenerator() {
                 height={1024}
                 className="rounded-md object-contain max-w-full max-h-full"
                 priority
-                unoptimized
               />
             )}
             {!isLoading && !generatedImage.url && (
