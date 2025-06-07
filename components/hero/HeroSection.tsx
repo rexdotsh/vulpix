@@ -85,9 +85,9 @@ export default function HeroSection() {
         transition={{ duration: 0.88, delay: 0.5 }}
       >
         <h1 className="font-garamond text-[7rem] md:text-[15rem] text-white uppercase tracking-tighter text-center leading-[0.8] px-4 md:px-0">
-          the best nft
+          from jpeg
           <br />
-          bullshit ever
+          to ko
         </h1>
       </motion.div>
 

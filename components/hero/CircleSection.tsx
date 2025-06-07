@@ -53,7 +53,7 @@ export default function AboutSection() {
           <h2 className="font-sans font-bold text-[2.5rem] text-white uppercase tracking-[-0.1875rem] leading-[0.8]">
             the best nft
             <br />
-            bullshit ever
+            platform ever
           </h2>
         </motion.div>
       </div>

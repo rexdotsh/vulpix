@@ -47,7 +47,7 @@ export default function FooterSection() {
         {/* Social Links */}
         <div className="flex gap-6 sm:gap-8 text-white/60">
           <a
-            href="https://github.com"
+            href="https://github.com/rexdotsh/vulpix"
             target="_blank"
             rel="noopener noreferrer"
             className="text-lg sm:text-xl font-garamond uppercase tracking-wider hover:text-white transition-all duration-300 hover:scale-110"
@@ -55,12 +55,12 @@ export default function FooterSection() {
             Github
           </a>
           <a
-            href="https://twitter.com"
+            href="https://deepwiki.com/rexdotsh/vulpix"
             target="_blank"
             rel="noopener noreferrer"
             className="text-lg sm:text-xl font-garamond uppercase tracking-wider hover:text-white transition-all duration-300 hover:scale-110"
           >
-            Twitter
+            Deepwiki
           </a>
           <Link
             href="#about"
