@@ -220,8 +220,8 @@ const ImageTrail = ({
       ref={containerRef}
       {...props}
     >
-      {Array.from({ length: repeatChildren }).map(() => (
-        <>{children}</>
+      {Array.from({ length: repeatChildren }).map((_, index) => (
+        <React.Fragment key={index}>{children}</React.Fragment>
       ))}
     </ElementTag>
   );
