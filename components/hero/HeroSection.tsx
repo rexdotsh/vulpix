@@ -60,26 +60,26 @@ export default function HeroSection() {
       ref={scope}
     >
       <motion.div
-        className="absolute top-[20vh] md:top-[25vh] left-1/2 -translate-x-1/2 w-full z-[1] md:z-0"
+        className="absolute top-[20vh] md:top-[25vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.88, delay: 0.3 }}
       >
-        <div className="flex items-center justify-center gap-4 px-4 md:px-0">
+        <div className="flex items-center justify-center gap-3 px-4 md:px-0">
           <Image
             src="/logo.svg"
             alt="Logo"
-            width={46}
-            height={46}
-            className="w-[32px] h-[32px] md:w-[46px] md:h-[46px] -mt-1 md:-mt-2"
+            width={32}
+            height={32}
+            className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] -mt-1 md:-mt-2"
           />
-          <span className="font-megazoid text-3xl md:text-5xl text-white uppercase tracking-wider">
+          <span className="font-megazoid text-2xl md:text-3xl text-white uppercase tracking-wider">
             vulpix
           </span>
         </div>
       </motion.div>
       <motion.div
-        className="absolute top-[25vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] md:z-0"
+        className="absolute top-[25vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.88, delay: 0.5 }}
