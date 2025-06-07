@@ -14,6 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProfilePictureManager } from '@/components/ProfilePictureManager';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { useEffect } from 'react';
 
 // global ref to prevent duplicate error toasts from multiple instances
@@ -34,6 +38,15 @@ export function WalletConnection() {
 
   const { isInitialized, isInitializing } = useAssetHub();
 
+  // Fetch user data
+  const userData = useQuery(
+    api.users.getUser,
+    selectedAccount?.address ? { address: selectedAccount.address } : 'skip',
+  );
+
+  // Create user if not exists
+  const createOrGetUser = useMutation(api.users.createOrGetUser);
+
   useEffect(() => {
     if (error && error !== lastErrorShown) {
       lastErrorShown = error;
@@ -46,6 +59,15 @@ export function WalletConnection() {
       }, 1000);
     }
   }, [error]);
+
+  // Create user when wallet connects
+  useEffect(() => {
+    if (selectedAccount?.address && userData === null) {
+      createOrGetUser({ address: selectedAccount.address }).catch((err) => {
+        console.error('Failed to create user:', err);
+      });
+    }
+  }, [selectedAccount?.address, userData, createOrGetUser]);
 
   if (!isReady) {
     return (
@@ -66,7 +88,15 @@ export function WalletConnection() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
-            <User className="h-4 w-4" />
+            <Avatar className="h-5 w-5">
+              <AvatarImage
+                src={userData?.profilePicture}
+                alt={selectedAccount?.meta.name || 'User avatar'}
+              />
+              <AvatarFallback>
+                <User className="h-3 w-3" />
+              </AvatarFallback>
+            </Avatar>
             <span className="hidden sm:inline">
               {selectedAccount?.meta.name ||
                 selectedAccount?.address.slice(0, 6)}
@@ -118,9 +148,16 @@ export function WalletConnection() {
               <div className="font-medium text-sm text-foreground">
                 Current Account
               </div>
-              <Badge variant="outline" className="text-xs">
-                {selectedAccountIndex + 1} of {accounts.length}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <ProfilePictureManager
+                  userAddress={selectedAccount?.address || ''}
+                  currentProfilePicture={userData?.profilePicture}
+                  userName={selectedAccount?.meta.name}
+                />
+                <Badge variant="outline" className="text-xs">
+                  {selectedAccountIndex + 1} of {accounts.length}
+                </Badge>
+              </div>
             </div>
             <div className="font-semibold text-sm mb-1">
               {selectedAccount?.meta.name ||

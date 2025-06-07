@@ -6,6 +6,8 @@ export default defineSchema({
     address: v.string(), // polkadot address (primary)
     ethAddress: v.optional(v.string()), // eth address of same account, needed for contract
     linkedAt: v.optional(v.number()),
+    profilePicture: v.optional(v.string()), // URL to profile picture stored in Vercel blob
+    profilePictureUpdatedAt: v.optional(v.number()),
   })
     .index('by_address', ['address'])
     .index('by_eth_address', ['ethAddress']),

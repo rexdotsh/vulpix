@@ -6,6 +6,7 @@ import Floating, {
   FloatingElement,
 } from '@/components/fancy/parallax-floating';
 import useScreenSize from '@/hooks/use-screen-size';
+import Image from 'next/image';
 
 const heroImages = Array.from(
   { length: 11 },
@@ -27,7 +28,29 @@ export default function HeroSection() {
   const scrollToNext = () => {
     const nextSection = document.getElementById('about');
     if (nextSection) {
-      nextSection.scrollIntoView({ behavior: 'smooth' });
+      const targetPosition = nextSection.offsetTop;
+      const startPosition = window.pageYOffset;
+      const distance = targetPosition - startPosition;
+      const duration = 1200;
+      let start: number | null = null;
+
+      function step(timestamp: number) {
+        if (!start) start = timestamp;
+        const progress = timestamp - start;
+        const progressRatio = Math.min(progress / duration, 1);
+
+        const easeInOutCubic = (t: number) =>
+          t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+
+        const easedProgress = easeInOutCubic(progressRatio);
+        window.scrollTo(0, startPosition + distance * easedProgress);
+
+        if (progress < duration) {
+          requestAnimationFrame(step);
+        }
+      }
+
+      requestAnimationFrame(step);
     }
   };
 
@@ -37,7 +60,26 @@ export default function HeroSection() {
       ref={scope}
     >
       <motion.div
-        className="absolute top-[25vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] md:z-0"
+        className="absolute top-[20vh] md:top-[25vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.88, delay: 0.3 }}
+      >
+        <div className="flex items-center justify-center gap-3 px-4 md:px-0">
+          <Image
+            src="/logo.svg"
+            alt="Logo"
+            width={32}
+            height={32}
+            className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] -mt-1 md:-mt-2"
+          />
+          <span className="font-megazoid text-2xl md:text-3xl text-white uppercase tracking-wider">
+            vulpix
+          </span>
+        </div>
+      </motion.div>
+      <motion.div
+        className="absolute top-[25vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.88, delay: 0.5 }}
@@ -91,7 +133,7 @@ export default function HeroSection() {
             alt="NFT artwork"
           />
         </FloatingElement>
-        <FloatingElement depth={1} className="top-[25%] left-[45%]">
+        <FloatingElement depth={1} className="top-[23%] left-[35%]">
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[4]}
@@ -164,15 +206,18 @@ export default function HeroSection() {
 
       <motion.button
         type="button"
-        className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-40 md:w-52 h-[40px] md:h-[51px] bg-[#1f1f1f] rounded-full flex items-center justify-center z-50"
+        className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-40 md:w-52 h-[40px] md:h-[51px] bg-[#1f1f1f] border border-white/10 rounded-full flex items-center justify-center z-50 cursor-pointer transition-all duration-200"
         onClick={scrollToNext}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 1.5 }}
       >
-        <span className="text-white uppercase tracking-tight text-lg md:text-base">
+        <motion.span
+          className="text-white uppercase tracking-tight text-lg md:text-base"
+          whileHover={{ color: '#ffffff' }}
+        >
           check it out
-        </span>
+        </motion.span>
       </motion.button>
     </div>
   );

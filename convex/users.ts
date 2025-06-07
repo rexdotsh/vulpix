@@ -128,3 +128,50 @@ export const getPolkadotAddressFromEth = async (
 
   return user?.address || null;
 };
+
+export const updateProfilePicture = mutation({
+  args: {
+    address: v.string(),
+    profilePictureUrl: v.string(),
+  },
+  handler: async (ctx, { address, profilePictureUrl }) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_address', (q) => q.eq('address', address))
+      .first();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await ctx.db.patch(user._id, {
+      profilePicture: profilePictureUrl,
+      profilePictureUpdatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+export const removeProfilePicture = mutation({
+  args: {
+    address: v.string(),
+  },
+  handler: async (ctx, { address }) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_address', (q) => q.eq('address', address))
+      .first();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await ctx.db.patch(user._id, {
+      profilePicture: undefined,
+      profilePictureUpdatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
