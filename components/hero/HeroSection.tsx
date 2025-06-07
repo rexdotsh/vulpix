@@ -91,7 +91,7 @@ export default function HeroSection() {
             alt="NFT artwork"
           />
         </FloatingElement>
-        <FloatingElement depth={1} className="top-[25%] left-[45%]">
+        <FloatingElement depth={1} className="top-[23%] left-[35%]">
           <motion.img
             initial={{ opacity: 0 }}
             src={heroImages[4]}
