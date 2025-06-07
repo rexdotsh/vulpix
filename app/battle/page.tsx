@@ -139,7 +139,6 @@ export default function BattlePage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
-          {/* Header */}
           <motion.div
             className="text-center space-y-4"
             initial={{ opacity: 0, y: 20 }}
@@ -151,7 +150,6 @@ export default function BattlePage() {
               Challenge other players to epic NFT battles powered by PolkaVM
             </p>
 
-            {/* Stats */}
             <div className="flex justify-center items-center gap-8 pt-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">
@@ -197,7 +195,6 @@ export default function BattlePage() {
             </DialogContent>
           </Dialog>
 
-          {/* Action Cards */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-6"
             initial={{ opacity: 0, y: 20 }}
@@ -340,7 +337,6 @@ export default function BattlePage() {
             </motion.div>
           </motion.div>
 
-          {/* Tabs Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -353,7 +349,6 @@ export default function BattlePage() {
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
 
-              {/* Public Lobbies */}
               <TabsContent value="lobbies" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -437,7 +432,6 @@ export default function BattlePage() {
                 </Card>
               </TabsContent>
 
-              {/* Active Battles */}
               <TabsContent value="active" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -554,7 +548,6 @@ export default function BattlePage() {
                 </Card>
               </TabsContent>
 
-              {/* Battle History */}
               <TabsContent value="history" className="space-y-4">
                 <Card>
                   <CardHeader>

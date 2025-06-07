@@ -198,7 +198,6 @@ export function ImageGenerator() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-start">
-          {/* Generation Form */}
           <div className="lg:order-1">
             <Card className="border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors duration-300 backdrop-blur-sm bg-card/80">
               <CardHeader className="space-y-4">
@@ -349,7 +348,6 @@ export function ImageGenerator() {
             </Card>
           </div>
 
-          {/* Preview Section */}
           <div className="lg:order-2 lg:sticky lg:top-8">
             <Card className="w-full max-w-[512px] aspect-square mx-auto flex flex-col border-2 backdrop-blur-sm bg-card/80">
               <CardHeader className="w-full border-b bg-muted/20">
