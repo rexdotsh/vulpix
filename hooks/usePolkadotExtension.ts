@@ -254,7 +254,6 @@ export const usePolkadotExtension = ({
     isConnecting,
     isExtensionAvailable,
     enableExtensions,
-    loadConnectionState,
   ]);
 
   useEffect(() => {
