@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +26,6 @@ import { NFTStatsDisplay } from '@/components/battle/NFTStatsDisplay';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
 import { getNFTTypeName, getNFTTypeColor } from '@/lib/battle-utils';
 import { Trash2, RefreshCw, CheckCircle, Clock, Info } from 'lucide-react';
-import { WalletConnection } from '@/components/WalletConnection';
 
 function NFTLoadingSkeleton() {
   return (
@@ -134,19 +132,10 @@ export default function Dashboard() {
 
   if (!isReady) {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Wallet Not Connected</CardTitle>
-            <CardDescription>
-              Please connect your wallet to view your NFTs
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <WalletConnection />
-          </CardContent>
-        </Card>
-      </div>
+      <PageStateCard
+        variant="walletConnect"
+        message="Please connect your wallet to view your NFTs"
+      />
     );
   }
 
