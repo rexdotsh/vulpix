@@ -38,7 +38,6 @@ export default function TrailSection() {
                 alt={`Hero trail ${index + 1}`}
                 fill
                 className="object-cover"
-                sizes="96px"
               />
             </div>
           </ImageTrailItem>

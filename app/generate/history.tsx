@@ -143,7 +143,6 @@ function ImageHistoryCard({ image }: { image: ImageGeneration }) {
                 alt={image.prompt}
                 fill
                 className="object-cover"
-                unoptimized
               />
             </div>
           ) : image.status === 'pending' ? (
@@ -287,7 +286,6 @@ function MintDialog({
               alt="Image to mint"
               fill
               className="object-contain rounded-md"
-              unoptimized
             />
           </div>
 
