@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import HeroSection from '@/components/hero/HeroSection';
 import AboutSection from '@/components/hero/CircleSection';
 import CreateSection from '@/components/hero/CreateSection';
-import ArcadeSection from '@/components/hero/ArcadeSection';
+import TrailSection from '@/components/hero/TrailSection';
 
 const navItems = [
   { href: '/', label: 'home', active: true },
@@ -278,7 +278,7 @@ export default function Page() {
       <HeroSection />
       <AboutSection />
       <CreateSection />
-      <ArcadeSection />
+      <TrailSection />
     </div>
   );
 }
