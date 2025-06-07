@@ -198,6 +198,41 @@ body {
   letter-spacing: var(--tracking-normal);
 }
 
+/* spacing for fixed navbar */
+body:not(.no-navbar-padding) {
+  padding-top: 4rem; /* 64px - matches navbar height */
+}
+
+/* responsive navbar padding */
+@media (max-width: 768px) {
+  body:not(.no-navbar-padding) {
+    padding-top: 4rem;
+  }
+}
+
+/* smooth scrolling for better navbar animation */
+html {
+  scroll-behavior: smooth;
+}
+
+/* enhanced blur effects for floating navbar */
+.backdrop-blur-2xl {
+  backdrop-filter: blur(40px) saturate(150%) brightness(120%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%) brightness(120%);
+}
+
+/* floating navbar glow effect with whitish appearance */
+nav[class*="top-4"] > div {
+  box-shadow: 
+    0 8px 32px rgba(255, 255, 255, 0.08),
+    0 2px 8px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%),
+    rgba(255, 255, 255, 0.08);
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

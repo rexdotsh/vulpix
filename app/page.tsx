@@ -137,6 +137,14 @@ export default function Page() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
+    document.body.classList.add('no-navbar-padding');
+
+    return () => {
+      document.body.classList.remove('no-navbar-padding');
+    };
+  }, []);
+
+  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
