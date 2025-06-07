@@ -28,6 +28,7 @@ import { NFTCard } from '@/components/battle/NFTCard';
 import { MoveHistoryCard } from '@/components/battle/MoveHistoryCard';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 import { useTalismanWallet } from '@/hooks/useTalismanWallet';
+
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -188,10 +189,8 @@ export default function BattlePlayPage() {
   if (!selectedAccount) {
     return (
       <PageStateCard
-        title="Wallet Required"
+        variant="walletConnect"
         message="Please connect your wallet to view this battle."
-        buttonText="Connect Wallet"
-        redirectTo="/"
       />
     );
   }
@@ -244,7 +243,6 @@ export default function BattlePlayPage() {
 
       <div className="container mx-auto px-4 py-4">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Battle Status */}
           {gameFinished && (
             <Card
               className={`border-2 ${isWinner ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-red-500 bg-red-50 dark:bg-red-950'}`}
@@ -267,9 +265,7 @@ export default function BattlePlayPage() {
             </Card>
           )}
 
-          {/* Battle Arena */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Player 1 */}
             <div className="space-y-4">
               <NFTCard
                 title="Player 1"
@@ -288,7 +284,6 @@ export default function BattlePlayPage() {
               />
             </div>
 
-            {/* VS / Battle Controls */}
             <div className="space-y-4">
               <Card>
                 <CardHeader className="text-center">
@@ -407,11 +402,9 @@ export default function BattlePlayPage() {
                 </CardContent>
               </Card>
 
-              {/* Move History */}
               <MoveHistoryCard moves={battle.moves} />
             </div>
 
-            {/* Player 2 */}
             <div className="space-y-4">
               <NFTCard
                 title="Player 2"

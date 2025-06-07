@@ -257,10 +257,8 @@ export default function LobbyPage() {
   if (!selectedAccount) {
     return (
       <PageStateCard
-        title="Wallet Required"
+        variant="walletConnect"
         message="Please connect your wallet to join this lobby."
-        buttonText="Connect Wallet"
-        redirectTo="/"
       />
     );
   }
@@ -391,9 +389,7 @@ export default function LobbyPage() {
             </CardContent>
           </Card>
 
-          {/* Players Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Creator */}
             <Card className={isCreator ? 'ring-2 ring-blue-500' : ''}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -442,7 +438,6 @@ export default function LobbyPage() {
               </CardContent>
             </Card>
 
-            {/* Joiner */}
             <Card className={isJoiner ? 'ring-2 ring-blue-500' : ''}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -514,7 +509,6 @@ export default function LobbyPage() {
             </Card>
           </div>
 
-          {/* Battle Controls */}
           {lobby.joinedPlayerAddress && (
             <Card>
               <CardHeader>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
@@ -25,16 +25,21 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
   const [isLinking, setIsLinking] = useState(false);
   const [talismanConnected, setTalismanConnected] = useState(false);
   const [ethAddress, setEthAddress] = useState<string>('');
+  const hasCheckedConnection = useRef(false);
   const linkEthereumAddress = useMutation(api.users.linkEthereumAddress);
 
   useEffect(() => {
-    checkTalismanConnection();
+    if (window.talismanEth && !hasCheckedConnection.current) {
+      hasCheckedConnection.current = true;
+      checkTalismanConnection();
+    }
   }, []);
 
   const checkTalismanConnection = async () => {
     if (!window.talismanEth) return;
 
     try {
+      // eth_accounts only returns already authorized accounts - no prompt
       const accounts = await window.talismanEth.request({
         method: 'eth_accounts',
       });
@@ -68,7 +73,11 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
       }
     } catch (error: any) {
       console.error('Failed to connect Talisman:', error);
-      toast.error('Failed to connect Talisman wallet');
+      if (error.code === 4001 || error.message?.includes('rejected')) {
+        console.log('User rejected Talisman connection');
+      } else {
+        toast.error('Failed to connect Talisman wallet');
+      }
     }
   };
 

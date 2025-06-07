@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,9 +29,9 @@ import { Trash2, RefreshCw, CheckCircle, Clock, Info } from 'lucide-react';
 
 function NFTLoadingSkeleton() {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden p-0">
       <CardContent className="p-0">
-        <Skeleton className="aspect-[3/4] w-full" />
+        <Skeleton className="aspect-square w-full -m-px" />
         <div className="p-6 space-y-3">
           <Skeleton className="h-5 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
@@ -134,21 +132,10 @@ export default function Dashboard() {
 
   if (!isReady) {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Wallet Not Connected</CardTitle>
-            <CardDescription>
-              Please connect your wallet to view your NFTs
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/">Connect Wallet</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <PageStateCard
+        variant="walletConnect"
+        message="Please connect your wallet to view your NFTs"
+      />
     );
   }
 
@@ -163,7 +150,6 @@ export default function Dashboard() {
     <TooltipProvider>
       <div className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
-          {/* Header Section */}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -203,7 +189,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* NFT Grid */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
               {[...Array(8)].map((_, i) => (
@@ -221,11 +206,10 @@ export default function Dashboard() {
                 return (
                   <Card
                     key={`${nft.collection}-${nft.item}`}
-                    className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-2 hover:border-primary/20"
+                    className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-2 hover:border-primary/20 p-0"
                   >
                     <CardContent className="p-0">
-                      {/* NFT Image */}
-                      <div className="aspect-[3/4] bg-muted relative overflow-hidden">
+                      <div className="aspect-square bg-muted relative overflow-hidden -m-px">
                         {imageUrl ? (
                           <img
                             src={imageUrl}
@@ -258,7 +242,6 @@ export default function Dashboard() {
                           </div>
                         )}
 
-                        {/* Type Badge Overlay */}
                         <div className="absolute top-3 right-3">
                           <Badge className={`${typeColor} shadow-lg`}>
                             {typeName}
@@ -266,9 +249,7 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      {/* NFT Details */}
                       <div className="p-4 space-y-3">
-                        {/* Title with ID info */}
                         <div className="flex items-start justify-between gap-2">
                           <CardTitle className="text-lg line-clamp-1 flex-1">
                             {metadata?.name || `Item #${nft.item}`}
@@ -293,7 +274,6 @@ export default function Dashboard() {
 
                         <Separator />
 
-                        {/* Stats Display */}
                         {nft.stats && (
                           <div className="mb-4">
                             <h4 className="font-semibold text-sm mb-2 text-foreground">
@@ -303,7 +283,6 @@ export default function Dashboard() {
                           </div>
                         )}
 
-                        {/* Burn Button */}
                         <Button
                           variant="destructive"
                           size="sm"

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -71,17 +70,10 @@ export function ImageGenerator() {
   );
 
   const generateImageFormSchema = z.object({
-    model: z.string().min(1, 'Model is required.'),
     prompt: z.string().min(1, 'Prompt is required.'),
   });
 
-  const availableModels = [
-    {
-      id: 'gemini-2.0-flash-exp',
-      description:
-        'Google Gemini 2.0 Flash with experimental image generation capabilities. Supports both text and image outputs.',
-    },
-  ];
+  const MODEL_ID = 'gemini-2.0-flash-exp';
 
   type GenerateImageFormInput = z.infer<typeof generateImageFormSchema>;
 
@@ -124,7 +116,6 @@ export function ImageGenerator() {
   const form = useForm<GenerateImageFormInput>({
     resolver: zodResolver(generateImageFormSchema),
     defaultValues: {
-      model: availableModels[0].id,
       prompt: '',
     },
   });
@@ -141,7 +132,7 @@ export function ImageGenerator() {
     try {
       const id = await generateImageMutation({
         userAddress: selectedAccount.address,
-        model: data.model,
+        model: MODEL_ID,
         prompt: data.prompt,
       });
       setImageGenId(id);
@@ -155,11 +146,6 @@ export function ImageGenerator() {
       setIsLoading(false);
     }
   };
-
-  const selectedModelId = form.watch('model');
-  const modelDescription = availableModels.find(
-    (m) => m.id === selectedModelId,
-  )?.description;
 
   useEffect(() => {
     if (imageQuery?.imageUrl) {
@@ -176,77 +162,221 @@ export function ImageGenerator() {
   }, [imageQuery]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <div className="lg:col-span-7">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Image Generation Studio</CardTitle>
-            <CardDescription>
-              Craft your vision. Define parameters and let the AI bring your
-              ideas to life.
-            </CardDescription>
-          </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="model"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Model</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a model" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableModels.map((m) => (
-                            <SelectItem key={m.id} value={m.id}>
-                              {m.id}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {modelDescription && (
-                        <FormDescription>{modelDescription}</FormDescription>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-8 lg:mb-12">
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-green-400 rounded-full blur-lg opacity-20 animate-pulse" />
+              <div className="relative bg-green-500 p-4 rounded-full">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" x2="12" y1="15" y2="3" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent mb-4">
+            AI NFT Generation Studio
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Transform your imagination into stunning visuals with the power of
+            AI
+          </p>
+        </div>
 
-                <FormField
-                  control={form.control}
-                  name="prompt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prompt</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., A majestic lion in a vibrant jungle, golden hour"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Describe the image you want to create. Be detailed and
-                        specific for best results.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter className="pt-6">
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? (
-                    <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-start">
+          <div className="lg:order-1">
+            <Card className="border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors duration-300 backdrop-blur-sm bg-card/80">
+              <CardHeader className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-green-500 p-2 rounded-lg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                      <line x1="9" x2="9.01" y1="9" y2="9" />
+                      <line x1="15" x2="15.01" y1="9" y2="9" />
+                    </svg>
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl lg:text-2xl">
+                      Create Your Vision
+                    </CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-0"
+                >
+                  <CardContent className="space-y-6 lg:space-y-8">
+                    <FormField
+                      control={form.control}
+                      name="prompt"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3 lg:space-y-4">
+                          <FormLabel className="text-base lg:text-lg font-semibold flex items-center space-x-2">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                            </svg>
+                            <span>Describe Your Vision</span>
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                placeholder="A majestic dragon soaring through clouds at sunset, vibrant colors..."
+                                className="h-12 lg:h-16 text-base lg:text-lg px-4 lg:px-6 py-3 lg:py-4 rounded-xl border-2 focus:border-primary transition-all duration-300 placeholder:text-muted-foreground/60 placeholder:opacity-75"
+                                {...field}
+                              />
+                              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="20"
+                                  height="20"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <circle cx="12" cy="12" r="3" />
+                                  <path d="M12 0v9m0 6v9M0 12h9m6 0h9" />
+                                </svg>
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormDescription className="text-sm lg:text-base bg-muted/50 p-3 lg:p-4 rounded-lg border-l-4 border-green-500">
+                            💡 <strong>Pro tip:</strong> Be detailed and
+                            specific for the best results.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                  <CardFooter className="pt-6 lg:pt-8">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full h-12 lg:h-14 text-base lg:text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-lg hover:shadow-xl"
+                    >
+                      {isLoading ? (
+                        <>
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-6 w-6 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                          Creating Magic...
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-2"
+                          >
+                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                            <path d="M5 3v4" />
+                            <path d="M19 17v4" />
+                            <path d="M3 5h4" />
+                            <path d="M17 19h4" />
+                          </svg>
+                          Generate Image
+                        </>
+                      )}
+                    </Button>
+                  </CardFooter>
+                </form>
+              </Form>
+            </Card>
+          </div>
+
+          <div className="lg:order-2 lg:sticky lg:top-8">
+            <Card className="w-full max-w-[512px] aspect-square mx-auto flex flex-col border-2 backdrop-blur-sm bg-card/80">
+              <CardHeader className="w-full border-b bg-muted/20">
+                <CardTitle className="text-center text-lg lg:text-xl flex items-center justify-center space-x-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" x2="12" y1="3" y2="15" />
+                  </svg>
+                  <span>Live Preview</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center flex-grow p-4 overflow-hidden">
+                {isLoading && (
+                  <div className="flex flex-col items-center text-muted-foreground">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-green-400 rounded-full blur-md opacity-30 animate-pulse" />
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        className="relative animate-spin h-16 w-16 text-green-500"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -265,145 +395,202 @@ export function ImageGenerator() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Generating...
-                    </>
-                  ) : (
-                    'Generate Image'
-                  )}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
-      </div>
-
-      <div className="lg:col-span-5 lg:sticky lg:top-8">
-        <Card className="w-full min-h-[300px] lg:min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center">
-          <CardHeader className="w-full">
-            <CardTitle className="text-center">Preview</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-grow flex items-center justify-center w-full p-2 aspect-[1/1] max-h-[70vh]">
-            {isLoading && (
-              <div className="flex flex-col items-center text-muted-foreground">
-                <svg
-                  className="animate-spin h-12 w-12 mb-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <p>Generating your masterpiece...</p>
-              </div>
-            )}
-            {!isLoading && generatedImage.url && (
-              <Image
-                src={generatedImage.url}
-                alt="Generated image"
-                width={1024}
-                height={1024}
-                className="rounded-md object-contain max-w-full max-h-full"
-                priority
-              />
-            )}
-            {!isLoading && !generatedImage.url && (
-              <div className="text-center text-muted-foreground p-8">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="64"
-                  height="64"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mx-auto mb-4 opacity-50"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" x2="12" y1="3" y2="15" />
-                </svg>
-                <h3 className="text-lg font-semibold mb-2">
-                  Your Image Will Appear Here
-                </h3>
-                <p className="text-sm">
-                  Fill out the form on the left and click "Generate Image" to
-                  see the magic happen.
-                </p>
-              </div>
-            )}
-          </CardContent>
-          {generatedImage.url && (
-            <CardFooter className="pt-4 flex flex-col items-center space-y-4 w-full">
-              <div className="flex space-x-2">
-                <Button variant="outline" asChild>
-                  <a
-                    href={generatedImage.url}
-                    download={`generated_image_${Date.now()}.png`}
-                  >
-                    Download Image
-                  </a>
-                </Button>
-              </div>
-              <div className="w-full space-y-2">
-                {collections.length > 0 ? (
-                  <Select
-                    onValueChange={setSelectedCollectionId}
-                    value={selectedCollectionId}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a collection" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {collections.map((col) => (
-                        <SelectItem key={col.id} value={col.id}>
-                          {col.metadata?.name || col.id}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="new">Create new collection</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No collections found. Please enter a new collection name
-                    below.
-                  </p>
+                    </div>
+                    <p className="text-base lg:text-lg font-medium">
+                      Generating your masterpiece...
+                    </p>
+                    <p className="text-xs lg:text-sm opacity-70 mt-1">
+                      This may take a few moments
+                    </p>
+                  </div>
                 )}
-                {(selectedCollectionId === 'new' ||
-                  collections.length === 0) && (
-                  <Input
-                    placeholder="New Collection Name"
-                    value={newCollectionName}
-                    onChange={(e) => setNewCollectionName(e.target.value)}
-                  />
+                {!isLoading && generatedImage.url && (
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-green-400 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-300" />
+                    <Image
+                      src={generatedImage.url}
+                      alt="Generated image"
+                      width={1024}
+                      height={1024}
+                      className="relative rounded-2xl object-contain w-full h-full shadow-2xl"
+                      priority
+                    />
+                  </div>
                 )}
-                <Button
-                  onClick={handleMint}
-                  disabled={
-                    isMinting ||
-                    (!selectedCollectionId && !newCollectionName.trim())
-                  }
-                  className="w-full"
-                >
-                  {isMinting ? 'Minting...' : 'Mint NFT'}
-                </Button>
-              </div>
-            </CardFooter>
-          )}
-        </Card>
+                {!isLoading && !generatedImage.url && (
+                  <div className="text-center text-muted-foreground p-12">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-gradient-to-r from-muted to-muted/50 rounded-full blur-lg opacity-10" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="80"
+                        height="80"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="relative mx-auto opacity-30"
+                      >
+                        <rect
+                          width="18"
+                          height="18"
+                          x="3"
+                          y="3"
+                          rx="2"
+                          ry="2"
+                        />
+                        <circle cx="9" cy="9" r="2" />
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg lg:text-xl font-semibold mb-3">
+                      Ready to Create?
+                    </h3>
+                  </div>
+                )}
+              </CardContent>
+              {generatedImage.url && (
+                <CardFooter className="pt-4 flex flex-col items-center space-y-4 w-full border-t bg-muted/20">
+                  <div className="flex space-x-3 w-full">
+                    <Button
+                      variant="outline"
+                      asChild
+                      className="flex-1 h-10 rounded-xl"
+                    >
+                      <a
+                        href={generatedImage.url}
+                        download={`ai_generated_${Date.now()}.png`}
+                        className="flex items-center justify-center space-x-2"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" x2="12" y1="15" y2="3" />
+                        </svg>
+                        <span>Download</span>
+                      </a>
+                    </Button>
+                  </div>
+                  <div className="w-full space-y-2">
+                    <div className="flex items-center space-x-2 text-sm font-medium text-green-600">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M12 2v20M2 12h20" />
+                      </svg>
+                      <span>Mint as NFT</span>
+                    </div>
+                    {collections.length > 0 ? (
+                      <Select
+                        onValueChange={setSelectedCollectionId}
+                        value={selectedCollectionId}
+                      >
+                        <SelectTrigger className="w-full h-10 rounded-xl">
+                          <SelectValue placeholder="Select a collection" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {collections.map((col) => (
+                            <SelectItem key={col.id} value={col.id}>
+                              {col.metadata?.name || col.id}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="new">
+                            ✨ Create new collection
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                        No collections found. Create a new one below.
+                      </p>
+                    )}
+                    {(selectedCollectionId === 'new' ||
+                      collections.length === 0) && (
+                      <Input
+                        placeholder="Enter collection name..."
+                        value={newCollectionName}
+                        onChange={(e) => setNewCollectionName(e.target.value)}
+                        className="h-10 rounded-xl"
+                      />
+                    )}
+                    <Button
+                      onClick={handleMint}
+                      disabled={
+                        isMinting ||
+                        (!selectedCollectionId && !newCollectionName.trim())
+                      }
+                      className="w-full h-10 rounded-xl bg-green-500 hover:bg-green-600 transition-all duration-300"
+                    >
+                      {isMinting ? (
+                        <>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-5 w-5"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                          Minting...
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-2"
+                          >
+                            <path d="M12 2v20M2 12h20" />
+                          </svg>
+                          Mint NFT
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

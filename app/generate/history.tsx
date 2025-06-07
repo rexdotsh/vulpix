@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -35,7 +34,7 @@ import { Input } from '@/components/ui/input';
 import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
 import type { UserCollection } from '@/lib/assetHubNFTManager';
 
-type ImageGeneration = {
+type ImageGen = {
   _id: string;
   prompt: string;
   model: string;
@@ -49,11 +48,35 @@ type ImageGeneration = {
 export function ImageHistory() {
   const { selectedAccount } = usePolkadot();
   const userAddress = selectedAccount?.address;
+  const [searchDate, setSearchDate] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   const images = useQuery(
     api.images.getUserImages,
     userAddress ? { userAddress } : 'skip',
   );
+
+  const filteredImages = useMemo(() => {
+    if (!images) return [];
+
+    let filtered = images;
+
+    if (searchDate) {
+      const date = new Date(searchDate);
+      const start = new Date(date.setHours(0, 0, 0, 0));
+      const end = new Date(date.setHours(23, 59, 59, 999));
+      filtered = images.filter((img) => {
+        const imgDate = new Date(img.createdAt);
+        return imgDate >= start && imgDate <= end;
+      });
+    }
+
+    return [...filtered].sort((a, b) =>
+      sortOrder === 'newest'
+        ? b.createdAt - a.createdAt
+        : a.createdAt - b.createdAt,
+    );
+  }, [images, searchDate, sortOrder]);
 
   if (!userAddress) {
     return (
@@ -67,28 +90,30 @@ export function ImageHistory() {
 
   if (!images) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Card
-            key={`skeleton-${i}-${userAddress || 'guest'}`}
-            className="overflow-hidden"
-          >
-            <CardHeader className="p-4">
-              <Skeleton className="h-4 w-2/3" />
-            </CardHeader>
-            <CardContent className="p-0">
-              <Skeleton className="h-[200px] w-full" />
-            </CardContent>
-            <CardFooter className="p-4">
-              <Skeleton className="h-4 w-1/3" />
-            </CardFooter>
-          </Card>
-        ))}
+      <div className="w-full max-w-[1800px] mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 justify-items-center">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card
+              key={i}
+              className="overflow-hidden w-full max-w-[512px] aspect-square"
+            >
+              <CardHeader className="p-4">
+                <Skeleton className="h-4 w-2/3" />
+              </CardHeader>
+              <CardContent className="p-0 flex-grow">
+                <Skeleton className="w-full h-full" />
+              </CardContent>
+              <CardFooter className="p-4">
+                <Skeleton className="h-4 w-1/3" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (images.length === 0) {
+  if (filteredImages.length === 0 && images?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <p className="text-muted-foreground">No images generated yet</p>
@@ -97,56 +122,104 @@ export function ImageHistory() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {images.map((image) => (
-        <ImageHistoryCard
-          key={image._id}
-          image={image as unknown as ImageGeneration}
-        />
-      ))}
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-sm font-medium">Search by date:</span>
+            <Input
+              type="date"
+              value={searchDate}
+              onChange={(e) => setSearchDate(e.target.value)}
+              className="w-40"
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-sm font-medium">Sort:</span>
+            <Select
+              value={sortOrder}
+              onValueChange={(value: 'newest' | 'oldest') =>
+                setSortOrder(value)
+              }
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="oldest">Oldest</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {(searchDate || sortOrder !== 'newest') && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              setSearchDate('');
+              setSortOrder('newest');
+            }}
+            className="text-sm"
+          >
+            Clear filters
+          </Button>
+        )}
+      </div>
+
+      {filteredImages.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <p className="text-muted-foreground">
+            No images found for the selected date
+          </p>
+        </div>
+      ) : (
+        <div className="w-full max-w-[1800px] mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 justify-items-center">
+            {filteredImages.map((image) => (
+              <ImageCard key={image._id} image={image as unknown as ImageGen} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function ImageHistoryCard({ image }: { image: ImageGeneration }) {
-  const [mintDialogOpen, setMintDialogOpen] = useState(false);
-  const { nftManager, isInitialized: isAssetHubInitialized } = useAssetHub();
+function ImageCard({ image }: { image: ImageGen }) {
+  const [mintOpen, setMintOpen] = useState(false);
+  const { nftManager, isInitialized } = useAssetHub();
   const { selectedAccount } = usePolkadot();
-  const [collectionsList, setCollectionsList] = useState<UserCollection[]>([]);
-  const [isLoadingCollections, setIsLoadingCollections] = useState(false);
+  const [collections, setCollections] = useState<UserCollection[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isAssetHubInitialized && selectedAccount?.address && nftManager) {
-      setIsLoadingCollections(true);
-      (async () => {
-        const cols = await getUserCollections(
-          nftManager,
-          selectedAccount.address,
-        );
-        setCollectionsList(cols);
-        setIsLoadingCollections(false);
-      })();
+    if (isInitialized && selectedAccount?.address && nftManager) {
+      setLoading(true);
+      getUserCollections(nftManager, selectedAccount.address)
+        .then(setCollections)
+        .finally(() => setLoading(false));
     }
-  }, [isAssetHubInitialized, selectedAccount?.address, nftManager]);
+  }, [isInitialized, selectedAccount?.address, nftManager]);
 
   return (
     <>
-      <Card className="overflow-hidden flex flex-col">
+      <Card className="overflow-hidden flex flex-col w-full max-w-[512px] aspect-square">
         <CardHeader className="p-4">
           <CardTitle className="text-sm truncate">{image.prompt}</CardTitle>
         </CardHeader>
         <CardContent className="p-0 flex-grow">
           {image.status === 'completed' && image.imageUrl ? (
-            <div className="relative h-[200px] w-full">
+            <div className="relative w-full h-full">
               <Image
                 src={image.imageUrl}
                 alt={image.prompt}
-                fill
-                className="object-cover"
+                width={1024}
+                height={1024}
+                className="object-contain w-full h-full"
               />
             </div>
           ) : image.status === 'pending' ? (
-            <div className="flex items-center justify-center h-[200px] bg-muted/50">
+            <div className="flex items-center justify-center w-full h-full bg-muted/50">
               <div className="flex flex-col items-center">
                 <svg
                   className="animate-spin h-8 w-8 mb-2 text-muted-foreground"
@@ -174,18 +247,15 @@ function ImageHistoryCard({ image }: { image: ImageGeneration }) {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[200px] bg-muted/50">
+            <div className="flex items-center justify-center w-full h-full bg-muted/50">
               <span className="text-muted-foreground">Failed to generate</span>
             </div>
           )}
         </CardContent>
-        <CardFooter className="p-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">{image.model}</Badge>
-            <span className="text-xs text-muted-foreground">
-              {new Date(image.createdAt).toLocaleDateString()}
-            </span>
-          </div>
+        <CardFooter className="p-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {new Date(image.createdAt).toLocaleDateString()}
+          </span>
           <div className="flex gap-2">
             {image.status === 'completed' && image.imageUrl && (
               <>
@@ -202,8 +272,8 @@ function ImageHistoryCard({ image }: { image: ImageGeneration }) {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setMintDialogOpen(true)}
-                  disabled={!isAssetHubInitialized}
+                  onClick={() => setMintOpen(true)}
+                  disabled={!isInitialized}
                 >
                   Mint NFT
                 </Button>
@@ -215,13 +285,13 @@ function ImageHistoryCard({ image }: { image: ImageGeneration }) {
 
       {image.status === 'completed' && image.imageUrl && (
         <MintDialog
-          open={mintDialogOpen}
-          setOpen={setMintDialogOpen}
+          open={mintOpen}
+          setOpen={setMintOpen}
           imageUrl={image.imageUrl}
           nftManager={nftManager}
-          isAssetHubInitialized={isAssetHubInitialized}
-          collections={collectionsList}
-          isLoadingCollections={isLoadingCollections}
+          isInitialized={isInitialized}
+          collections={collections}
+          loading={loading}
         />
       )}
     </>
@@ -233,40 +303,38 @@ function MintDialog({
   setOpen,
   imageUrl,
   nftManager,
-  isAssetHubInitialized,
+  isInitialized,
   collections,
-  isLoadingCollections,
+  loading,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   imageUrl: string;
   nftManager: any;
-  isAssetHubInitialized: boolean;
+  isInitialized: boolean;
   collections: UserCollection[];
-  isLoadingCollections: boolean;
+  loading: boolean;
 }) {
   const { selectedAccount, getInjector } = usePolkadot();
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
+  const [selectedCollection, setSelectedCollection] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
-  const [isMinting, setIsMinting] = useState(false);
+  const [minting, setMinting] = useState(false);
 
   const handleMint = async () => {
     if (!selectedAccount) return;
 
-    setIsMinting(true);
+    setMinting(true);
     const result = await mintImageAsNFT({
       nftManager,
       selectedAccount,
       getInjector,
-      selectedCollectionId,
+      selectedCollectionId: selectedCollection,
       newCollectionName,
       imageUrl,
     });
 
-    setIsMinting(false);
-    if (result) {
-      setOpen(false);
-    }
+    setMinting(false);
+    if (result) setOpen(false);
   };
 
   return (
@@ -280,23 +348,24 @@ function MintDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="relative h-[200px] w-full mb-4">
+          <div className="relative w-[512px] h-[512px] mb-4 mx-auto">
             <Image
               src={imageUrl}
               alt="Image to mint"
-              fill
-              className="object-contain rounded-md"
+              width={1024}
+              height={1024}
+              className="object-contain w-full h-full rounded-md"
             />
           </div>
 
-          {isLoadingCollections ? (
+          {loading ? (
             <p className="text-sm text-muted-foreground text-center">
               Loading collections...
             </p>
           ) : collections.length > 0 ? (
             <Select
-              onValueChange={setSelectedCollectionId}
-              value={selectedCollectionId}
+              onValueChange={setSelectedCollection}
+              value={selectedCollection}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a collection" />
@@ -316,8 +385,8 @@ function MintDialog({
             </p>
           )}
 
-          {(selectedCollectionId === 'new' ||
-            (!isLoadingCollections && collections.length === 0)) && (
+          {(selectedCollection === 'new' ||
+            (!loading && collections.length === 0)) && (
             <Input
               placeholder="New Collection Name"
               value={newCollectionName}
@@ -333,13 +402,13 @@ function MintDialog({
           <Button
             onClick={handleMint}
             disabled={
-              isMinting ||
-              isLoadingCollections ||
-              (!selectedCollectionId && !newCollectionName.trim()) ||
-              !isAssetHubInitialized
+              minting ||
+              loading ||
+              (!selectedCollection && !newCollectionName.trim()) ||
+              !isInitialized
             }
           >
-            {isMinting ? 'Minting...' : 'Mint NFT'}
+            {minting ? 'Minting...' : 'Mint NFT'}
           </Button>
         </DialogFooter>
       </DialogContent>

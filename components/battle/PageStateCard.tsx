@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Wallet } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface PageStateCardProps {
@@ -12,7 +13,7 @@ interface PageStateCardProps {
   message: string;
 
   // Visual state
-  variant?: 'loading' | 'error' | 'info' | 'warning';
+  variant?: 'loading' | 'error' | 'info' | 'warning' | 'walletConnect';
   icon?: ReactNode;
 
   // Action
@@ -35,20 +36,39 @@ export function PageStateCard({
   maxWidth = 'max-w-md',
 }: PageStateCardProps) {
   const router = useRouter();
+  const { enableExtensions, isConnecting } = usePolkadot();
 
   const handleClick = () => {
-    if (buttonAction) {
+    if (variant === 'walletConnect') {
+      enableExtensions();
+    } else if (buttonAction) {
       buttonAction();
     } else if (redirectTo) {
       router.push(redirectTo);
     }
   };
 
-  const displayIcon =
-    icon ??
-    (variant === 'loading' ? (
-      <Loader2 className="h-8 w-8 animate-spin" />
-    ) : null);
+  const getDefaultProps = () => {
+    switch (variant) {
+      case 'loading':
+        return {
+          icon: <Loader2 className="h-8 w-8 animate-spin" />,
+        };
+      case 'walletConnect':
+        return {
+          title: title || 'Wallet Not Connected',
+          icon: <Wallet className="h-8 w-8" />,
+          buttonText: isConnecting ? 'Connecting...' : 'Connect Wallet',
+        };
+      default:
+        return {};
+    }
+  };
+
+  const defaultProps = getDefaultProps();
+  const displayIcon = icon ?? defaultProps.icon;
+  const displayTitle = title ?? defaultProps.title;
+  const displayButtonText = buttonText ?? defaultProps.buttonText;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -59,13 +79,19 @@ export function PageStateCard({
               <div className="mb-4 flex justify-center">{displayIcon}</div>
             )}
 
-            {title && <h2 className="text-xl font-semibold mb-2">{title}</h2>}
+            {displayTitle && (
+              <h2 className="text-xl font-semibold mb-2">{displayTitle}</h2>
+            )}
 
             <p className="text-muted-foreground mb-4">{message}</p>
 
-            {buttonText && (
-              <Button onClick={handleClick} className="w-full">
-                {buttonText}
+            {displayButtonText && (
+              <Button
+                onClick={handleClick}
+                className="w-full"
+                disabled={variant === 'walletConnect' && isConnecting}
+              >
+                {displayButtonText}
               </Button>
             )}
           </div>

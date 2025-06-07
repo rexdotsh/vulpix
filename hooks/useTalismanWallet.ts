@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 declare global {
@@ -12,10 +12,23 @@ declare global {
 export function useTalismanWallet() {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('');
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    checkConnection();
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      checkTalismanAvailability();
+    }
   }, []);
+
+  const checkTalismanAvailability = () => {
+    if (!window.talismanEth) {
+      setConnectionStatus('Talisman wallet not found');
+      setIsConnected(false);
+    } else {
+      checkConnection();
+    }
+  };
 
   const checkConnection = async () => {
     if (!window.talismanEth) {
@@ -38,6 +51,7 @@ export function useTalismanWallet() {
         return false;
       }
     } catch (error: any) {
+      console.error('Talisman connection check failed:', error);
       setIsConnected(false);
       setConnectionStatus('Talisman connection error');
       return false;
@@ -64,8 +78,13 @@ export function useTalismanWallet() {
       return false;
     } catch (error: any) {
       console.error('Failed to connect Talisman wallet:', error);
-      setConnectionStatus(`Connection failed: ${error.message}`);
-      toast.error('Failed to connect Talisman wallet');
+
+      if (error.code === 4001 || error.message?.includes('rejected')) {
+        setConnectionStatus('Connection rejected by user');
+      } else {
+        setConnectionStatus(`Connection failed: ${error.message}`);
+        toast.error('Failed to connect Talisman wallet');
+      }
       return false;
     }
   };

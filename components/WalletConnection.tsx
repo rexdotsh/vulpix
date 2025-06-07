@@ -16,6 +16,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useEffect } from 'react';
 
+// global ref to prevent duplicate error toasts from multiple instances
+let lastErrorShown = '';
+
 export function WalletConnection() {
   const {
     isReady,
@@ -32,8 +35,15 @@ export function WalletConnection() {
   const { isInitialized, isInitializing } = useAssetHub();
 
   useEffect(() => {
-    if (error) {
+    if (error && error !== lastErrorShown) {
+      lastErrorShown = error;
       toast.error(error);
+
+      setTimeout(() => {
+        if (lastErrorShown === error) {
+          lastErrorShown = '';
+        }
+      }, 1000);
     }
   }, [error]);
 
