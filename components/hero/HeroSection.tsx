@@ -87,7 +87,7 @@ export default function HeroSection() {
         <h1 className="font-garamond text-[7rem] md:text-[15rem] text-white uppercase tracking-tighter text-center leading-[0.8] px-4 md:px-0">
           from jpeg
           <br />
-          to ko
+          to k.o.
         </h1>
       </motion.div>
 
