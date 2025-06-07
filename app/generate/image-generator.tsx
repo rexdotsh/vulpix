@@ -162,38 +162,16 @@ export function ImageGenerator() {
   }, [imageQuery]);
 
   return (
-    <div className="bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="text-center mb-8 lg:mb-12">
-          <div className="flex items-center justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-green-400 rounded-full blur-lg opacity-20 animate-pulse" />
-              <div className="relative bg-green-500 p-4 rounded-full">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" x2="12" y1="15" y2="3" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent mb-4">
-            AI NFT Generation Studio
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-3">
+            AI Image Generator
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Transform your imagination into stunning visuals with the power of
-            AI
+          <p className="text-lg text-muted-foreground mx-auto">
+            Create stunning AI-generated artwork and mint it directly as NFTs on
+            Polkadot
           </p>
         </div>
 
@@ -261,22 +239,6 @@ export function ImageGenerator() {
                                 className="h-12 lg:h-16 text-base lg:text-lg px-4 lg:px-6 py-3 lg:py-4 rounded-xl border-2 focus:border-primary transition-all duration-300 placeholder:text-muted-foreground/60 placeholder:opacity-75"
                                 {...field}
                               />
-                              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <circle cx="12" cy="12" r="3" />
-                                  <path d="M12 0v9m0 6v9M0 12h9m6 0h9" />
-                                </svg>
-                              </div>
                             </div>
                           </FormControl>
                           <FormDescription className="text-sm lg:text-base bg-muted/50 p-3 lg:p-4 rounded-lg border-l-4 border-green-500">

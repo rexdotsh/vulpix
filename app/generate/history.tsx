@@ -205,7 +205,9 @@ function ImageCard({ image }: { image: ImageGen }) {
     <>
       <Card className="overflow-hidden flex flex-col w-full max-w-[512px] aspect-square">
         <CardHeader className="p-4">
-          <CardTitle className="text-sm truncate">{image.prompt}</CardTitle>
+          <CardTitle className="text-base font-medium truncate">
+            {image.prompt}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0 flex-grow">
           {image.status === 'completed' && image.imageUrl ? (
@@ -252,35 +254,28 @@ function ImageCard({ image }: { image: ImageGen }) {
             </div>
           )}
         </CardContent>
-        <CardFooter className="p-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            {new Date(image.createdAt).toLocaleDateString()}
-          </span>
-          <div className="flex gap-2">
-            {image.status === 'completed' && image.imageUrl && (
-              <>
-                <Button variant="outline" size="sm" asChild>
-                  <a
-                    href={image.imageUrl}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Download
-                  </a>
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setMintOpen(true)}
-                  disabled={!isInitialized}
-                >
-                  Mint NFT
-                </Button>
-              </>
-            )}
-          </div>
-        </CardFooter>
+        {image.status === 'completed' && image.imageUrl && (
+          <CardFooter className="p-3 pt-2 flex justify-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <a
+                href={image.imageUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Download
+              </a>
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setMintOpen(true)}
+              disabled={!isInitialized}
+            >
+              Mint NFT
+            </Button>
+          </CardFooter>
+        )}
       </Card>
 
       {image.status === 'completed' && image.imageUrl && (
