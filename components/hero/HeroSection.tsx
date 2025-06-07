@@ -6,6 +6,7 @@ import Floating, {
   FloatingElement,
 } from '@/components/fancy/parallax-floating';
 import useScreenSize from '@/hooks/use-screen-size';
+import Image from 'next/image';
 
 const heroImages = Array.from(
   { length: 11 },
@@ -27,7 +28,29 @@ export default function HeroSection() {
   const scrollToNext = () => {
     const nextSection = document.getElementById('about');
     if (nextSection) {
-      nextSection.scrollIntoView({ behavior: 'smooth' });
+      const targetPosition = nextSection.offsetTop;
+      const startPosition = window.pageYOffset;
+      const distance = targetPosition - startPosition;
+      const duration = 1200;
+      let start: number | null = null;
+
+      function step(timestamp: number) {
+        if (!start) start = timestamp;
+        const progress = timestamp - start;
+        const progressRatio = Math.min(progress / duration, 1);
+
+        const easeInOutCubic = (t: number) =>
+          t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+
+        const easedProgress = easeInOutCubic(progressRatio);
+        window.scrollTo(0, startPosition + distance * easedProgress);
+
+        if (progress < duration) {
+          requestAnimationFrame(step);
+        }
+      }
+
+      requestAnimationFrame(step);
     }
   };
 
@@ -36,6 +59,25 @@ export default function HeroSection() {
       className="relative min-h-screen bg-background overflow-hidden"
       ref={scope}
     >
+      <motion.div
+        className="absolute top-[20vh] md:top-[25vh] left-1/2 -translate-x-1/2 w-full z-[1] md:z-0"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.88, delay: 0.3 }}
+      >
+        <div className="flex items-center justify-center gap-4 px-4 md:px-0">
+          <Image
+            src="/logo.svg"
+            alt="Logo"
+            width={46}
+            height={46}
+            className="w-[23px] h-[23px] md:w-[46px] md:h-[46px]"
+          />
+          <span className="font-megazoid text-3xl md:text-5xl text-white uppercase tracking-wider">
+            vulpix
+          </span>
+        </div>
+      </motion.div>
       <motion.div
         className="absolute top-[25vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] md:z-0"
         initial={{ opacity: 0, y: 10 }}
