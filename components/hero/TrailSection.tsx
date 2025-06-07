@@ -1,10 +1,8 @@
 'use client';
-
-import Image from 'next/image';
 import { LayoutGroup } from 'motion/react';
 import MediaBetweenText from '@/components/fancy/media-between-text';
 import TextRotate from '@/components/fancy/text-rotate';
-import ImageTrail, { ImageTrailItem } from '@/components/fancy/image-trail';
+import ImageTrail from '@/components/fancy/image-trail';
 import useScreenSize from '@/hooks/use-screen-size';
 
 const heroTrailImages = Array.from(
@@ -28,21 +26,9 @@ export default function TrailSection() {
           opacity: { duration: 2, times: [0, 0.001, 0.9, 1] },
           scale: { duration: 2, times: [0, 0.8, 1] },
         }}
-        repeatChildren={1}
-      >
-        {heroTrailImages.map((imagePath, index) => (
-          <ImageTrailItem key={index}>
-            <div className="w-40 h-30 sm:w-48 sm:h-36 md:w-60 md:h-45 relative overflow-hidden rounded-2xl shadow-lg">
-              <Image
-                src={imagePath}
-                alt={`Hero trail ${index + 1}`}
-                fill
-                className="object-cover"
-              />
-            </div>
-          </ImageTrailItem>
-        ))}
-      </ImageTrail>
+        imagePool={heroTrailImages}
+        maxActiveItems={3}
+      />
 
       <div className="absolute inset-0 flex items-center justify-center z-20">
         <div className="relative">

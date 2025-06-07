@@ -15,7 +15,7 @@ interface ImageTrailProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * The content to be displayed
    */
-  children: React.ReactNode;
+  children?: React.ReactNode;
 
   /**
    * HTML Tag
@@ -66,6 +66,16 @@ interface ImageTrailProps extends HTMLAttributes<HTMLDivElement> {
    * - "old-on-top": older elements stay visually on top
    */
   zIndexDirection?: 'new-on-top' | 'old-on-top';
+
+  /**
+   * Pool of image URLs to cycle through. If provided, will override children images.
+   */
+  imagePool?: string[];
+
+  /**
+   * Maximum number of active trail items. If provided with imagePool, limits active items.
+   */
+  maxActiveItems?: number;
 }
 
 interface ImageTrailItemProps extends HTMLAttributes<HTMLDivElement> {
@@ -106,10 +116,13 @@ const ImageTrail = ({
   },
   baseZIndex = 0,
   zIndexDirection = 'new-on-top',
+  imagePool,
+  maxActiveItems,
   ...props
 }: ImageTrailProps) => {
   const allImages = React.useRef<NodeListOf<HTMLElement> | null>(null);
   const currentId = React.useRef(0);
+  const imagePoolIndex = React.useRef(0);
   const lastMousePos = React.useRef({ x: 0, y: 0 });
   const cachedMousePos = React.useRef({ x: 0, y: 0 });
   const [containerRef, animate] = useAnimate();
@@ -119,6 +132,9 @@ const ImageTrail = ({
     () => Math.max(0.0001, Math.min(1, intensity)),
     [intensity],
   );
+
+  const effectiveRepeatChildren =
+    imagePool && maxActiveItems ? maxActiveItems : repeatChildren;
 
   useEffect(() => {
     allImages.current = containerRef?.current?.querySelectorAll(
@@ -160,6 +176,16 @@ const ImageTrail = ({
     if (distance > threshold && allImages?.current) {
       const N = allImages.current.length;
       const current = currentId.current;
+
+      // If using image pool, update the image source
+      if (imagePool && imagePool.length > 0) {
+        const img = allImages.current[current].querySelector('img');
+        if (img) {
+          img.src = imagePool[imagePoolIndex.current % imagePool.length];
+          imagePoolIndex.current =
+            (imagePoolIndex.current + 1) % imagePool.length;
+        }
+      }
 
       if (zIndexDirection === 'new-on-top') {
         // Shift others down, put current on top
@@ -220,9 +246,24 @@ const ImageTrail = ({
       ref={containerRef}
       {...props}
     >
-      {Array.from({ length: repeatChildren }).map((_, index) => (
-        <React.Fragment key={index}>{children}</React.Fragment>
-      ))}
+      {imagePool && maxActiveItems
+        ? Array.from({ length: maxActiveItems }).map((_, index) => (
+            <div
+              key={index}
+              className="absolute top-0 left-0 will-change-transform hidden image-trail-item"
+            >
+              <div className="w-40 h-30 sm:w-48 sm:h-36 md:w-60 md:h-45 relative overflow-hidden rounded-2xl shadow-lg">
+                <img
+                  src={imagePool[0]}
+                  alt={`Trail item ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          ))
+        : Array.from({ length: effectiveRepeatChildren }).map((_, index) => (
+            <React.Fragment key={index}>{children}</React.Fragment>
+          ))}
     </ElementTag>
   );
 };
