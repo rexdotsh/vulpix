@@ -71,7 +71,7 @@ export default function HeroSection() {
             alt="Logo"
             width={46}
             height={46}
-            className="w-[23px] h-[23px] md:w-[46px] md:h-[46px]"
+            className="w-[32px] h-[32px] md:w-[46px] md:h-[46px] -mt-1 md:-mt-2"
           />
           <span className="font-megazoid text-3xl md:text-5xl text-white uppercase tracking-wider">
             vulpix
@@ -206,15 +206,18 @@ export default function HeroSection() {
 
       <motion.button
         type="button"
-        className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-40 md:w-52 h-[40px] md:h-[51px] bg-[#1f1f1f] rounded-full flex items-center justify-center z-50"
+        className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-40 md:w-52 h-[40px] md:h-[51px] bg-[#1f1f1f] border border-white/10 rounded-full flex items-center justify-center z-50 cursor-pointer transition-all duration-200"
         onClick={scrollToNext}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 1.5 }}
       >
-        <span className="text-white uppercase tracking-tight text-lg md:text-base">
+        <motion.span
+          className="text-white uppercase tracking-tight text-lg md:text-base"
+          whileHover={{ color: '#ffffff' }}
+        >
           check it out
-        </span>
+        </motion.span>
       </motion.button>
     </div>
   );
