@@ -71,7 +71,7 @@ export function PageStateCard({
   const displayButtonText = buttonText ?? defaultProps.buttonText;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="bg-background flex items-center justify-center h-[calc(100vh-4rem)]">
       <Card className={`w-full ${maxWidth}`}>
         <CardContent className="pt-6">
           <div className="text-center">

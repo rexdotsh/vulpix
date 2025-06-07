@@ -148,7 +148,7 @@ export default function Dashboard() {
 
   return (
     <TooltipProvider>
-      <div className="bg-background min-h-screen">
+      <div className="bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
