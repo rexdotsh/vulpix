@@ -216,7 +216,6 @@ function ImageCard({ image }: { image: ImageGen }) {
                 width={1024}
                 height={1024}
                 className="object-contain w-full h-full"
-                unoptimized
               />
             </div>
           ) : image.status === 'pending' ? (
@@ -356,7 +355,6 @@ function MintDialog({
               width={1024}
               height={1024}
               className="object-contain w-full h-full rounded-md"
-              unoptimized
             />
           </div>
 

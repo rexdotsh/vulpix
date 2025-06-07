@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 import HeroSection from '@/components/hero/HeroSection';
 import AboutSection from '@/components/hero/CircleSection';
 import CreateSection from '@/components/hero/CreateSection';
+import TrailSection from '@/components/hero/TrailSection';
+import FooterSection from '@/components/hero/FooterSection';
 
 const navItems = [
   { href: '/', label: 'home', active: true },
@@ -274,9 +276,14 @@ export default function Page() {
         )}
       </AnimatePresence>
 
-      <HeroSection />
-      <AboutSection />
-      <CreateSection />
+      <div className="relative z-10">
+        <HeroSection />
+        <AboutSection />
+        <CreateSection />
+        <TrailSection />
+      </div>
+
+      <FooterSection />
     </div>
   );
 }

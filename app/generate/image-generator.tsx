@@ -414,7 +414,6 @@ export function ImageGenerator() {
                       height={1024}
                       className="relative rounded-2xl object-contain w-full h-full shadow-2xl"
                       priority
-                      unoptimized
                     />
                   </div>
                 )}
