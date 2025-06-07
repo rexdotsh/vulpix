@@ -7,6 +7,7 @@ export const env = createEnv({
     CONVEX_DEPLOYMENT: z.string().min(1).optional(),
     // necessary only for prod on vercel
     CONVEX_DEPLOY_KEY: z.string().min(1).optional(),
+    BLOB_READ_WRITE_TOKEN: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_CONTRACT_ADDRESS: z.string().min(1),
@@ -20,5 +21,6 @@ export const env = createEnv({
     CONVEX_DEPLOY_KEY: process.env.CONVEX_DEPLOY_KEY,
     NEXT_PUBLIC_GATEWAY_URL: process.env.NEXT_PUBLIC_GATEWAY_URL,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
   },
 });
