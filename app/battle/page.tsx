@@ -279,7 +279,7 @@ export default function BattlePage() {
                         onChange={(e) =>
                           setJoinLobbyId(e.target.value.toUpperCase())
                         }
-                        className="text-center font-mono"
+                        className="text-center"
                       />
                       <Button
                         onClick={handleJoinByCode}
