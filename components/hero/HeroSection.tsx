@@ -60,7 +60,7 @@ export default function HeroSection() {
       ref={scope}
     >
       <motion.div
-        className="absolute top-[20vh] md:top-[25vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
+        className="absolute top-[30vh] md:top-[25vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.88, delay: 0.3 }}
@@ -79,7 +79,7 @@ export default function HeroSection() {
         </div>
       </motion.div>
       <motion.div
-        className="absolute top-[25vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
+        className="absolute top-[35vh] md:top-[30vh] left-1/2 -translate-x-1/2 w-full z-[1] xl:z-0"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.88, delay: 0.5 }}
@@ -206,7 +206,7 @@ export default function HeroSection() {
 
       <motion.button
         type="button"
-        className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-40 md:w-52 h-[40px] md:h-[51px] bg-[#1f1f1f] border border-white/10 rounded-full flex items-center justify-center z-50 cursor-pointer transition-all duration-200"
+        className="absolute bottom-40 md:bottom-10 left-1/2 -translate-x-1/2 w-40 md:w-52 h-[40px] md:h-[51px] bg-[#1f1f1f] border border-white/10 rounded-full flex items-center justify-center z-50 cursor-pointer transition-all duration-200"
         onClick={scrollToNext}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
