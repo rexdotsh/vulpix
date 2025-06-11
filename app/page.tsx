@@ -14,7 +14,7 @@ import FooterSection from '@/components/hero/FooterSection';
 const navItems = [
   { href: '/', label: 'home', active: true },
   { href: '/dashboard', label: 'dashboard' },
-  { href: '#about', label: 'about' },
+  { href: '/battle', label: 'play' },
 ];
 
 const NavLink = ({

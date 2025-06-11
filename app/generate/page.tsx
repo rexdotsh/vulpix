@@ -24,7 +24,7 @@ export default function GeneratePage() {
     return (
       <PageStateCard
         variant="walletConnect"
-        message="Please connect your wallet to view your NFTs"
+        message="Please connect your wallet to generate images"
       />
     );
   }
