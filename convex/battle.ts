@@ -214,6 +214,45 @@ export const getBattle = query({
   },
 });
 
+export const getBattleWithNFTData = query({
+  args: { battleId: v.string() },
+  handler: async (ctx, args) => {
+    const battle = await ctx.db
+      .query('battles')
+      .filter((q) => q.eq(q.field('battleId'), args.battleId))
+      .first();
+
+    if (!battle) {
+      return null;
+    }
+
+    // Get full NFT data for both players
+    const player1NFTData = await ctx.db
+      .query('nftItems')
+      .withIndex('by_item', (q) =>
+        q
+          .eq('collectionId', battle.player1NFT.collection)
+          .eq('itemId', battle.player1NFT.item),
+      )
+      .first();
+
+    const player2NFTData = await ctx.db
+      .query('nftItems')
+      .withIndex('by_item', (q) =>
+        q
+          .eq('collectionId', battle.player2NFT.collection)
+          .eq('itemId', battle.player2NFT.item),
+      )
+      .first();
+
+    return {
+      ...battle,
+      player1NFTData,
+      player2NFTData,
+    };
+  },
+});
+
 export const getUserActiveBattles = query({
   args: { userAddress: v.string() },
   handler: async (ctx, args) => {
