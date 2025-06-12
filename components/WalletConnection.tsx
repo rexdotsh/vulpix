@@ -143,28 +143,32 @@ export function WalletConnection() {
 
           <DropdownMenuSeparator />
 
-          <div className="px-3 py-3 bg-muted/50 border-l-4 border-primary mx-2 my-2 rounded-r">
-            <div className="flex items-center justify-between mb-1">
-              <div className="font-medium text-sm text-foreground">
-                Current Account
-              </div>
-              <div className="flex items-center gap-2">
+          <div className="p-4 bg-muted/30 rounded-md">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 pt-0.5 pr-1.5 -ml-1.5">
                 <ProfilePictureManager
                   userAddress={selectedAccount?.address || ''}
                   currentProfilePicture={userData?.profilePicture}
                   userName={selectedAccount?.meta.name}
                 />
-                <Badge variant="outline" className="text-xs">
-                  {selectedAccountIndex + 1} of {accounts.length}
-                </Badge>
               </div>
-            </div>
-            <div className="font-semibold text-sm mb-1">
-              {selectedAccount?.meta.name ||
-                `Account ${selectedAccountIndex + 1}`}
-            </div>
-            <div className="text-xs text-muted-foreground font-mono break-all leading-relaxed">
-              {selectedAccount?.address}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-xs text-muted-foreground uppercase tracking-wide">
+                    Current Account
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {selectedAccountIndex + 1} of {accounts.length}
+                  </Badge>
+                </div>
+                <div className="font-semibold text-sm mb-2 text-foreground">
+                  {selectedAccount?.meta.name ||
+                    `Account ${selectedAccountIndex + 1}`}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono break-all leading-relaxed">
+                  {selectedAccount?.address}
+                </div>
+              </div>
             </div>
           </div>
 
