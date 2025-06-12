@@ -153,14 +153,26 @@ export default function LobbyPage() {
     setIsStartingBattle(true);
 
     try {
-      // 1. Start battle in Convex (generates battle ID and stats)
+      // 1. Check if user is on AssetHub network FIRST
+      const provider = new ethers.BrowserProvider(window.talismanEth);
+      const network = await provider.getNetwork();
+      const assetHubChainId = BigInt('0x190f1b45');
+
+      if (network.chainId !== assetHubChainId) {
+        toast.error(
+          'Please switch to AssetHub network before starting the battle',
+        );
+        setIsStartingBattle(false);
+        return;
+      }
+
+      // 2. Start battle in Convex (generates battle ID and stats)
       const battleData = await startBattleFromLobby({
         lobbyId,
         initiatorAddress: selectedAccount.address,
       });
 
-      // 2. Connect to blockchain
-      const provider = new ethers.BrowserProvider(window.talismanEth);
+      // 3. Get signer and create contract
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         env.NEXT_PUBLIC_CONTRACT_ADDRESS,
@@ -168,7 +180,7 @@ export default function LobbyPage() {
         signer,
       );
 
-      // 3. Create battle on smart contract
+      // 4. Create battle on smart contract
       const tx = await contract.createBattle(
         playersEthAddresses.joinerEthAddress, // player2 ETH address
         {
@@ -195,7 +207,7 @@ export default function LobbyPage() {
 
       toast.info('Battle creation transaction sent...');
 
-      // 4. Wait for confirmation and get battle ID
+      // 5. Wait for confirmation and get battle ID
       const receipt = await tx.wait();
 
       // Parse battle created event to get contract battle ID
@@ -215,7 +227,7 @@ export default function LobbyPage() {
 
       const contractBattleId = battleCreatedEvent.args.battleId.toString();
 
-      // 5. Update battle with contract info
+      // 6. Update battle with contract info
       await updateBattleContractInfo({
         battleId: battleData.battleId,
         contractBattleId,
@@ -224,7 +236,7 @@ export default function LobbyPage() {
 
       toast.success('Battle created successfully!');
 
-      // 6. Redirect to battle
+      // 7. Redirect to battle
       router.push(`/battle/play/${battleData.battleId}`);
     } catch (error: any) {
       console.error('Failed to start battle:', error);
