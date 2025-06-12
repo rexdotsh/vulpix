@@ -63,20 +63,17 @@
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
   --tracking-wider: calc(var(--tracking-normal) + 0.05em);
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
-  
+
   --animate-circling: circling;
 }
 
 @keyframes circling {
   0% {
-    transform: rotate(calc(var(--circling-offset) * 1deg)) 
-              translate(calc(var(--circling-radius) * 1px), 0) 
-              rotate(calc(var(--circling-offset) * -1deg));
+    transform: rotate(calc(var(--circling-offset) * 1deg)) translate(calc(var(--circling-radius) * 1px), 0) rotate(calc(var(--circling-offset) * -1deg));
   }
+
   100% {
-    transform: rotate(calc(360deg + (var(--circling-offset) * 1deg))) 
-              translate(calc(var(--circling-radius) * 1px), 0) 
-              rotate(calc(-360deg + (var(--circling-offset) * -1deg)));
+    transform: rotate(calc(360deg + (var(--circling-offset) * 1deg))) translate(calc(var(--circling-radius) * 1px), 0) rotate(calc(-360deg + (var(--circling-offset) * -1deg)));
   }
 }
 
@@ -178,7 +175,6 @@
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 }
-
 
 
 @layer base {
