@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
+import { useTalismanWallet } from '@/hooks/useTalismanWallet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -23,10 +24,14 @@ interface WalletLinkingProps {
 export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
   const { selectedAccount } = usePolkadot();
   const [isLinking, setIsLinking] = useState(false);
-  const [talismanConnected, setTalismanConnected] = useState(false);
   const [ethAddress, setEthAddress] = useState<string>('');
   const hasCheckedConnection = useRef(false);
   const linkEthereumAddress = useMutation(api.users.linkEthereumAddress);
+  const {
+    isConnected: talismanConnected,
+    connectWallet,
+    switchToAssetHubNetwork,
+  } = useTalismanWallet();
 
   useEffect(() => {
     if (window.talismanEth && !hasCheckedConnection.current) {
@@ -39,13 +44,11 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
     if (!window.talismanEth) return;
 
     try {
-      // eth_accounts only returns already authorized accounts - no prompt
       const accounts = await window.talismanEth.request({
         method: 'eth_accounts',
       });
 
       if (accounts.length > 0) {
-        setTalismanConnected(true);
         setEthAddress(accounts[0]);
       }
     } catch (error) {
@@ -67,7 +70,6 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
       });
 
       if (accounts.length > 0) {
-        setTalismanConnected(true);
         setEthAddress(accounts[0]);
         toast.success('Talisman wallet connected!');
       }
@@ -77,46 +79,6 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
         console.log('User rejected Talisman connection');
       } else {
         toast.error('Failed to connect Talisman wallet');
-      }
-    }
-  };
-
-  const switchToAssetHubNetwork = async () => {
-    try {
-      const chainId = `0x190f1b46`;
-      await window.talismanEth.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId }],
-      });
-      toast.success('Switched to AssetHub network!');
-    } catch (switchError: any) {
-      if (switchError.code === 4902 || switchError.code === -32603) {
-        try {
-          const chainId = `0x190f1b46`;
-          await window.talismanEth.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId,
-                chainName: 'Asset Hub Testnet',
-                nativeCurrency: {
-                  name: 'Asset Hub Token',
-                  symbol: 'PAS',
-                  decimals: 18,
-                },
-                rpcUrls: ['https://testnet-passet-hub-eth-rpc.polkadot.io'],
-                blockExplorerUrls: [
-                  'https://blockscout-passet-hub.parity-testnet.parity.io',
-                ],
-              },
-            ],
-          });
-          toast.success('AssetHub network added and switched!');
-        } catch (addError: any) {
-          toast.error(`Failed to add network: ${addError.message}`);
-        }
-      } else {
-        toast.error(`Failed to switch network: ${switchError.message}`);
       }
     }
   };
@@ -233,7 +195,7 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
         )}
 
         {window.talismanEth && !talismanConnected && (
-          <Button onClick={connectTalisman} className="w-full" size="lg">
+          <Button onClick={connectWallet} className="w-full" size="lg">
             <Wallet className="h-4 w-4 mr-2" />
             Connect Talisman Wallet
           </Button>

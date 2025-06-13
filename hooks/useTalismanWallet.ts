@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import {
+  ASSET_HUB_CHAIN_ID,
+  ASSET_HUB_NETWORK_CONFIG,
+} from '@/lib/constants/chains';
 
 declare global {
   interface Window {
@@ -95,32 +99,16 @@ export function useTalismanWallet() {
     }
 
     try {
-      const chainId = `0x190f1b46`;
       await window.talismanEth.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId }],
+        params: [{ chainId: ASSET_HUB_CHAIN_ID }],
       });
     } catch (switchError: any) {
       if (switchError.code === 4902 || switchError.code === -32603) {
         try {
-          const chainId = `0x190f1b46`;
           await window.talismanEth.request({
             method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId,
-                chainName: 'Asset Hub Testnet',
-                nativeCurrency: {
-                  name: 'Asset Hub Token',
-                  symbol: 'PAS',
-                  decimals: 18,
-                },
-                rpcUrls: ['https://testnet-passet-hub-eth-rpc.polkadot.io'],
-                blockExplorerUrls: [
-                  'https://blockscout-passet-hub.parity-testnet.parity.io',
-                ],
-              },
-            ],
+            params: [ASSET_HUB_NETWORK_CONFIG],
           });
         } catch (addError) {
           console.error('Failed to switch to AssetHub network:', addError);

@@ -34,6 +34,7 @@ import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
 import { env } from '@/env';
 import { WalletLinking } from '@/components/WalletLinking';
+import { ASSET_HUB_CHAIN_ID } from '@/lib/constants/chains';
 
 export default function LobbyPage() {
   const { id } = useParams();
@@ -156,9 +157,8 @@ export default function LobbyPage() {
       // 1. Check if user is on AssetHub network FIRST
       const provider = new ethers.BrowserProvider(window.talismanEth);
       const network = await provider.getNetwork();
-      const assetHubChainId = BigInt('0x190f1b46');
 
-      if (network.chainId !== assetHubChainId) {
+      if (network.chainId !== BigInt(ASSET_HUB_CHAIN_ID)) {
         toast.error(
           'Please switch to AssetHub network before starting the battle',
         );
