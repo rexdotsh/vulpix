@@ -156,7 +156,7 @@ export default function LobbyPage() {
       // 1. Check if user is on AssetHub network FIRST
       const provider = new ethers.BrowserProvider(window.talismanEth);
       const network = await provider.getNetwork();
-      const assetHubChainId = BigInt('0x190f1b45');
+      const assetHubChainId = BigInt('0x190f1b46');
 
       if (network.chainId !== assetHubChainId) {
         toast.error(

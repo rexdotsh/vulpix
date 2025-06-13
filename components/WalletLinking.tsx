@@ -83,7 +83,7 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
 
   const switchToAssetHubNetwork = async () => {
     try {
-      const chainId = `0x190f1b45`;
+      const chainId = `0x190f1b46`;
       await window.talismanEth.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId }],
@@ -92,7 +92,7 @@ export function WalletLinking({ onLinkingComplete }: WalletLinkingProps) {
     } catch (switchError: any) {
       if (switchError.code === 4902 || switchError.code === -32603) {
         try {
-          const chainId = `0x190f1b45`;
+          const chainId = `0x190f1b46`;
           await window.talismanEth.request({
             method: 'wallet_addEthereumChain',
             params: [
