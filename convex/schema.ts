@@ -8,6 +8,7 @@ export default defineSchema({
     linkedAt: v.optional(v.number()),
     profilePicture: v.optional(v.string()), // URL to profile picture stored in Vercel blob
     profilePictureUpdatedAt: v.optional(v.number()),
+    credits: v.optional(v.number()), // user's credit balance, defaults to 0
   })
     .index('by_address', ['address'])
     .index('by_eth_address', ['ethAddress']),

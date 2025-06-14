@@ -1,6 +1,14 @@
 'use client';
 
-import { ChevronDown, Wallet, WifiOff, Wifi, User, Check } from 'lucide-react';
+import {
+  ChevronDown,
+  Wallet,
+  WifiOff,
+  Wifi,
+  User,
+  Check,
+  Coins,
+} from 'lucide-react';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { Button } from '@/components/ui/button';
@@ -88,25 +96,24 @@ export function WalletConnection() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
-            <Avatar className="h-5 w-5">
-              <AvatarImage
-                src={userData?.profilePicture}
-                alt={selectedAccount?.meta.name || 'User avatar'}
-              />
-              <AvatarFallback>
-                <User className="h-3 w-3" />
-              </AvatarFallback>
-            </Avatar>
-            <span className="hidden sm:inline">
+            <div className="relative">
+              <Avatar className="h-5 w-5">
+                <AvatarImage
+                  src={userData?.profilePicture}
+                  alt={selectedAccount?.meta.name || 'User avatar'}
+                />
+                <AvatarFallback>
+                  <User className="h-3 w-3" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                {userData?.credits || 0}
+              </div>
+            </div>
+            <span className="hidden sm:inline text-sm">
               {selectedAccount?.meta.name ||
                 selectedAccount?.address.slice(0, 6)}
             </span>
-            <Badge
-              variant={isInitialized ? 'default' : 'secondary'}
-              className="h-4 px-1 text-xs"
-            >
-              {isInitializing ? '...' : isInitialized ? '✓' : '×'}
-            </Badge>
             <ChevronDown className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -142,6 +149,26 @@ export function WalletConnection() {
           </DropdownMenuLabel>
 
           <DropdownMenuSeparator />
+
+          <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 rounded-md mx-2 mb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Shards
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
+                  {userData?.credits || 0}
+                </span>
+                <Coins className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+              Earn shards by winning battles!
+            </p>
+          </div>
 
           <div className="p-4 bg-muted/30 rounded-md">
             <div className="flex items-start gap-2">

@@ -175,7 +175,7 @@ export default function BattlePlayPage() {
       if (battleEndedEvent) {
         toast.success(
           contractBattleState.winner === selectedAccount.address
-            ? '🎉 Victory! You won the battle!'
+            ? '🎉 Victory! You won the battle and earned 5 credits!'
             : '💔 Defeat! Better luck next time!',
         );
       } else {
