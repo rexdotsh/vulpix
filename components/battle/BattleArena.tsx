@@ -83,7 +83,7 @@ export function BattleArena({
               <div
                 className="absolute inset-0"
                 style={{
-                  background: `lightgray 50% / cover no-repeat, linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
+                  background: `linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
                 }}
               />
             </>
@@ -129,7 +129,7 @@ export function BattleArena({
               <div
                 className="absolute inset-0"
                 style={{
-                  background: `url(${player2Image}) lightgray 50% / cover no-repeat, linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
+                  background: `linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
                 }}
               />
             </>
