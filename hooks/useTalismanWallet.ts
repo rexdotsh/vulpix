@@ -16,7 +16,12 @@ declare global {
 export function useTalismanWallet() {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('');
+  const [currentChainId, setCurrentChainId] = useState<string>('');
+  const [ethAddress, setEthAddress] = useState<string>('');
+  const [isCheckingNetwork, setIsCheckingNetwork] = useState(false);
+  const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
   const hasInitialized = useRef(false);
+  const isOnAssetHub = currentChainId === ASSET_HUB_CHAIN_ID;
 
   useEffect(() => {
     if (!hasInitialized.current) {
@@ -24,6 +29,12 @@ export function useTalismanWallet() {
       checkTalismanAvailability();
     }
   }, []);
+
+  useEffect(() => {
+    if (isConnected) {
+      checkCurrentNetwork();
+    }
+  }, [isConnected]);
 
   const checkTalismanAvailability = () => {
     if (!window.talismanEth) {
@@ -47,18 +58,38 @@ export function useTalismanWallet() {
 
       if (accounts && accounts.length > 0) {
         setIsConnected(true);
+        setEthAddress(accounts[0]);
         setConnectionStatus('Connected');
+        await checkCurrentNetwork();
         return true;
       } else {
         setIsConnected(false);
+        setEthAddress('');
         setConnectionStatus('Please connect Talisman wallet');
         return false;
       }
     } catch (error: any) {
       console.error('Talisman connection check failed:', error);
       setIsConnected(false);
+      setEthAddress('');
       setConnectionStatus('Talisman connection error');
       return false;
+    }
+  };
+
+  const checkCurrentNetwork = async () => {
+    if (!window.talismanEth) return;
+
+    setIsCheckingNetwork(true);
+    try {
+      const chainId = await window.talismanEth.request({
+        method: 'eth_chainId',
+      });
+      setCurrentChainId(chainId);
+    } catch (error) {
+      console.error('Failed to check current network:', error);
+    } finally {
+      setIsCheckingNetwork(false);
     }
   };
 
@@ -75,7 +106,9 @@ export function useTalismanWallet() {
 
       if (accounts && accounts.length > 0) {
         setIsConnected(true);
+        setEthAddress(accounts[0]);
         setConnectionStatus('Connected');
+        await checkCurrentNetwork();
         toast.success('Talisman wallet connected!');
         return true;
       }
@@ -83,11 +116,11 @@ export function useTalismanWallet() {
     } catch (error: any) {
       console.error('Failed to connect Talisman wallet:', error);
 
-      if (error.code === 4001 || error.message?.includes('rejected')) {
-        setConnectionStatus('Connection rejected by user');
-      } else {
+      if (error.code !== 4001 && !error.message?.includes('rejected')) {
         setConnectionStatus(`Connection failed: ${error.message}`);
         toast.error('Failed to connect Talisman wallet');
+      } else {
+        setConnectionStatus('Connection rejected by user');
       }
       return false;
     }
@@ -95,14 +128,19 @@ export function useTalismanWallet() {
 
   const switchToAssetHubNetwork = async () => {
     if (!window.talismanEth) {
-      throw new Error('Talisman wallet not found');
+      toast.error('Talisman wallet not found');
+      return;
     }
 
+    setIsSwitchingNetwork(true);
     try {
       await window.talismanEth.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: ASSET_HUB_CHAIN_ID }],
       });
+
+      await checkCurrentNetwork();
+      toast.success('Successfully switched to AssetHub network!');
     } catch (switchError: any) {
       if (switchError.code === 4902 || switchError.code === -32603) {
         try {
@@ -110,22 +148,35 @@ export function useTalismanWallet() {
             method: 'wallet_addEthereumChain',
             params: [ASSET_HUB_NETWORK_CONFIG],
           });
-        } catch (addError) {
-          console.error('Failed to switch to AssetHub network:', addError);
-          toast.error('Failed to switch to AssetHub network');
+
+          await checkCurrentNetwork();
+          toast.success('Successfully added and switched to AssetHub network!');
+        } catch (addError: any) {
+          console.error('Failed to add AssetHub network:', addError);
+          if (addError.code !== 4001) {
+            toast.error('Failed to add AssetHub network');
+          }
         }
-      } else {
-        throw switchError;
+      } else if (switchError.code !== 4001) {
+        toast.error('Failed to switch to AssetHub network');
       }
+    } finally {
+      setIsSwitchingNetwork(false);
     }
   };
 
   return {
     isConnected,
     connectionStatus,
-    setConnectionStatus,
+    ethAddress,
+    currentChainId,
+    isOnAssetHub,
+    isCheckingNetwork,
+    isSwitchingNetwork,
     connectWallet,
     switchToAssetHubNetwork,
     checkConnection,
+    checkCurrentNetwork,
+    setConnectionStatus,
   };
 }
