@@ -283,7 +283,9 @@ export function BattleLogPanel({
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <Clock className="size-3" />
               <span>
-                Turn {turnNumber} • {moves.length} moves played
+                Turn {turnNumber} •{' '}
+                {moves.reduce((total, move) => total + (move.damage || 0), 0)}{' '}
+                total damage
               </span>
             </div>
           </div>
