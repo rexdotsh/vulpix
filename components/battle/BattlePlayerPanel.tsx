@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 import {
   User,
   Swords,
@@ -32,7 +33,6 @@ interface BattlePlayerPanelProps {
   nftName: string;
   isMyTurn: boolean;
   roomCode?: string;
-  onExitBattle?: () => void;
 }
 
 export function BattlePlayerPanel({
@@ -40,9 +40,13 @@ export function BattlePlayerPanel({
   nftName,
   isMyTurn,
   roomCode,
-  onExitBattle,
 }: BattlePlayerPanelProps) {
   const isProfileLoading = player.profile === undefined;
+  const router = useRouter();
+
+  const handleExitBattle = () => {
+    router.push('/battle');
+  };
 
   return (
     <Card className="w-96 m-6 ml-6 rounded-2xl overflow-hidden h-[calc(100vh-3rem)]">
@@ -169,7 +173,7 @@ export function BattlePlayerPanel({
             <div className="text-sm text-muted-foreground">{roomCode}</div>
             <button
               type="button"
-              onClick={onExitBattle}
+              onClick={handleExitBattle}
               className="p-1 hover:bg-muted rounded transition-colors"
               title="Exit Battle"
             >
