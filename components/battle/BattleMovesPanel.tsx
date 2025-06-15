@@ -73,15 +73,13 @@ export function BattleMovesPanel({
 
   const handlePlayToggle = () => {
     if (isPlaying) {
-      // fade out over 1 second before pausing
-      fade(volume, 0, 1000);
-      setTimeout(() => {
-        togglePlayPause();
-      }, 1000);
+      togglePlayPause();
+      // fade out over 500ms
+      fade(volume, 0, 500);
     } else {
       togglePlayPause();
-      // fade in over 1 second when starting/resuming
-      fade(0, volume, 1000);
+      // fade in over 500ms when starting/resuming
+      fade(0, volume, 500);
     }
   };
 
