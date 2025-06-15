@@ -18,6 +18,7 @@ interface NFTSelectorProps {
   isReady: boolean;
   onReadyToggle: () => void;
   disabled?: boolean;
+  canBeReady?: boolean;
 }
 
 export function NFTSelector({
@@ -27,6 +28,7 @@ export function NFTSelector({
   isReady,
   onReadyToggle,
   disabled = false,
+  canBeReady = true,
 }: NFTSelectorProps) {
   return (
     <div className="space-y-4">
@@ -81,11 +83,15 @@ export function NFTSelector({
 
       <Button
         onClick={onReadyToggle}
-        disabled={!selectedNFT || disabled}
+        disabled={!selectedNFT || disabled || !canBeReady}
         variant={isReady ? 'default' : 'outline'}
         className="w-full"
       >
-        {isReady ? 'Ready!' : 'Mark as Ready'}
+        {isReady
+          ? 'Ready!'
+          : !canBeReady
+            ? 'Complete wallet setup first'
+            : 'Mark as Ready'}
       </Button>
     </div>
   );

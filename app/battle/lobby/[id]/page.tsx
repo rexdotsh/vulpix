@@ -147,6 +147,22 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   const handleReadyToggle = async () => {
     if (!selectedAccount || !selectedNFT || !isInLobby) return;
 
+    if (!talismanConnected) {
+      toast.error('Please connect your Talisman wallet first');
+      return;
+    }
+
+    if (!isOnAssetHub) {
+      toast.error('Please switch to AssetHub network first');
+      return;
+    }
+
+    if (!linkStatus?.hasLinkedEthAddress) {
+      toast.error('Please link your Ethereum wallet first');
+      setShowWalletLinking(true);
+      return;
+    }
+
     const newReadyState = !isReady;
     setIsReady(newReadyState);
 
@@ -333,6 +349,10 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     playersEthAddresses &&
     linkStatus?.hasLinkedEthAddress;
 
+  // Check if current player can mark themselves as ready
+  const canBeReady =
+    talismanConnected && isOnAssetHub && linkStatus?.hasLinkedEthAddress;
+
   return (
     <div className="bg-background">
       <div className="container mx-auto px-4 py-4">
@@ -453,6 +473,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                     onNFTSelect={handleNFTSelect}
                     isReady={isReady}
                     onReadyToggle={handleReadyToggle}
+                    canBeReady={canBeReady}
                   />
                 ) : (
                   <div className="space-y-4">
@@ -513,6 +534,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                       onNFTSelect={handleNFTSelect}
                       isReady={isReady}
                       onReadyToggle={handleReadyToggle}
+                      canBeReady={canBeReady}
                     />
                   ) : (
                     <div className="space-y-4">
@@ -576,74 +598,48 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                         </p>
                       )}
 
-                      {/* Talisman Connection Status */}
+                      {/* Network Status */}
                       <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center gap-2">
                           <div
-                            className={`w-2 h-2 rounded-full ${talismanConnected ? 'bg-green-500' : 'bg-red-500'}`}
+                            className={`w-2 h-2 rounded-full ${isOnAssetHub ? 'bg-green-500' : 'bg-orange-500'}`}
                           />
-                          <span className="text-sm">Talisman Wallet</span>
+                          <span className="text-sm">AssetHub Network</span>
+                          {isCheckingNetwork && (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge
-                            variant={
-                              talismanConnected ? 'default' : 'secondary'
-                            }
+                            variant={isOnAssetHub ? 'default' : 'secondary'}
                             className="text-xs"
                           >
-                            {talismanConnected ? 'Connected' : 'Required'}
+                            {isOnAssetHub ? 'Connected' : 'Required'}
                           </Badge>
-                          {!talismanConnected && (
+                          {!isOnAssetHub && (
                             <Button
-                              onClick={connectWallet}
+                              onClick={async () => {
+                                if (!talismanConnected) {
+                                  await connectWallet();
+                                }
+                                await switchToAssetHubNetwork();
+                              }}
                               size="sm"
                               variant="outline"
+                              disabled={isSwitchingNetwork}
                             >
-                              Connect
+                              {isSwitchingNetwork ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Switching...
+                                </>
+                              ) : (
+                                'Switch'
+                              )}
                             </Button>
                           )}
                         </div>
                       </div>
-
-                      {/* Network Status */}
-                      {talismanConnected && (
-                        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-2 h-2 rounded-full ${isOnAssetHub ? 'bg-green-500' : 'bg-orange-500'}`}
-                            />
-                            <span className="text-sm">AssetHub Network</span>
-                            {isCheckingNetwork && (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant={isOnAssetHub ? 'default' : 'secondary'}
-                              className="text-xs"
-                            >
-                              {isOnAssetHub ? 'Connected' : 'Switch Required'}
-                            </Badge>
-                            {!isOnAssetHub && (
-                              <Button
-                                onClick={switchToAssetHubNetwork}
-                                size="sm"
-                                variant="outline"
-                                disabled={isSwitchingNetwork}
-                              >
-                                {isSwitchingNetwork ? (
-                                  <>
-                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                    Switching...
-                                  </>
-                                ) : (
-                                  'Switch'
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Wallet Linking Status */}
                       <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
