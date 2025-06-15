@@ -187,17 +187,19 @@ export default function BattlePlayPage() {
 
       // Clear selected move after successful execution
       setSelectedMove(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to execute turn:', error);
 
       // Revert optimistic update
       await revertPendingTurn({
         battleId,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
 
-      setConnectionStatus(`Error: ${error.message}`);
-      toast.error(error.message || 'Failed to execute turn');
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to execute turn';
+      setConnectionStatus(`Error: ${errorMessage}`);
+      toast.error(errorMessage);
     } finally {
       setIsExecutingTurn(false);
     }
@@ -312,7 +314,10 @@ export default function BattlePlayPage() {
     opponentMetadata?.name ||
     `${getNFTTypeName(opponent.nft.stats.nftType)} #${opponent.nft.item}`;
 
-  const availableMoves = generateMoves(currentPlayer.nft.stats);
+  const availableMoves = generateMoves({
+    stats: currentPlayer.nft.stats,
+    moves: currentPlayer.nftData?.moves,
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">

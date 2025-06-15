@@ -1,4 +1,5 @@
 import { mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
 import { v } from 'convex/values';
 import { getUserId } from './users';
 
@@ -72,6 +73,7 @@ export const getUserNFTs = query({
       itemMetadata: item.itemMetadata,
       collectionMetadata: collections.get(item.collectionId)?.metadata || null,
       stats: item.stats,
+      moves: item.moves,
       lastSynced: item.lastSynced,
     }));
   },
@@ -158,6 +160,10 @@ export const syncUserNFTs = mutation({
       );
 
       if (existingNft) {
+        // Check if NFT needs moves generated (new NFTs or existing ones without moves)
+        const needsMovesGeneration =
+          !existingNft.moves || existingNft.moves.length === 0;
+
         // update existing NFT with fresh stats
         await ctx.db.patch(existingNft._id, {
           owner: nft.owner,
@@ -166,9 +172,27 @@ export const syncUserNFTs = mutation({
           stats,
           lastSynced: now,
         });
+
+        // Generate moves for existing NFT if needed
+        if (needsMovesGeneration) {
+          ctx.scheduler.runAfter(0, internal.aiMoves.generateAndStoreMoves, {
+            nftId: existingNft._id,
+            collectionId: nft.collection,
+            itemId: nft.item,
+            nftType: stats.nftType,
+            stats: {
+              attack: stats.attack,
+              defense: stats.defense,
+              intelligence: stats.intelligence,
+              luck: stats.luck,
+              speed: stats.speed,
+              strength: stats.strength,
+            },
+          });
+        }
       } else {
         // create new NFT with stats
-        await ctx.db.insert('nftItems', {
+        const nftId = await ctx.db.insert('nftItems', {
           collectionId: nft.collection,
           itemId: nft.item,
           owner: nft.owner,
@@ -177,6 +201,22 @@ export const syncUserNFTs = mutation({
           itemMetadata: nft.itemMetadata,
           stats,
           lastSynced: now,
+        });
+
+        // Generate moves for new NFT
+        ctx.scheduler.runAfter(0, internal.aiMoves.generateAndStoreMoves, {
+          nftId,
+          collectionId: nft.collection,
+          itemId: nft.item,
+          nftType: stats.nftType,
+          stats: {
+            attack: stats.attack,
+            defense: stats.defense,
+            intelligence: stats.intelligence,
+            luck: stats.luck,
+            speed: stats.speed,
+            strength: stats.strength,
+          },
         });
       }
     }

@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as aiMoves from "../aiMoves.js";
 import type * as battle from "../battle.js";
 import type * as googleGen from "../googleGen.js";
 import type * as images from "../images.js";
@@ -31,6 +32,7 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  aiMoves: typeof aiMoves;
   battle: typeof battle;
   googleGen: typeof googleGen;
   images: typeof images;

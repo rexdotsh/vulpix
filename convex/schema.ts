@@ -1,6 +1,12 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+// Move schema for AI-generated NFT moves
+export const nftMoveSchema = v.object({
+  name: v.string(), // exactly 2 words
+  description: v.string(), // 10-20 words max, simple language
+});
+
 export const nftStatsSchema = v.object({
   attack: v.number(),
   defense: v.number(),
@@ -199,6 +205,7 @@ export default defineSchema({
     itemDetails: v.any(),
     itemMetadata: v.any(),
     stats: v.optional(nftStatsSchema),
+    moves: v.optional(v.array(nftMoveSchema)),
     lastSynced: v.number(),
   })
     .index('by_user', ['userAddress'])

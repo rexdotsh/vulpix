@@ -283,6 +283,51 @@ export default function Dashboard() {
                           </div>
                         )}
 
+                        {nft.moves && nft.moves.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="font-semibold text-sm mb-2 text-foreground flex items-center gap-2">
+                              <Swords className="h-4 w-4" />
+                              Attack Moves
+                              <Badge variant="secondary" className="text-xs">
+                                Gemini AI
+                              </Badge>
+                            </h4>
+                            <div className="grid grid-cols-1 gap-2">
+                              {nft.moves.map((move, index) => (
+                                <div
+                                  key={index}
+                                  className="p-2 bg-muted/50 rounded-md border"
+                                >
+                                  <div className="font-medium text-sm text-foreground">
+                                    {move.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {move.description}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {nft.stats &&
+                          (!nft.moves || nft.moves.length === 0) && (
+                            <div className="mb-4">
+                              <h4 className="font-semibold text-sm mb-2 text-foreground flex items-center gap-2">
+                                <Swords className="h-4 w-4" />
+                                Attack Moves
+                                <Badge variant="outline" className="text-xs">
+                                  No moves yet
+                                </Badge>
+                              </h4>
+                              <div className="p-3 bg-muted/30 rounded-md border-dashed border">
+                                <div className="text-xs text-muted-foreground text-center">
+                                  Moves will be generated when entering battle
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                         <Button
                           variant="destructive"
                           size="sm"

@@ -11,10 +11,41 @@ import { Button } from '@/components/ui/button';
 import { NFTStatsDisplay } from './NFTStatsDisplay';
 import { decodeHexMetadata } from '@/lib/utils';
 
+interface NFTStats {
+  attack: number;
+  defense: number;
+  intelligence: number;
+  luck: number;
+  speed: number;
+  strength: number;
+  nftType: number;
+  maxHealth: number;
+  generatedAt: number;
+}
+
+interface NFTMove {
+  name: string;
+  description: string;
+}
+
+interface NFTItem {
+  collection: string;
+  item: string;
+  owner: string;
+  itemDetails?: unknown;
+  itemMetadata?: {
+    data?: string;
+  };
+  collectionMetadata?: unknown;
+  stats?: NFTStats;
+  moves?: NFTMove[];
+  lastSynced: number;
+}
+
 interface NFTSelectorProps {
-  nfts: any[];
-  selectedNFT: any;
-  onNFTSelect: (nft: any) => void;
+  nfts: NFTItem[];
+  selectedNFT: NFTItem | null;
+  onNFTSelect: (nft: NFTItem) => void;
   isReady: boolean;
   onReadyToggle: () => void;
   disabled?: boolean;
@@ -74,7 +105,7 @@ export function NFTSelector({
         )}
       </div>
 
-      {selectedNFT && (
+      {selectedNFT?.stats && (
         <div>
           <h4 className="text-sm font-medium mb-2">Battle Stats</h4>
           <NFTStatsDisplay stats={selectedNFT.stats} />
