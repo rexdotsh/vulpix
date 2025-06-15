@@ -39,7 +39,7 @@ export function BattleLogPanel({
   player2Name,
 }: BattleLogPanelProps) {
   return (
-    <Card className="w-96 rounded-none border-l border-r-0 border-t-0 border-b-0">
+    <Card className="w-96 m-6 mr-6 rounded-2xl overflow-hidden h-[calc(100vh-3rem)]">
       <CardHeader>
         <CardTitle className="text-sm font-medium">Battle Log</CardTitle>
       </CardHeader>

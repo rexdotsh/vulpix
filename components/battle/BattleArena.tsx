@@ -68,7 +68,7 @@ export function BattleArena({
   };
 
   return (
-    <Card className="flex-1 m-6 mr-0 rounded-2xl overflow-hidden relative p-0">
+    <Card className="flex-1 mt-6 mb-6 rounded-2xl overflow-hidden relative p-0">
       <div className="flex h-full">
         <div className="flex-1 relative">
           {currentPlayerImage ? (

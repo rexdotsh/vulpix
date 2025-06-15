@@ -65,7 +65,7 @@ export function BattleMovesPanel({
   };
 
   return (
-    <Card className="m-6 mr-0 mt-0 rounded-2xl">
+    <Card className="mb-6 rounded-2xl">
       <CardHeader className="pb-4">
         <CardTitle className="text-sm font-medium">Available Moves</CardTitle>
       </CardHeader>

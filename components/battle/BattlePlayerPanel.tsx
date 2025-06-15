@@ -45,7 +45,7 @@ export function BattlePlayerPanel({
   const isProfileLoading = player.profile === undefined;
 
   return (
-    <Card className="w-96 rounded-none border-r border-l-0 border-t-0 border-b-0 h-screen">
+    <Card className="w-96 m-6 ml-6 rounded-2xl overflow-hidden h-[calc(100vh-3rem)]">
       <CardContent className="p-6 h-full flex flex-col relative">
         <div className="flex-1 space-y-6">
           <div className="flex justify-center">
@@ -161,10 +161,10 @@ export function BattlePlayerPanel({
           </div>
         </div>
 
-        <Separator className="mb-4" />
         {/* right-4 to align it with the stats above
         TODO: change the layout of the stats with the numbers?*/}
         <div className="absolute bottom-0 left-6 right-4">
+          <Separator className="mb-2" />
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">{roomCode}</div>
             <button
