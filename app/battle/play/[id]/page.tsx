@@ -31,6 +31,15 @@ export default function BattlePlayPage() {
 
   const battleId = Array.isArray(id) ? id[0] : (id ?? '');
 
+  const [isReplayMode, setIsReplayMode] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      setIsReplayMode(urlParams.get('replay') === 'true');
+    }
+  }, []);
+
   const battleData = useQuery(api.battle.getBattleWithNFTData, { battleId });
   const battle = battleData
     ? {
@@ -327,25 +336,46 @@ export default function BattlePlayPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {gameFinished && (
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-center pt-8">
-          <Card
-            className={`border-2 ${
-              isWinner
-                ? 'bg-green-500/20 border-green-500'
-                : 'bg-red-500/20 border-red-500'
-            }`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Trophy className="size-6" />
-                <span
-                  className={`text-xl font-bold ${
-                    isWinner ? 'text-green-400' : 'text-red-400'
+      {gameFinished && !isReplayMode && (
+        <div className="absolute inset-0 z-30 bg-background/95 backdrop-blur-md flex items-center justify-center">
+          <Card className="max-w-md w-full mx-4 border-border/50">
+            <CardContent className="p-12 text-center space-y-8">
+              <div className="space-y-4">
+                <div
+                  className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center ${
+                    isWinner
+                      ? 'bg-green-500/10 text-green-500'
+                      : 'bg-red-500/10 text-red-500'
                   }`}
                 >
-                  {isWinner ? '🎉 Victory!' : '💔 Defeat'}
-                </span>
+                  <Trophy className="w-12 h-12" />
+                </div>
+                <div className="space-y-2">
+                  <h1
+                    className={`text-4xl font-bold ${
+                      isWinner ? 'text-green-400' : 'text-red-400'
+                    }`}
+                  >
+                    {isWinner ? 'Victory' : 'Defeat'}
+                  </h1>
+                  <p className="text-muted-foreground text-lg">
+                    {isWinner
+                      ? 'You emerged victorious from the battle!'
+                      : 'Your opponent proved stronger this time.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = '/battle';
+                  }}
+                  className="inline-flex items-center px-8 py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  Return to Arena
+                </button>
               </div>
             </CardContent>
           </Card>

@@ -660,7 +660,9 @@ export default function BattlePage() {
                                 </div>
                               </div>
                               <Button variant="outline" size="sm" asChild>
-                                <Link href={`/battle/play/${battle.battleId}`}>
+                                <Link
+                                  href={`/battle/play/${battle.battleId}?replay=true`}
+                                >
                                   View Replay
                                 </Link>
                               </Button>
