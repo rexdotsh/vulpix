@@ -18,8 +18,13 @@ import {
   Sparkles,
   Crown,
   Diamond,
+  Play,
+  Pause,
+  Volume2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useAudioPlayer } from 'react-use-audio-player';
 import type { BattleMove } from '@/lib/battle-moves';
 
 interface BattleMovesPanelProps {
@@ -47,6 +52,49 @@ export function BattleMovesPanel({
   pendingTxHash,
   disabled = false,
 }: BattleMovesPanelProps) {
+  const [volume, setVolume] = useState(0.5);
+  const {
+    togglePlayPause,
+    isPlaying,
+    setVolume: setAudioVolume,
+    load,
+    isReady,
+    fade,
+  } = useAudioPlayer();
+
+  // preload audio when component mounts
+  useEffect(() => {
+    load('/soundtrack.aac', {
+      autoplay: false,
+      loop: true,
+      initialVolume: volume,
+    });
+  }, []);
+
+  const handlePlayToggle = () => {
+    if (isPlaying) {
+      // fade out over 1 second before pausing
+      fade(volume, 0, 1000);
+      setTimeout(() => {
+        togglePlayPause();
+      }, 1000);
+    } else {
+      togglePlayPause();
+      // fade in over 1 second when starting/resuming
+      fade(0, volume, 1000);
+    }
+  };
+
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume);
+    if (isReady && isPlaying) {
+      // smooth volume transition when adjusting
+      fade(volume, newVolume, 300);
+    } else {
+      setAudioVolume(newVolume);
+    }
+  };
+
   const getIcon = (iconName: string) => {
     const iconProps = { className: 'size-4' };
 
@@ -89,7 +137,39 @@ export function BattleMovesPanel({
   return (
     <Card className="mb-6 rounded-2xl">
       <CardHeader>
-        <CardTitle className="text-lg font-medium">Available Moves</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-medium">Available Moves</CardTitle>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePlayToggle}
+              className="h-8 w-8 p-0 hover:bg-primary/10"
+              title={isPlaying ? 'Pause soundtrack' : 'Play soundtrack'}
+            >
+              {isPlaying ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+            </Button>
+            <div className="flex items-center gap-2">
+              <Volume2 className="h-4 w-4 text-muted-foreground" />
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={volume}
+                onChange={(e) =>
+                  handleVolumeChange(Number.parseFloat(e.target.value))
+                }
+                className="w-16 volume-slider"
+                title={`Volume: ${Math.round(volume * 100)}%`}
+              />
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex gap-4">
