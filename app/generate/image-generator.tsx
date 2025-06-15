@@ -119,7 +119,7 @@ export function ImageGenerator() {
         setSelectedCollectionId('');
         setNewCollectionName('');
         setShowSuccessAnimation(false);
-      }, 2000);
+      }, 3000);
 
       if (syncFromAssetHub) {
         try {
