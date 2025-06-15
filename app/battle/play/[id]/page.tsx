@@ -180,16 +180,6 @@ export default function BattlePlayPage() {
 
       setConnectionStatus('Turn completed successfully!');
 
-      if (battleEndedEvent) {
-        toast.success(
-          contractBattleState.winner === selectedAccount.address
-            ? '🎉 Victory! You won the battle and earned 5 credits!'
-            : '💔 Defeat! Better luck next time!',
-        );
-      } else {
-        toast.success('Turn executed successfully!');
-      }
-
       // Clear selected move after successful execution
       setSelectedMove(null);
     } catch (error: any) {
