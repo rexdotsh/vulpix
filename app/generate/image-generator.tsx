@@ -43,6 +43,7 @@ import { useNFTs } from '@/hooks/useNFTs';
 export function ImageGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
@@ -104,15 +105,30 @@ export function ImageGenerator() {
       nftName,
     });
 
-    if (result && syncFromAssetHub) {
-      try {
-        await syncFromAssetHub();
-      } catch (error) {
-        console.error('Error syncing after mint:', error);
+    setIsMinting(false);
+
+    if (result) {
+      setShowSuccessAnimation(true);
+
+      setTimeout(() => {
+        setGeneratedImage({
+          url: null,
+          dimensions: { width: 1024, height: 1024 },
+        });
+        setNftName('');
+        setSelectedCollectionId('');
+        setNewCollectionName('');
+        setShowSuccessAnimation(false);
+      }, 2000);
+
+      if (syncFromAssetHub) {
+        try {
+          await syncFromAssetHub();
+        } catch (error) {
+          console.error('Error syncing after mint:', error);
+        }
       }
     }
-
-    setIsMinting(false);
   };
 
   const form = useForm<GenerateImageFormInput>({
@@ -155,7 +171,6 @@ export function ImageGenerator() {
         url: imageQuery.imageUrl,
         dimensions: { width: 1024, height: 1024 },
       });
-      toast.success('Image generated successfully!');
       setIsLoading(false);
     } else if (imageQuery?.status === 'failed') {
       toast.error(imageQuery.error || 'Image generation failed.');
@@ -164,9 +179,8 @@ export function ImageGenerator() {
   }, [imageQuery]);
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-2">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-3">
             AI Image Generator
@@ -256,7 +270,7 @@ export function ImageGenerator() {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 lg:h-14 text-base lg:text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-lg hover:shadow-xl"
+                      className="w-full h-12 lg:h-14 text-base lg:text-lg font-semibold rounded-lg bg-green-500 hover:bg-green-600 transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-lg hover:shadow-xl"
                     >
                       {isLoading ? (
                         <>
@@ -335,10 +349,36 @@ export function ImageGenerator() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex items-center justify-center flex-grow p-4 overflow-hidden">
-                {isLoading && (
+                {showSuccessAnimation && (
+                  <div className="flex flex-col items-center text-green-600 animate-in fade-in-0 duration-300">
+                    <div className="relative mb-4">
+                      <svg
+                        className="h-12 w-12 text-green-500"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-lg font-medium mb-1">
+                      NFT Minted Successfully
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Your artwork is now on the blockchain
+                    </p>
+                  </div>
+                )}
+                {isLoading && !showSuccessAnimation && (
                   <div className="flex flex-col items-center text-muted-foreground">
                     <div className="relative mb-6">
-                      <div className="absolute inset-0 bg-green-400 rounded-full blur-md opacity-30 animate-pulse" />
+                      <div className="absolute inset-0 bg-green-400 rounded-full blur-md opacity-15 animate-pulse" />
                       <svg
                         className="relative animate-spin h-16 w-16 text-green-500"
                         xmlns="http://www.w3.org/2000/svg"
@@ -368,7 +408,7 @@ export function ImageGenerator() {
                     </p>
                   </div>
                 )}
-                {!isLoading && generatedImage.url && (
+                {!isLoading && !showSuccessAnimation && generatedImage.url && (
                   <div className="relative group">
                     <div className="absolute inset-0 bg-green-400 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-300" />
                     <Image
@@ -381,7 +421,7 @@ export function ImageGenerator() {
                     />
                   </div>
                 )}
-                {!isLoading && !generatedImage.url && (
+                {!isLoading && !showSuccessAnimation && !generatedImage.url && (
                   <div className="text-center text-muted-foreground p-12">
                     <div className="relative mb-6">
                       <div className="absolute inset-0 bg-gradient-to-r from-muted to-muted/50 rounded-full blur-lg opacity-10" />
@@ -415,7 +455,7 @@ export function ImageGenerator() {
                   </div>
                 )}
               </CardContent>
-              {generatedImage.url && (
+              {generatedImage.url && !showSuccessAnimation && (
                 <CardFooter className="pt-4 flex flex-col items-center space-y-4 w-full border-t bg-muted/20">
                   <div className="flex space-x-3 w-full">
                     <Button
@@ -469,7 +509,7 @@ export function ImageGenerator() {
                         onValueChange={setSelectedCollectionId}
                         value={selectedCollectionId}
                       >
-                        <SelectTrigger className="w-full h-10 rounded-xl">
+                        <SelectTrigger className="w-full h-10 rounded-lg">
                           <SelectValue placeholder="Select a collection" />
                         </SelectTrigger>
                         <SelectContent>
@@ -494,14 +534,14 @@ export function ImageGenerator() {
                         placeholder="Enter collection name..."
                         value={newCollectionName}
                         onChange={(e) => setNewCollectionName(e.target.value)}
-                        className="h-10 rounded-xl"
+                        className="h-10 rounded-lg"
                       />
                     )}
                     <Input
                       placeholder="Enter NFT name..."
                       value={nftName}
                       onChange={(e) => setNftName(e.target.value)}
-                      className="h-10 rounded-xl"
+                      className="h-10 rounded-lg"
                     />
                     <Button
                       onClick={handleMint}
