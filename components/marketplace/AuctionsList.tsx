@@ -125,7 +125,10 @@ export function AuctionsList({ userAddress }: AuctionsListProps) {
     return (
       <div className="space-y-4">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="overflow-hidden hover:shadow-md transition-shadow p-0">
+          <Card
+            key={i}
+            className="overflow-hidden hover:shadow-md transition-shadow p-0"
+          >
             <div className="flex">
               <div className="relative w-80 bg-gradient-to-br from-muted/30 to-muted/60 flex-shrink-0 -m-px self-stretch">
                 <Skeleton className="w-full h-full rounded-l-lg" />
