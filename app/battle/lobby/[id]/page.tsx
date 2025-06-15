@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -16,7 +16,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Users, Copy, Check, Loader2, Swords } from 'lucide-react';
+import {
+  Users,
+  Copy,
+  Check,
+  Loader2,
+  Swords,
+  AlertCircle,
+  ExternalLink,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,8 +44,20 @@ import { env } from '@/env';
 import { WalletLinking } from '@/components/WalletLinking';
 import { ASSET_HUB_CHAIN_ID } from '@/lib/constants/chains';
 
-export default function LobbyPage() {
-  const { id } = useParams();
+declare global {
+  interface Window {
+    talismanEth: any;
+  }
+}
+
+interface LobbyPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default function LobbyPage({ params }: LobbyPageProps) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { selectedAccount, isInitialized } = usePolkadot();
   const { nfts } = useNFTs();
@@ -50,7 +70,11 @@ export default function LobbyPage() {
 
   const {
     isConnected: talismanConnected,
-    connectWallet: connectTalismanWallet,
+    ethAddress,
+    isOnAssetHub,
+    isCheckingNetwork,
+    isSwitchingNetwork,
+    connectWallet,
     switchToAssetHubNetwork,
   } = useTalismanWallet();
 
@@ -302,7 +326,12 @@ export default function LobbyPage() {
   const bothPlayersReady =
     lobby.creatorNFT?.isReady && lobby.joinerNFT?.isReady;
   const canStartBattle =
-    bothPlayersReady && isCreator && talismanConnected && playersEthAddresses;
+    bothPlayersReady &&
+    isCreator &&
+    talismanConnected &&
+    isOnAssetHub &&
+    playersEthAddresses &&
+    linkStatus?.hasLinkedEthAddress;
 
   return (
     <div className="bg-background">
@@ -343,7 +372,7 @@ export default function LobbyPage() {
                 <Badge
                   variant={
                     lobby.status === 'ready' ||
-                    lobby.status === ('started' as any) // don't know why this is crying
+                    (lobby.status as string) === 'started'
                       ? 'default'
                       : 'secondary'
                   }
@@ -530,32 +559,167 @@ export default function LobbyPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isCreator && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Connect Talisman wallet to create battle on blockchain
-                    </p>
-                    <Button
-                      onClick={connectTalismanWallet}
-                      variant="outline"
-                      className="w-full"
-                      disabled={talismanConnected}
-                    >
-                      {talismanConnected
-                        ? 'Talisman Connected'
-                        : 'Connect Talisman Wallet'}
-                    </Button>
-                    {talismanConnected && (
-                      <Button
-                        onClick={switchToAssetHubNetwork}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        Switch to AssetHub Network
-                      </Button>
+                {/* Show requirements for both players */}
+                {(isCreator || isJoiner) && (
+                  <div className="space-y-3">
+                    {/* Wallet Requirements Section */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">
+                        {isCreator
+                          ? 'Battle Requirements'
+                          : 'Wallet Setup Required'}
+                      </h4>
+                      {isJoiner && (
+                        <p className="text-xs text-muted-foreground">
+                          Set up your wallet now to avoid delays when the battle
+                          starts
+                        </p>
+                      )}
+
+                      {/* Talisman Connection Status */}
+                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${talismanConnected ? 'bg-green-500' : 'bg-red-500'}`}
+                          />
+                          <span className="text-sm">Talisman Wallet</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={
+                              talismanConnected ? 'default' : 'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {talismanConnected ? 'Connected' : 'Required'}
+                          </Badge>
+                          {!talismanConnected && (
+                            <Button
+                              onClick={connectWallet}
+                              size="sm"
+                              variant="outline"
+                            >
+                              Connect
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Network Status */}
+                      {talismanConnected && (
+                        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-2 h-2 rounded-full ${isOnAssetHub ? 'bg-green-500' : 'bg-orange-500'}`}
+                            />
+                            <span className="text-sm">AssetHub Network</span>
+                            {isCheckingNetwork && (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant={isOnAssetHub ? 'default' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {isOnAssetHub ? 'Connected' : 'Switch Required'}
+                            </Badge>
+                            {!isOnAssetHub && (
+                              <Button
+                                onClick={switchToAssetHubNetwork}
+                                size="sm"
+                                variant="outline"
+                                disabled={isSwitchingNetwork}
+                              >
+                                {isSwitchingNetwork ? (
+                                  <>
+                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                    Switching...
+                                  </>
+                                ) : (
+                                  'Switch'
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Wallet Linking Status */}
+                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${linkStatus?.hasLinkedEthAddress ? 'bg-green-500' : 'bg-red-500'}`}
+                          />
+                          <span className="text-sm">Wallet Linking</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={
+                              linkStatus?.hasLinkedEthAddress
+                                ? 'default'
+                                : 'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {linkStatus?.hasLinkedEthAddress
+                              ? 'Linked'
+                              : 'Required'}
+                          </Badge>
+                          {!linkStatus?.hasLinkedEthAddress && (
+                            <Button
+                              onClick={() => setShowWalletLinking(true)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              Link
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Installation Alert */}
+                    {!window.talismanEth && (
+                      <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                            <span className="text-sm text-orange-700 dark:text-orange-300">
+                              Talisman extension required
+                            </span>
+                          </div>
+                          <Button variant="outline" size="sm" asChild>
+                            <a
+                              href="https://talisman.xyz"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1"
+                            >
+                              Install <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
+
+                {/* Status message for joiners */}
+                {isJoiner &&
+                  talismanConnected &&
+                  isOnAssetHub &&
+                  linkStatus?.hasLinkedEthAddress && (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <span className="text-sm text-green-700 dark:text-green-300">
+                          Your wallet is ready for battle! Waiting for the lobby
+                          creator to start.
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                   <div className="space-y-1">
@@ -594,6 +758,10 @@ export default function LobbyPage() {
                       'Waiting for Players to Ready Up'
                     ) : !talismanConnected ? (
                       'Connect Talisman Wallet First'
+                    ) : !isOnAssetHub ? (
+                      'Switch to AssetHub Network'
+                    ) : !linkStatus?.hasLinkedEthAddress ? (
+                      'Link Ethereum Wallet First'
                     ) : !playersEthAddresses ? (
                       'Waiting for Ethereum Address Linking'
                     ) : (

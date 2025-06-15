@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import {
   ASSET_HUB_CHAIN_ID,
@@ -15,56 +15,61 @@ declare global {
 
 export function useTalismanWallet() {
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('');
-  const hasInitialized = useRef(false);
+  const [currentChainId, setCurrentChainId] = useState<string>('');
+  const [ethAddress, setEthAddress] = useState<string>('');
+  const [isCheckingNetwork, setIsCheckingNetwork] = useState(false);
+  const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<string>('');
 
-  useEffect(() => {
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      checkTalismanAvailability();
+  const isOnAssetHub = currentChainId === ASSET_HUB_CHAIN_ID;
+
+  const checkCurrentNetwork = useCallback(async () => {
+    if (!window.talismanEth) return;
+
+    setIsCheckingNetwork(true);
+    try {
+      const chainId = await window.talismanEth.request({
+        method: 'eth_chainId',
+      });
+      setCurrentChainId(chainId);
+    } catch (error) {
+      console.error('Failed to check network:', error);
+    } finally {
+      setIsCheckingNetwork(false);
     }
   }, []);
 
-  const checkTalismanAvailability = () => {
-    if (!window.talismanEth) {
-      setConnectionStatus('Talisman wallet not found');
-      setIsConnected(false);
-    } else {
-      checkConnection();
-    }
-  };
-
-  const checkConnection = async () => {
-    if (!window.talismanEth) {
-      setConnectionStatus('Talisman wallet not found');
-      return false;
-    }
+  const checkConnection = useCallback(async () => {
+    if (!window.talismanEth) return false;
 
     try {
       const accounts = await window.talismanEth.request({
         method: 'eth_accounts',
       });
-
-      if (accounts && accounts.length > 0) {
+      if (accounts?.length > 0) {
         setIsConnected(true);
-        setConnectionStatus('Connected');
+        setEthAddress(accounts[0]);
+        await checkCurrentNetwork();
         return true;
-      } else {
-        setIsConnected(false);
-        setConnectionStatus('Please connect Talisman wallet');
-        return false;
       }
-    } catch (error: any) {
-      console.error('Talisman connection check failed:', error);
       setIsConnected(false);
-      setConnectionStatus('Talisman connection error');
+      setEthAddress('');
+      return false;
+    } catch (error) {
+      console.error('Connection check failed:', error);
+      setIsConnected(false);
+      setEthAddress('');
       return false;
     }
-  };
+  }, [checkCurrentNetwork]);
+
+  useEffect(() => {
+    checkConnection();
+  }, [checkConnection]);
 
   const connectWallet = async () => {
     if (!window.talismanEth) {
-      toast.error('Talisman wallet not found. Please install Talisman.');
+      toast.error('Please install Talisman wallet extension');
       return false;
     }
 
@@ -72,22 +77,17 @@ export function useTalismanWallet() {
       const accounts = await window.talismanEth.request({
         method: 'eth_requestAccounts',
       });
-
-      if (accounts && accounts.length > 0) {
+      if (accounts?.length > 0) {
         setIsConnected(true);
-        setConnectionStatus('Connected');
-        toast.success('Talisman wallet connected!');
+        setEthAddress(accounts[0]);
+        await checkCurrentNetwork();
+        toast.success('Wallet connected!');
         return true;
       }
       return false;
     } catch (error: any) {
-      console.error('Failed to connect Talisman wallet:', error);
-
-      if (error.code === 4001 || error.message?.includes('rejected')) {
-        setConnectionStatus('Connection rejected by user');
-      } else {
-        setConnectionStatus(`Connection failed: ${error.message}`);
-        toast.error('Failed to connect Talisman wallet');
+      if (error.code !== 4001) {
+        toast.error('Failed to connect wallet');
       }
       return false;
     }
@@ -95,14 +95,18 @@ export function useTalismanWallet() {
 
   const switchToAssetHubNetwork = async () => {
     if (!window.talismanEth) {
-      throw new Error('Talisman wallet not found');
+      toast.error('Talisman wallet not found');
+      return;
     }
 
+    setIsSwitchingNetwork(true);
     try {
       await window.talismanEth.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: ASSET_HUB_CHAIN_ID }],
       });
+      await checkCurrentNetwork();
+      toast.success('Switched to AssetHub network!');
     } catch (switchError: any) {
       if (switchError.code === 4902 || switchError.code === -32603) {
         try {
@@ -110,18 +114,27 @@ export function useTalismanWallet() {
             method: 'wallet_addEthereumChain',
             params: [ASSET_HUB_NETWORK_CONFIG],
           });
-        } catch (addError) {
-          console.error('Failed to switch to AssetHub network:', addError);
-          toast.error('Failed to switch to AssetHub network');
+          await checkCurrentNetwork();
+          toast.success('Added AssetHub network!');
+        } catch (addError: any) {
+          if (addError.code !== 4001) {
+            toast.error('Failed to add network');
+          }
         }
-      } else {
-        throw switchError;
+      } else if (switchError.code !== 4001) {
+        toast.error('Failed to switch network');
       }
+    } finally {
+      setIsSwitchingNetwork(false);
     }
   };
 
   return {
     isConnected,
+    ethAddress,
+    isOnAssetHub,
+    isCheckingNetwork,
+    isSwitchingNetwork,
     connectionStatus,
     setConnectionStatus,
     connectWallet,

@@ -390,6 +390,7 @@ function MintDialog({
   const { selectedAccount, getInjector } = usePolkadot();
   const [selectedCollection, setSelectedCollection] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
+  const [nftName, setNftName] = useState<string>('');
   const [minting, setMinting] = useState(false);
 
   const handleMint = async () => {
@@ -403,6 +404,7 @@ function MintDialog({
       selectedCollectionId: selectedCollection,
       newCollectionName,
       imageUrl,
+      nftName,
     });
 
     setMinting(false);
@@ -488,6 +490,13 @@ function MintDialog({
               className="h-12"
             />
           )}
+
+          <Input
+            placeholder="NFT Name (e.g., 'My Amazing AI Art')"
+            value={nftName}
+            onChange={(e) => setNftName(e.target.value)}
+            className="h-12"
+          />
         </div>
 
         <DialogFooter className="gap-3">
@@ -504,6 +513,7 @@ function MintDialog({
               minting ||
               loading ||
               (!selectedCollection && !newCollectionName.trim()) ||
+              !nftName.trim() ||
               !isInitialized
             }
             className="h-10"

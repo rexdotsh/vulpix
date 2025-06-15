@@ -8,6 +8,7 @@ export async function mintImageAsNFT({
   selectedCollectionId,
   newCollectionName,
   imageUrl,
+  nftName,
 }: {
   nftManager: any;
   selectedAccount: { address: string };
@@ -15,6 +16,7 @@ export async function mintImageAsNFT({
   selectedCollectionId: string;
   newCollectionName: string;
   imageUrl: string;
+  nftName: string;
 }) {
   if (!selectedAccount) {
     toast.error('Wallet not connected');
@@ -76,7 +78,10 @@ export async function mintImageAsNFT({
       injector,
       collectionId,
       itemId,
-      JSON.stringify({ image: `ipfs://${ipfsHash}` }),
+      JSON.stringify({
+        name: nftName,
+        image: `ipfs://${ipfsHash}`,
+      }),
     );
 
     toast.success(

@@ -8,10 +8,6 @@ export function getPlayerDisplayName(address: string, name?: string): string {
   return name || `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-export function getHealthPercentage(current: number, max: number): number {
-  return Math.max(0, Math.min(100, (current / max) * 100));
-}
-
 export const getNFTTypeName = (nftType: number): string => {
   const types = ['Fire', 'Water', 'Grass'];
   return types[nftType] || 'Unknown';
