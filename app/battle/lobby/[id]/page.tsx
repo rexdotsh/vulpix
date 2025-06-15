@@ -259,8 +259,6 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         battleData.player2Stats.maxHealth,
       );
 
-      toast.info('Battle creation transaction sent...');
-
       // 5. Wait for confirmation and get battle ID
       const receipt = await tx.wait();
 
