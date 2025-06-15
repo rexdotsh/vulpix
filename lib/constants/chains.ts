@@ -10,4 +10,6 @@ export const ASSET_HUB_NETWORK_CONFIG = {
   },
   rpcUrls: ['https://testnet-passet-hub-eth-rpc.polkadot.io'],
   blockExplorerUrls: ['https://blockscout-passet-hub.parity-testnet.parity.io'],
+  // talisman doesn't support exact gas estimation but we need it for the contract
+  // preserveGasEstimate: true,
 };
