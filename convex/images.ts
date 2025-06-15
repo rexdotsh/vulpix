@@ -3,6 +3,24 @@ import { mutation, internalMutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 
+// this is a function because it's reused in this file as well
+async function insertImageGeneration(
+  ctx: any,
+  args: {
+    userAddress: Id<'users'>;
+    prompt: string;
+    model: string;
+  },
+) {
+  return await ctx.db.insert('imageGenerations', {
+    userAddress: args.userAddress,
+    prompt: args.prompt,
+    model: args.model,
+    status: 'pending',
+    createdAt: Date.now(),
+  });
+}
+
 export const generateImage = mutation({
   args: {
     userAddress: v.string(),
@@ -19,12 +37,10 @@ export const generateImage = mutation({
       existingUser?._id ??
       (await ctx.db.insert('users', { address: args.userAddress }));
 
-    const imageGenId = await ctx.db.insert('imageGenerations', {
+    const imageGenId = await insertImageGeneration(ctx, {
       userAddress: userId,
       prompt: args.prompt,
       model: args.model,
-      status: 'pending',
-      createdAt: Date.now(),
     });
 
     const { userAddress, ...rest } = args;
@@ -65,7 +81,6 @@ export const markImageAsFailed = internalMutation({
   },
 });
 
-// TODO: implement history page on @/generate.tsx
 export const getUserImages = query({
   args: { userAddress: v.string() },
   handler: async (ctx, args) => {
@@ -111,5 +126,26 @@ export const updateImageIpfsUrl = mutation({
     });
 
     return imageGen._id;
+  },
+});
+
+export const createImageGeneration = internalMutation({
+  args: {
+    userAddress: v.id('users'),
+    prompt: v.string(),
+    model: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await insertImageGeneration(ctx, args);
+  },
+});
+
+export const getMultipleImageGenerations = query({
+  args: { imageGenIds: v.array(v.id('imageGenerations')) },
+  handler: async (ctx, args) => {
+    const results = await Promise.all(
+      args.imageGenIds.map((id) => ctx.db.get(id)),
+    );
+    return results.filter(Boolean);
   },
 });

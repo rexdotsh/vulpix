@@ -212,7 +212,7 @@ export default function BattlePage() {
                   transition={{ type: 'spring', stiffness: 400 }}
                 >
                   <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
-                    <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
+                    <CardContent className="flex flex-col items-center justify-center p-6 space-y-3 min-h-[225px]">
                       <Plus className="h-10 w-10 text-primary" />
                       <h3 className="text-lg font-semibold">Create Battle</h3>
                       <p className="text-sm text-muted-foreground text-center">
@@ -385,47 +385,78 @@ export default function BattlePage() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {publicLobbies.map((lobby) => (
-                          <div
-                            key={lobby._id}
-                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                          >
-                            <div className="flex items-center space-x-4">
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold">
-                                    {lobby.creatorName || 'Anonymous'}
-                                  </span>
-                                  <Badge variant="outline" className="text-xs">
-                                    {lobby.lobbyId}
-                                  </Badge>
+                        {publicLobbies.map((lobby) => {
+                          const isOwnLobby =
+                            lobby.creatorAddress === selectedAccount?.address;
+
+                          return (
+                            <div
+                              key={lobby._id}
+                              className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 ${
+                                isOwnLobby
+                                  ? 'bg-primary/5 border-primary/20'
+                                  : 'hover:bg-muted/50'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-4">
+                                <div
+                                  className={`w-2 h-2 rounded-full animate-pulse ${
+                                    isOwnLobby ? 'bg-primary' : 'bg-green-500'
+                                  }`}
+                                />
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold">
+                                      {lobby.creatorName || 'Anonymous'}
+                                    </span>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {lobby.lobbyId}
+                                    </Badge>
+                                    {isOwnLobby && (
+                                      <Badge
+                                        variant="default"
+                                        className="text-xs"
+                                      >
+                                        Your Lobby
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    Created{' '}
+                                    {formatDistanceToNow(lobby.createdAt, {
+                                      addSuffix: true,
+                                    })}
+                                  </p>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  Created{' '}
-                                  {formatDistanceToNow(lobby.createdAt, {
-                                    addSuffix: true,
-                                  })}
-                                </p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <div className="text-right">
+                                  <p className="text-sm">
+                                    <Clock className="h-4 w-4 inline mr-1" />
+                                    {formatTimeLeft(lobby.expiresAt)}
+                                  </p>
+                                </div>
+                                <Button
+                                  onClick={() =>
+                                    !isOwnLobby &&
+                                    handleJoinLobby(lobby.lobbyId)
+                                  }
+                                  size="sm"
+                                  disabled={isOwnLobby}
+                                  variant={isOwnLobby ? 'secondary' : 'default'}
+                                >
+                                  {isOwnLobby ? 'Waiting...' : 'Join'}
+                                  {!isOwnLobby && (
+                                    <ArrowRight className="h-4 w-4 ml-1" />
+                                  )}
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="text-right">
-                                <p className="text-sm">
-                                  <Clock className="h-4 w-4 inline mr-1" />
-                                  {formatTimeLeft(lobby.expiresAt)}
-                                </p>
-                              </div>
-                              <Button
-                                onClick={() => handleJoinLobby(lobby.lobbyId)}
-                                size="sm"
-                              >
-                                Join
-                                <ArrowRight className="h-4 w-4 ml-1" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>

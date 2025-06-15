@@ -173,6 +173,21 @@ export const updateTurnResult = mutation({
       finishedAt: args.newGameState.isFinished ? Date.now() : undefined,
     });
 
+    // Award 5 credits to the winner if battle is finished
+    if (args.newGameState.isFinished && winnerPolkadotAddress) {
+      const winner = await ctx.db
+        .query('users')
+        .withIndex('by_address', (q) => q.eq('address', winnerPolkadotAddress))
+        .first();
+
+      if (winner) {
+        const currentCredits = winner.credits || 0;
+        await ctx.db.patch(winner._id, {
+          credits: currentCredits + 5,
+        });
+      }
+    }
+
     return { success: true };
   },
 });

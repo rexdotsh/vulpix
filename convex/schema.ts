@@ -1,6 +1,26 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+export const nftStatsSchema = v.object({
+  attack: v.number(),
+  defense: v.number(),
+  intelligence: v.number(),
+  luck: v.number(),
+  speed: v.number(),
+  strength: v.number(),
+  nftType: v.number(), // 0 = fire, 1 = water, 2 = grass
+  maxHealth: v.number(),
+  generatedAt: v.number(),
+});
+
+export const tierSchema = v.union(
+  v.literal('common'),
+  v.literal('uncommon'),
+  v.literal('rare'),
+  v.literal('epic'),
+  v.literal('legendary'),
+);
+
 export default defineSchema({
   users: defineTable({
     address: v.string(), // polkadot address (primary)
@@ -8,6 +28,7 @@ export default defineSchema({
     linkedAt: v.optional(v.number()),
     profilePicture: v.optional(v.string()), // URL to profile picture stored in Vercel blob
     profilePictureUpdatedAt: v.optional(v.number()),
+    credits: v.optional(v.number()), // user's credit balance, defaults to 0
   })
     .index('by_address', ['address'])
     .index('by_eth_address', ['ethAddress']),
@@ -91,32 +112,12 @@ export default defineSchema({
     player1NFT: v.object({
       collection: v.string(),
       item: v.string(),
-      stats: v.object({
-        attack: v.number(),
-        defense: v.number(),
-        intelligence: v.number(),
-        luck: v.number(),
-        speed: v.number(),
-        strength: v.number(),
-        nftType: v.number(),
-        maxHealth: v.number(),
-        generatedAt: v.number(),
-      }),
+      stats: nftStatsSchema,
     }),
     player2NFT: v.object({
       collection: v.string(),
       item: v.string(),
-      stats: v.object({
-        attack: v.number(),
-        defense: v.number(),
-        intelligence: v.number(),
-        luck: v.number(),
-        speed: v.number(),
-        strength: v.number(),
-        nftType: v.number(),
-        maxHealth: v.number(),
-        generatedAt: v.number(),
-      }),
+      stats: nftStatsSchema,
     }),
 
     // Game state (mirrors blockchain but with UI enhancements)
@@ -197,22 +198,107 @@ export default defineSchema({
     userAddress: v.id('users'),
     itemDetails: v.any(),
     itemMetadata: v.any(),
-    stats: v.optional(
-      v.object({
-        attack: v.number(),
-        defense: v.number(),
-        intelligence: v.number(),
-        luck: v.number(),
-        speed: v.number(),
-        strength: v.number(),
-        nftType: v.number(), // 0 = fire, 1 = water, 2 = grass
-        maxHealth: v.number(),
-        generatedAt: v.number(), // timestamp when stats were generated
-      }),
-    ),
+    stats: v.optional(nftStatsSchema),
     lastSynced: v.number(),
   })
     .index('by_user', ['userAddress'])
     .index('by_collection', ['collectionId'])
     .index('by_item', ['collectionId', 'itemId']),
+
+  // MARKETPLACE TABLES
+  auctions: defineTable({
+    auctionId: v.string(),
+    sellerAddress: v.string(),
+
+    // NFT being auctioned
+    nft: v.object({
+      collection: v.string(),
+      item: v.string(),
+      metadata: v.any(),
+      stats: v.optional(nftStatsSchema),
+    }),
+
+    // Auction settings
+    minimumPrice: v.number(), // in credits
+    buyoutPrice: v.optional(v.number()), // instant buy price
+    duration: v.number(), // in milliseconds
+
+    status: v.union(
+      v.literal('active'),
+      v.literal('completed'),
+      v.literal('cancelled'),
+      v.literal('expired'),
+    ),
+
+    // Current highest bid
+    currentBid: v.optional(
+      v.object({
+        amount: v.number(),
+        bidderAddress: v.string(),
+        timestamp: v.number(),
+      }),
+    ),
+
+    // Winner info (when auction ends)
+    winner: v.optional(
+      v.object({
+        address: v.string(),
+        finalPrice: v.number(),
+      }),
+    ),
+
+    // Transfer status
+    transferCompleted: v.boolean(),
+    transferTxHash: v.optional(v.string()),
+
+    createdAt: v.number(),
+    endsAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index('by_seller', ['sellerAddress'])
+    .index('by_status', ['status'])
+    .index('by_active', ['status', 'endsAt']),
+
+  auctionBids: defineTable({
+    auctionId: v.id('auctions'),
+    bidderAddress: v.string(),
+    amount: v.number(),
+    timestamp: v.number(),
+    isWinning: v.boolean(), // true for current highest bid
+    refunded: v.boolean(), // true if bid was refunded
+  })
+    .index('by_auction', ['auctionId'])
+    .index('by_bidder', ['bidderAddress'])
+    .index('by_winning', ['auctionId', 'isWinning']),
+
+  mysteryBoxes: defineTable({
+    boxId: v.string(),
+    purchaserAddress: v.string(),
+    tier: tierSchema,
+    price: v.number(), // in credits
+
+    status: v.union(
+      v.literal('unopened'),
+      v.literal('opened'),
+      v.literal('generating'), // NFT generation in progress
+    ),
+
+    // Generated NFT (when opened)
+    generatedNFT: v.optional(
+      v.object({
+        collection: v.string(),
+        item: v.string(),
+        prompt: v.string(),
+        imageUrl: v.optional(v.string()),
+        stats: nftStatsSchema,
+        multiplier: v.number(), // luck-based multiplier applied to stats
+      }),
+    ),
+
+    purchasedAt: v.number(),
+    openedAt: v.optional(v.number()),
+  })
+    .index('by_purchaser', ['purchaserAddress'])
+    .index('by_status', ['status'])
+    .index('by_tier', ['tier']),
 });

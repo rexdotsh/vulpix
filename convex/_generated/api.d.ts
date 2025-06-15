@@ -17,7 +17,9 @@ import type * as battle from "../battle.js";
 import type * as googleGen from "../googleGen.js";
 import type * as images from "../images.js";
 import type * as lobby from "../lobby.js";
+import type * as marketplace from "../marketplace.js";
 import type * as nft from "../nft.js";
+import type * as nftGen from "../nftGen.js";
 import type * as users from "../users.js";
 
 /**
@@ -33,7 +35,9 @@ declare const fullApi: ApiFromModules<{
   googleGen: typeof googleGen;
   images: typeof images;
   lobby: typeof lobby;
+  marketplace: typeof marketplace;
   nft: typeof nft;
+  nftGen: typeof nftGen;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

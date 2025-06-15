@@ -1,6 +1,14 @@
 'use client';
 
-import { ChevronDown, Wallet, WifiOff, Wifi, User, Check } from 'lucide-react';
+import {
+  ChevronDown,
+  Wallet,
+  WifiOff,
+  Wifi,
+  User,
+  Check,
+  Coins,
+} from 'lucide-react';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { useAssetHub } from '@/lib/providers/AssetHubProvider';
 import { Button } from '@/components/ui/button';
@@ -88,25 +96,30 @@ export function WalletConnection() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
-            <Avatar className="h-5 w-5">
-              <AvatarImage
-                src={userData?.profilePicture}
-                alt={selectedAccount?.meta.name || 'User avatar'}
-              />
-              <AvatarFallback>
-                <User className="h-3 w-3" />
-              </AvatarFallback>
-            </Avatar>
-            <span className="hidden sm:inline">
+            <div className="relative">
+              <Avatar className="h-5 w-5">
+                <AvatarImage
+                  src={userData?.profilePicture}
+                  alt={selectedAccount?.meta.name || 'User avatar'}
+                />
+                <AvatarFallback>
+                  <User className="h-3 w-3" />
+                </AvatarFallback>
+              </Avatar>
+              {userData?.credits && userData.credits > 0 && (
+                <div className="absolute -top-1 -right-1 bg-yellow-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center min-w-[12px] h-3 px-1">
+                  {userData.credits >= 1000
+                    ? `${Math.floor(userData.credits / 1000)}k`
+                    : userData.credits >= 100
+                      ? '99+'
+                      : userData.credits}
+                </div>
+              )}
+            </div>
+            <span className="hidden sm:inline text-sm">
               {selectedAccount?.meta.name ||
                 selectedAccount?.address.slice(0, 6)}
             </span>
-            <Badge
-              variant={isInitialized ? 'default' : 'secondary'}
-              className="h-4 px-1 text-xs"
-            >
-              {isInitializing ? '...' : isInitialized ? '✓' : '×'}
-            </Badge>
             <ChevronDown className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -143,28 +156,52 @@ export function WalletConnection() {
 
           <DropdownMenuSeparator />
 
-          <div className="px-3 py-3 bg-muted/50 border-l-4 border-primary mx-2 my-2 rounded-r">
-            <div className="flex items-center justify-between mb-1">
-              <div className="font-medium text-sm text-foreground">
-                Current Account
-              </div>
+          <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 rounded-md mx-2 mb-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Shards
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
+                  {userData?.credits || 0}
+                </span>
+                <Coins className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+              Earn shards by winning battles!
+            </p>
+          </div>
+
+          <div className="p-4 bg-muted/30 rounded-md">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 pt-0.5 pr-1.5 -ml-1.5">
                 <ProfilePictureManager
                   userAddress={selectedAccount?.address || ''}
                   currentProfilePicture={userData?.profilePicture}
                   userName={selectedAccount?.meta.name}
                 />
-                <Badge variant="outline" className="text-xs">
-                  {selectedAccountIndex + 1} of {accounts.length}
-                </Badge>
               </div>
-            </div>
-            <div className="font-semibold text-sm mb-1">
-              {selectedAccount?.meta.name ||
-                `Account ${selectedAccountIndex + 1}`}
-            </div>
-            <div className="text-xs text-muted-foreground font-mono break-all leading-relaxed">
-              {selectedAccount?.address}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-xs text-muted-foreground uppercase tracking-wide">
+                    Current Account
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {selectedAccountIndex + 1} of {accounts.length}
+                  </Badge>
+                </div>
+                <div className="font-semibold text-sm mb-2 text-foreground">
+                  {selectedAccount?.meta.name ||
+                    `Account ${selectedAccountIndex + 1}`}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono break-all leading-relaxed">
+                  {selectedAccount?.address}
+                </div>
+              </div>
             </div>
           </div>
 

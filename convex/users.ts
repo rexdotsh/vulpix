@@ -33,6 +33,7 @@ export const createOrGetUser = mutation({
 
     const userId = await ctx.db.insert('users', {
       address,
+      credits: 0,
     });
 
     return userId;
@@ -173,5 +174,31 @@ export const removeProfilePicture = mutation({
     });
 
     return { success: true };
+  },
+});
+
+export const addCredits = mutation({
+  args: {
+    address: v.string(),
+    amount: v.number(),
+  },
+  handler: async (ctx, { address, amount }) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_address', (q) => q.eq('address', address))
+      .first();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const currentCredits = user.credits || 0;
+    const newCredits = currentCredits + amount;
+
+    await ctx.db.patch(user._id, {
+      credits: newCredits,
+    });
+
+    return { success: true, newBalance: newCredits };
   },
 });

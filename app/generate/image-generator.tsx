@@ -312,7 +312,7 @@ export function ImageGenerator() {
 
           <div className="lg:order-2 lg:sticky lg:top-8">
             <Card className="w-full max-w-[512px] aspect-square mx-auto flex flex-col border-2 backdrop-blur-sm bg-card/80">
-              <CardHeader className="w-full border-b bg-muted/20">
+              <CardHeader className="w-full border-b">
                 <CardTitle className="text-center text-lg lg:text-xl flex items-center justify-center space-x-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
