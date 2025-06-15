@@ -69,14 +69,34 @@ export function generateMoves(stats: NFTStats): BattleMove[] {
   }
 
   // Ensure we have exactly 4 moves
-  while (moves.length < 4) {
-    moves.push({
+  const fillMoves = [
+    {
       name: 'Focus',
       description: 'Concentrate energy for the next attack.',
       power: Math.floor(10 + stats.strength * 0.5),
       type: 'support',
       iconName: 'Star',
-    });
+    },
+    {
+      name: 'Defend',
+      description: 'Raise your guard to reduce incoming damage.',
+      power: Math.floor(8 + stats.defense * 0.4),
+      type: 'support',
+      iconName: 'Shield',
+    },
+    {
+      name: 'Quick Attack',
+      description: 'A swift strike that uses speed.',
+      power: Math.floor(12 + stats.speed * 0.6),
+      type: 'physical',
+      iconName: 'Zap',
+    },
+  ];
+
+  let fillIndex = 0;
+  while (moves.length < 4 && fillIndex < fillMoves.length) {
+    moves.push(fillMoves[fillIndex]);
+    fillIndex++;
   }
 
   return moves.slice(0, 4);

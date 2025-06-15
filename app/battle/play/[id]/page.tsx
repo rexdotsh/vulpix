@@ -67,6 +67,19 @@ export default function BattlePlayPage() {
     if (!selectedAccount || !battle || !isMyTurn || isPending || !selectedMove)
       return;
 
+    // Check if battle is ready for turns
+    if (battle.gameState.status !== 'active') {
+      toast.error(
+        'Battle is not active yet. Please wait for contract creation to complete.',
+      );
+      return;
+    }
+
+    if (!battle.contractBattleId) {
+      toast.error('Battle contract not created yet. Please wait.');
+      return;
+    }
+
     setIsExecutingTurn(true);
 
     try {
@@ -170,10 +183,14 @@ export default function BattlePlayPage() {
       console.error('Failed to execute turn:', error);
 
       // Revert optimistic update
-      await revertPendingTurn({
-        battleId,
-        error: error.message,
-      });
+      try {
+        await revertPendingTurn({
+          battleId,
+          error: error.message,
+        });
+      } catch (revertError) {
+        console.error('Failed to revert pending turn:', revertError);
+      }
 
       setConnectionStatus(`Error: ${error.message}`);
       toast.error(error.message || 'Failed to execute turn');
@@ -202,6 +219,15 @@ export default function BattlePlayPage() {
 
   if (!battle) {
     return <PageStateCard variant="loading" message="Loading battle..." />;
+  }
+
+  if (battle.gameState.status === 'initializing') {
+    return (
+      <PageStateCard
+        variant="loading"
+        message="Battle is being created on the blockchain. Please wait..."
+      />
+    );
   }
 
   if (!isParticipant) {
