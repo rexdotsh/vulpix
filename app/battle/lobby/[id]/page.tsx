@@ -14,20 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import {
-  Users,
-  Copy,
-  Check,
-  Loader2,
-  Swords,
-  AlertCircle,
-  ExternalLink,
-  ImageIcon,
-  CheckCircle,
-  User,
-} from 'lucide-react';
+import { Users, Loader2, AlertCircle, ImageIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -39,15 +26,19 @@ import { PageStateCard } from '@/components/battle/PageStateCard';
 import { NFTSelector } from '@/components/battle/NFTSelector';
 import { useTalismanWallet } from '@/hooks/useTalismanWallet';
 import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
 import { useNFTs } from '@/hooks/useNFTs';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
 import { env } from '@/env';
 import { WalletLinking } from '@/components/WalletLinking';
 import { ASSET_HUB_CHAIN_ID } from '@/lib/constants/chains';
-import {} from '@/lib/utils';
-import {} from '@/lib/battle-utils';
+import { OpponentNFTDisplay } from '@/components/lobby/OpponentNFTDisplay';
+import { PlayerCard } from '@/components/lobby/PlayerCard';
+import { WalletStatusItem } from '@/components/lobby/WalletStatusItem';
+import { LobbyStatusCard } from '@/components/lobby/LobbyStatusCard';
+import { WaitingPlayerDisplay } from '@/components/lobby/WaitingPlayerDisplay';
+import { AlertCard } from '@/components/lobby/AlertCard';
+import { BattleReadinessCard } from '@/components/lobby/BattleReadinessCard';
 
 declare global {
   interface Window {
@@ -108,6 +99,24 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     api.battle.updateBattleContractInfo,
   );
   const joinLobby = useMutation(api.lobby.joinLobby);
+  const creatorNFTMetadata = useQuery(
+    api.nft.getNFTMetadata,
+    lobby?.creatorNFT
+      ? {
+          collection: lobby.creatorNFT.collection,
+          item: lobby.creatorNFT.item,
+        }
+      : 'skip',
+  );
+  const joinerNFTMetadata = useQuery(
+    api.nft.getNFTMetadata,
+    lobby?.joinerNFT
+      ? {
+          collection: lobby.joinerNFT.collection,
+          item: lobby.joinerNFT.item,
+        }
+      : 'skip',
+  );
 
   const isCreator = selectedAccount?.address === lobby?.creatorAddress;
   const isJoiner = selectedAccount?.address === lobby?.joinedPlayerAddress;
@@ -393,124 +402,64 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
-          {/* Enhanced Lobby Status Card */}
-          <Card className="border-2 bg-gradient-to-r from-card to-card/50">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Swords className="h-5 w-5 text-primary" />
-                  </div>
-                  <span>Lobby Status</span>
-                </div>
-                <Badge
-                  variant={
-                    lobby.status === 'ready' ||
-                    (lobby.status as string) === 'started'
-                      ? 'default'
-                      : 'secondary'
-                  }
-                  className="text-sm px-3 py-1"
-                >
-                  {lobby.status === 'waiting'
-                    ? 'Waiting for Players'
-                    : lobby.status === 'ready'
-                      ? 'Ready to Start'
-                      : lobby.status === 'started'
-                        ? 'Battle Starting...'
-                        : lobby.status}
-                </Badge>
-              </CardTitle>
-              <CardDescription className="text-base">
-                {lobby.settings.isPrivate ? 'Private lobby' : 'Public lobby'} •
-                Created{' '}
-                {formatDistanceToNow(lobby.createdAt, { addSuffix: true })}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="text-sm">
-                    <div className="font-medium text-lg flex items-center gap-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      Players: {lobby.joinedPlayerAddress ? '2/2' : '1/2'}
-                    </div>
-                    <div className="text-muted-foreground">
-                      {lobby.joinedPlayerAddress
-                        ? 'Lobby full - Ready to battle!'
-                        : 'Waiting for challenger...'}
-                    </div>
-                  </div>
-                </div>
-                {lobby.settings.isPrivate && (
-                  <div className="flex items-center justify-end gap-2">
-                    <div className="text-xs text-muted-foreground">
-                      Share this link:
-                    </div>
-                    <Input
-                      value={shareUrl}
-                      readOnly
-                      className="font-mono text-sm w-64 h-9"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={copyToClipboard}
-                      className="h-9"
-                    >
-                      {copiedLink ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <LobbyStatusCard lobby={lobby} shareUrl={shareUrl} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Player 1 Card */}
-            <Card
-              className={`relative overflow-hidden ${isCreator ? 'ring-2 ring-primary shadow-lg' : ''}`}
+            <PlayerCard
+              playerNumber={1}
+              title="Player 1 (Creator)"
+              playerName={lobby.creatorName}
+              playerAddress={lobby.creatorAddress}
+              isCurrentUser={isCreator}
+              nftData={lobby.creatorNFT}
+              isJoined={true}
+              gradientColor="from-primary/5"
+              avatarColors="from-red-500 to-red-600"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-              <CardHeader className="relative">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold shadow-lg">
-                      1
+              {isCreator ? (
+                <NFTSelector
+                  nfts={nfts || []}
+                  selectedNFT={selectedNFT}
+                  onNFTSelect={handleNFTSelect}
+                  isReady={isReady}
+                  onReadyToggle={handleReadyToggle}
+                  canBeReady={canBeReady}
+                />
+              ) : (
+                <div className="space-y-6">
+                  {lobby.creatorNFT ? (
+                    <OpponentNFTDisplay
+                      nftData={lobby.creatorNFT}
+                      nftMetadata={creatorNFTMetadata}
+                      playerColor="bg-primary"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center">
+                        <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Selecting NFT...
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-lg">Player 1 (Creator)</span>
-                      {isCreator && (
-                        <div className="flex items-center gap-1 text-sm text-primary">
-                          <CheckCircle className="h-4 w-4" />
-                          You
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {lobby.creatorNFT?.isReady && (
-                    <Badge
-                      variant="default"
-                      className="bg-green-500 text-white"
-                    >
-                      Ready
-                    </Badge>
                   )}
-                </CardTitle>
-                <CardDescription className="text-base">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    {lobby.creatorName ||
-                      `${lobby.creatorAddress.slice(0, 8)}...`}
-                  </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="relative">
-                {isCreator ? (
+                </div>
+              )}
+            </PlayerCard>
+
+            <PlayerCard
+              playerNumber={2}
+              title={`Player 2 ${lobby.joinedPlayerAddress ? '(Joined)' : '(Waiting)'}`}
+              playerName={lobby.joinedPlayerName}
+              playerAddress={lobby.joinedPlayerAddress}
+              isCurrentUser={isJoiner}
+              nftData={lobby.joinerNFT}
+              isJoined={!!lobby.joinedPlayerAddress}
+              gradientColor="from-blue-500/5"
+              avatarColors="from-blue-500 to-blue-600"
+            >
+              {lobby.joinedPlayerAddress ? (
+                isJoiner ? (
                   <NFTSelector
                     nfts={nfts || []}
                     selectedNFT={selectedNFT}
@@ -520,32 +469,13 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                     canBeReady={canBeReady}
                   />
                 ) : (
-                  <div className="space-y-4">
-                    {lobby.creatorNFT ? (
-                      <div className="space-y-4">
-                        {/* Show NFT image and details for spectators */}
-                        <div className="flex gap-4">
-                          <div className="w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60 border flex-shrink-0">
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold">
-                              NFT Collection{' '}
-                              {lobby.creatorNFT.collection.slice(0, 8)}...
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                              Item {lobby.creatorNFT.item.slice(0, 8)}...
-                            </p>
-                            <Badge variant="secondary" className="mt-1">
-                              {lobby.creatorNFT.isReady
-                                ? 'Ready to battle'
-                                : 'Preparing...'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="space-y-6">
+                    {lobby.joinerNFT ? (
+                      <OpponentNFTDisplay
+                        nftData={lobby.joinerNFT}
+                        nftMetadata={joinerNFTMetadata}
+                        playerColor="bg-blue-500"
+                      />
                     ) : (
                       <div className="flex items-center justify-center py-8">
                         <div className="text-center">
@@ -557,335 +487,156 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                       </div>
                     )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Player 2 Card */}
-            <Card
-              className={`relative overflow-hidden ${isJoiner ? 'ring-2 ring-primary shadow-lg' : ''}`}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
-              <CardHeader className="relative">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg">
-                      2
-                    </div>
-                    <div>
-                      <span className="text-lg">
-                        Player 2{' '}
-                        {lobby.joinedPlayerAddress ? '(Joined)' : '(Waiting)'}
-                      </span>
-                      {isJoiner && (
-                        <div className="flex items-center gap-1 text-sm text-primary">
-                          <CheckCircle className="h-4 w-4" />
-                          You
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {lobby.joinerNFT?.isReady && (
-                    <Badge
-                      variant="default"
-                      className="bg-green-500 text-white"
-                    >
-                      Ready
-                    </Badge>
-                  )}
-                </CardTitle>
-                <CardDescription className="text-base">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    {lobby.joinedPlayerAddress ? (
-                      <>
-                        {lobby.joinedPlayerName ||
-                          `${lobby.joinedPlayerAddress.slice(0, 8)}...`}
-                      </>
-                    ) : (
-                      'Waiting for player to join...'
-                    )}
-                  </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="relative">
-                {lobby.joinedPlayerAddress ? (
-                  isJoiner ? (
-                    <NFTSelector
-                      nfts={nfts || []}
-                      selectedNFT={selectedNFT}
-                      onNFTSelect={handleNFTSelect}
-                      isReady={isReady}
-                      onReadyToggle={handleReadyToggle}
-                      canBeReady={canBeReady}
-                    />
-                  ) : (
-                    <div className="space-y-4">
-                      {lobby.joinerNFT ? (
-                        <div className="space-y-4">
-                          {/* Show NFT image and details for spectators */}
-                          <div className="flex gap-4">
-                            <div className="w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60 border flex-shrink-0">
-                              <div className="w-full h-full flex items-center justify-center">
-                                <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold">
-                                NFT Collection{' '}
-                                {lobby.joinerNFT.collection.slice(0, 8)}...
-                              </h4>
-                              <p className="text-sm text-muted-foreground">
-                                Item {lobby.joinerNFT.item.slice(0, 8)}...
-                              </p>
-                              <Badge variant="secondary" className="mt-1">
-                                {lobby.joinerNFT.isReady
-                                  ? 'Ready to battle'
-                                  : 'Preparing...'}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center py-8">
-                          <div className="text-center">
-                            <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                            <p className="text-sm text-muted-foreground">
-                              Selecting NFT...
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                ) : (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                      <div className="relative">
-                        <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        </div>
-                      </div>
-                      <p className="text-base font-medium mb-2">
-                        Waiting for challenger...
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Share the lobby link to invite someone!
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                )
+              ) : (
+                <WaitingPlayerDisplay />
+              )}
+            </PlayerCard>
           </div>
 
-          {lobby.joinedPlayerAddress && (
-            <Card>
+          {(isCreator || isJoiner) && (
+            <Card className="border-2 border-dashed border-muted-foreground/20">
               <CardHeader>
-                <CardTitle>Start Battle</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <AlertCircle className="h-4 w-4 text-primary" />
+                  </div>
+                  {isCreator ? 'Battle Requirements' : 'Wallet Setup Required'}
+                </CardTitle>
                 <CardDescription>
-                  Both players must be ready before the battle can begin
+                  {isCreator
+                    ? 'Ensure all requirements are met before starting the battle'
+                    : 'Set up your wallet now to avoid delays when the battle starts'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Show requirements for both players */}
-                {(isCreator || isJoiner) && (
-                  <div className="space-y-3">
-                    {/* Wallet Requirements Section */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium">
-                        {isCreator
-                          ? 'Battle Requirements'
-                          : 'Wallet Setup Required'}
-                      </h4>
-                      {isJoiner && (
-                        <p className="text-xs text-muted-foreground">
-                          Set up your wallet now to avoid delays when the battle
-                          starts
-                        </p>
-                      )}
+                <WalletStatusItem
+                  title="Talisman Wallet"
+                  description={
+                    talismanConnected ? 'Connected' : 'Not connected'
+                  }
+                  isConnected={talismanConnected}
+                  statusText={{ connected: 'Connected', required: 'Required' }}
+                  actionButton={
+                    !talismanConnected && (
+                      <Button
+                        onClick={connectWallet}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Connect
+                      </Button>
+                    )
+                  }
+                />
 
-                      {/* Network Status */}
-                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-2 h-2 rounded-full ${isOnAssetHub ? 'bg-green-500' : 'bg-orange-500'}`}
-                          />
-                          <span className="text-sm">AssetHub Network</span>
-                          {isCheckingNetwork && (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={isOnAssetHub ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {isOnAssetHub ? 'Connected' : 'Required'}
-                          </Badge>
-                          {!isOnAssetHub && (
-                            <Button
-                              onClick={async () => {
-                                if (!talismanConnected) {
-                                  await connectWallet();
-                                }
-                                await switchToAssetHubNetwork();
-                              }}
-                              size="sm"
-                              variant="outline"
-                              disabled={isSwitchingNetwork}
-                            >
-                              {isSwitchingNetwork ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                  Switching...
-                                </>
-                              ) : (
-                                'Switch'
-                              )}
-                            </Button>
-                          )}
-                        </div>
+                <WalletStatusItem
+                  title="AssetHub Network"
+                  description={
+                    isOnAssetHub ? 'Connected to AssetHub' : 'Switch required'
+                  }
+                  isConnected={isOnAssetHub}
+                  statusText={{ connected: 'Connected', required: 'Required' }}
+                  extraContent={
+                    isCheckingNetwork && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span className="text-xs text-muted-foreground">
+                          Checking...
+                        </span>
                       </div>
+                    )
+                  }
+                  actionButton={
+                    !isOnAssetHub &&
+                    talismanConnected && (
+                      <Button
+                        onClick={switchToAssetHubNetwork}
+                        size="sm"
+                        variant="outline"
+                        disabled={isSwitchingNetwork}
+                      >
+                        {isSwitchingNetwork ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            Switching...
+                          </>
+                        ) : (
+                          'Switch Network'
+                        )}
+                      </Button>
+                    )
+                  }
+                />
 
-                      {/* Wallet Linking Status */}
-                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-2 h-2 rounded-full ${linkStatus?.hasLinkedEthAddress ? 'bg-green-500' : 'bg-red-500'}`}
-                          />
-                          <span className="text-sm">Wallet Linking</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
-                              linkStatus?.hasLinkedEthAddress
-                                ? 'default'
-                                : 'secondary'
-                            }
-                            className="text-xs"
-                          >
-                            {linkStatus?.hasLinkedEthAddress
-                              ? 'Linked'
-                              : 'Required'}
-                          </Badge>
-                          {!linkStatus?.hasLinkedEthAddress && (
-                            <Button
-                              onClick={() => setShowWalletLinking(true)}
-                              size="sm"
-                              variant="outline"
-                            >
-                              Link
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                <WalletStatusItem
+                  title="Ethereum Wallet"
+                  description={
+                    linkStatus?.hasLinkedEthAddress
+                      ? `Linked: ${ethAddress?.slice(0, 6)}...${ethAddress?.slice(-4)}`
+                      : 'Link required for battles'
+                  }
+                  isConnected={!!linkStatus?.hasLinkedEthAddress}
+                  statusText={{ connected: 'Linked', required: 'Required' }}
+                  actionButton={
+                    !linkStatus?.hasLinkedEthAddress && (
+                      <Button
+                        onClick={() => setShowWalletLinking(true)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Link Wallet
+                      </Button>
+                    )
+                  }
+                />
 
-                    {/* Installation Alert */}
-                    {!window.talismanEth && (
-                      <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                            <span className="text-sm text-orange-700 dark:text-orange-300">
-                              Talisman extension required
-                            </span>
-                          </div>
-                          <Button variant="outline" size="sm" asChild>
-                            <a
-                              href="https://talisman.xyz"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1"
-                            >
-                              Install <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {/* Installation Alert */}
+                {!window.talismanEth && (
+                  <AlertCard
+                    variant="warning"
+                    title="Talisman Extension Required"
+                    description="Install the browser extension to continue"
+                    actionButton={{
+                      text: 'Install Extension',
+                      href: 'https://talisman.xyz',
+                    }}
+                  />
                 )}
 
-                {/* Status message for joiners */}
-                {isJoiner &&
+                {/* Success message for wallet setup */}
+                {(isCreator || isJoiner) &&
                   talismanConnected &&
                   isOnAssetHub &&
                   linkStatus?.hasLinkedEthAddress && (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <span className="text-sm text-green-700 dark:text-green-300">
-                          Your wallet is ready for battle! Waiting for the lobby
-                          creator to start.
-                        </span>
-                      </div>
-                    </div>
+                    <AlertCard
+                      variant="success"
+                      title="Wallet Setup Complete!"
+                      description={
+                        isCreator
+                          ? 'You can start the battle once both players are ready'
+                          : 'Waiting for the lobby creator to start the battle'
+                      }
+                    />
                   )}
-
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium">Battle Readiness</p>
-                    <p className="text-sm text-muted-foreground">
-                      {bothPlayersReady
-                        ? 'Both players ready!'
-                        : 'Waiting for all players to be ready'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-2 h-2 rounded-full ${lobby.creatorNFT?.isReady ? 'bg-green-500' : 'bg-gray-300'}`}
-                    />
-                    <span className="text-sm">P1</span>
-                    <div
-                      className={`w-2 h-2 rounded-full ${lobby.joinerNFT?.isReady ? 'bg-green-500' : 'bg-gray-300'}`}
-                    />
-                    <span className="text-sm">P2</span>
-                  </div>
-                </div>
-
-                {isCreator && (
-                  <Button
-                    onClick={handleStartBattle}
-                    disabled={!canStartBattle || isStartingBattle}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {isStartingBattle ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Creating Battle...
-                      </>
-                    ) : !bothPlayersReady ? (
-                      'Waiting for Players to Ready Up'
-                    ) : !talismanConnected ? (
-                      'Connect Talisman Wallet First'
-                    ) : !isOnAssetHub ? (
-                      'Switch to AssetHub Network'
-                    ) : !linkStatus?.hasLinkedEthAddress ? (
-                      'Link Ethereum Wallet First'
-                    ) : !playersEthAddresses ? (
-                      'Waiting for Ethereum Address Linking'
-                    ) : (
-                      <>
-                        <Swords className="h-4 w-4 mr-2" />
-                        Start Battle!
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {!isCreator && (
-                  <div className="text-center p-4 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      Waiting for lobby creator to start the battle...
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
+          )}
+
+          {lobby.joinedPlayerAddress && (
+            <BattleReadinessCard
+              bothPlayersReady={bothPlayersReady || false}
+              isCreator={isCreator}
+              canStartBattle={canStartBattle || false}
+              isStartingBattle={isStartingBattle}
+              onStartBattle={handleStartBattle}
+              creatorReady={!!lobby.creatorNFT?.isReady}
+              joinerReady={!!lobby.joinerNFT?.isReady}
+              talismanConnected={talismanConnected}
+              isOnAssetHub={isOnAssetHub}
+              hasLinkedEthAddress={linkStatus?.hasLinkedEthAddress}
+              playersEthAddresses={playersEthAddresses}
+            />
           )}
         </div>
       </main>
