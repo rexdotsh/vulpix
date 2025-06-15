@@ -67,6 +67,10 @@ export async function mintImageAsNFT({
       selectedAccount.address,
     );
 
+    toast.info(
+      'NFT minted! Please approve the second transaction to attach metadata (image)',
+    );
+
     await nftManager.setNFTMetadata(
       selectedAccount.address,
       injector,
