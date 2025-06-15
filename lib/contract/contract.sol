@@ -270,17 +270,23 @@ contract VulpixPVM {
             )
         );
 
-        // Add random variance to base damage (±25%)
-        uint256 damageVariance = (randomSeed % 51) + 75; // 75-125% range
+        // Add random variance to base damage (±75%)
+        uint256 damageVariance = (randomSeed % 151) + 25; // 25-175% range
         baseDamage = (baseDamage * damageVariance) / 100;
+        // Add minimum floor to prevent zero damage
+        baseDamage = baseDamage == 0 ? 1 : baseDamage;
 
-        // Add random variance to speed modifier (±20%)
-        uint256 speedVariance = ((randomSeed >> 8) % 41) + 80; // 80-120% range
+        // Add random variance to speed modifier (±60%)
+        uint256 speedVariance = ((randomSeed >> 8) % 121) + 40; // 40-160% range
         speedModifier = (speedModifier * speedVariance) / 100;
 
-        // Add random variance to tactical damage (±20%)
-        uint256 tacticalVariance = ((randomSeed >> 16) % 41) + 80; // 80-120% range
+        // Add random variance to tactical damage (±60%)
+        uint256 tacticalVariance = ((randomSeed >> 16) % 121) + 40; // 40-160% range
         tacticalDamage = (tacticalDamage * tacticalVariance) / 100;
+
+        // Add additional random damage component for more chaos (0-50% of base damage)
+        uint256 chaosBonus = ((randomSeed >> 48) % 51) * baseDamage / 100;
+        baseDamage += chaosBonus;
 
         // Critical hit calculation
         uint256 criticalRandom = (randomSeed >> 24) % 100;
