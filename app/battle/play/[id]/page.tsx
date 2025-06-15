@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { env } from '@/env';
 import { getNFTTypeName } from '@/lib/battle-utils';
 import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
-import { generateMoves, type BattleMove } from '@/lib/battle-moves';
+import type { BattleMove } from '@/lib/battle-moves';
 import { BattlePlayerPanel } from '@/components/battle/BattlePlayerPanel';
 import { BattleArena } from '@/components/battle/BattleArena';
 import { BattleMovesPanel } from '@/components/battle/BattleMovesPanel';
@@ -312,7 +312,22 @@ export default function BattlePlayPage() {
     opponentMetadata?.name ||
     `${getNFTTypeName(opponent.nft.stats.nftType)} #${opponent.nft.item}`;
 
-  const availableMoves = generateMoves(currentPlayer.nft.stats);
+  const customMoves = currentPlayer.nftData?.customMoves;
+  if (!customMoves || customMoves.length !== 4) {
+    throw new Error('Expected exactly 4 custom moves for NFT');
+  }
+
+  const availableMoves: BattleMove[] = customMoves.map((move, index) => ({
+    name: move.name,
+    description: move.description,
+    power: Math.floor(
+      25 +
+        currentPlayer.nft.stats.attack * 0.6 +
+        currentPlayer.nft.stats.strength * 0.4 +
+        index * 5,
+    ),
+    iconName: move.iconName,
+  }));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

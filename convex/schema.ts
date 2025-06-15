@@ -13,6 +13,12 @@ export const nftStatsSchema = v.object({
   generatedAt: v.number(),
 });
 
+export const nftMoveSchema = v.object({
+  name: v.string(), // exactly 2 words
+  description: v.string(), // 15-20 words max, simple language
+  iconName: v.string(), // lucide react icon name
+});
+
 export const tierSchema = v.union(
   v.literal('common'),
   v.literal('uncommon'),
@@ -199,6 +205,7 @@ export default defineSchema({
     itemDetails: v.any(),
     itemMetadata: v.any(),
     stats: v.optional(nftStatsSchema),
+    customMoves: v.optional(v.array(nftMoveSchema)),
     lastSynced: v.number(),
   })
     .index('by_user', ['userAddress'])

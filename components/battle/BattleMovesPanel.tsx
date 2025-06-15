@@ -1,15 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
   ExternalLink,
-  Swords,
-  Shield,
-  Zap,
-  Brain,
   Star,
+  Swords,
   Flame,
+  Zap,
+  Shield,
+  Target,
+  Brain,
+  Heart,
+  Eye,
+  Wind,
+  Leaf,
+  Sun,
+  Sparkles,
+  Crown,
+  Diamond,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { BattleMove } from '@/lib/battle-moves';
@@ -43,22 +51,36 @@ export function BattleMovesPanel({
     const iconProps = { className: 'size-4' };
 
     switch (iconName) {
-      case 'Swords':
-        return <Swords {...iconProps} />;
-      case 'Shield':
-        return <Shield {...iconProps} />;
-      case 'Zap':
-        return <Zap {...iconProps} />;
-      case 'Brain':
-        return <Brain {...iconProps} />;
-      case 'Star':
-        return <Star {...iconProps} />;
       case 'Flame':
         return <Flame {...iconProps} />;
-      case 'Water':
-        return <span className="text-blue-500">💧</span>;
-      case 'Grass':
-        return <span className="text-green-500">🌿</span>;
+      case 'Zap':
+        return <Zap {...iconProps} />;
+      case 'Shield':
+        return <Shield {...iconProps} />;
+      case 'Swords':
+        return <Swords {...iconProps} />;
+      case 'Target':
+        return <Target {...iconProps} />;
+      case 'Brain':
+        return <Brain {...iconProps} />;
+      case 'Heart':
+        return <Heart {...iconProps} />;
+      case 'Eye':
+        return <Eye {...iconProps} />;
+      case 'Wind':
+        return <Wind {...iconProps} />;
+      case 'Leaf':
+        return <Leaf {...iconProps} />;
+      case 'Sun':
+        return <Sun {...iconProps} />;
+      case 'Sparkles':
+        return <Sparkles {...iconProps} />;
+      case 'Crown':
+        return <Crown {...iconProps} />;
+      case 'Diamond':
+        return <Diamond {...iconProps} />;
+      case 'Star':
+        return <Star {...iconProps} />;
       default:
         return <Star {...iconProps} />;
     }
@@ -157,9 +179,6 @@ export function BattleMovesPanel({
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Badge variant="outline" className="text-xs">
-                      {selectedMove.type}
-                    </Badge>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {selectedMove.description}
                     </p>

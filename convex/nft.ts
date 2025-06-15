@@ -1,6 +1,14 @@
-import { mutation, query } from './_generated/server';
+import {
+  mutation,
+  query,
+  internalMutation,
+  internalAction,
+} from './_generated/server';
+import { internal } from './_generated/api';
 import { v } from 'convex/values';
 import { getUserId } from './users';
+import { nftMoveSchema } from './schema';
+import { getFallbackMoves } from '../lib/battle-utils';
 
 function generateNFTStats(collectionId: string, itemId: string, metadata: any) {
   // create a hash from collection, item, and metadata
@@ -72,6 +80,7 @@ export const getUserNFTs = query({
       itemMetadata: item.itemMetadata,
       collectionMetadata: collections.get(item.collectionId)?.metadata || null,
       stats: item.stats,
+      customMoves: item.customMoves,
       lastSynced: item.lastSynced,
     }));
   },
@@ -166,6 +175,16 @@ export const syncUserNFTs = mutation({
           stats,
           lastSynced: now,
         });
+
+        // Schedule AI move generation for existing NFT if it doesn't have a custom move
+        if (!existingNft.customMoves) {
+          await ctx.scheduler.runAfter(0, internal.nft.generateAIMove, {
+            nftType: stats.nftType,
+            collectionId: nft.collection,
+            itemId: nft.item,
+            nftMetadata: nft.itemMetadata,
+          });
+        }
       } else {
         // create new NFT with stats
         await ctx.db.insert('nftItems', {
@@ -177,6 +196,14 @@ export const syncUserNFTs = mutation({
           itemMetadata: nft.itemMetadata,
           stats,
           lastSynced: now,
+        });
+
+        // Schedule AI move generation for new NFT
+        await ctx.scheduler.runAfter(0, internal.nft.generateAIMove, {
+          nftType: stats.nftType,
+          collectionId: nft.collection,
+          itemId: nft.item,
+          nftMetadata: nft.itemMetadata,
         });
       }
     }
@@ -321,5 +348,153 @@ export const getNFTMetadata = query({
       itemMetadata: nftItem.itemMetadata,
       itemDetails: nftItem.itemDetails,
     };
+  },
+});
+
+// AI Move Generation Action
+export const generateAIMove = internalAction({
+  args: {
+    nftType: v.number(),
+    collectionId: v.string(),
+    itemId: v.string(),
+    nftMetadata: v.any(),
+  },
+  handler: async (ctx, args) => {
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const moves = await generateMovesWithAI(args);
+
+        if (moves.length === 4) {
+          // save the generated moves to the NFT
+          await ctx.runMutation(internal.nft.saveGeneratedMoves, {
+            collectionId: args.collectionId,
+            itemId: args.itemId,
+            customMoves: moves,
+          });
+          return moves;
+        } else {
+          throw new Error(`Expected 4 moves, got ${moves.length}`);
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error(`AI generation attempt ${attempt} failed:`, errorMessage);
+
+        if (attempt === maxRetries) {
+          // use fallback moves after all retries failed
+          const fallbackMoves = getFallbackMoves(args.nftType);
+          await ctx.runMutation(internal.nft.saveGeneratedMoves, {
+            collectionId: args.collectionId,
+            itemId: args.itemId,
+            customMoves: fallbackMoves,
+          });
+          return fallbackMoves;
+        }
+      }
+    }
+
+    throw new Error('This should never be reached');
+  },
+});
+
+async function generateMovesWithAI(args: {
+  nftType: number;
+  nftMetadata: any;
+}) {
+  const { google } = await import('@ai-sdk/google');
+  const { generateText } = await import('ai');
+
+  const typeNames = ['Fire', 'Water', 'Grass'];
+  const typeName = typeNames[args.nftType] || 'Unknown';
+  const nftName = args.nftMetadata?.name || `${typeName} NFT`;
+  const nftDescription = args.nftMetadata?.description || '';
+
+  const systemPrompt = `Generate exactly 4 unique battle moves for this ${typeName} type NFT.
+
+NFT: ${nftName}
+Description: ${nftDescription}
+
+Requirements:
+- Exactly 4 different moves
+- Move names: 2 words each, ${typeName}-themed
+- Descriptions: 15-20 words, describe battle effect
+- Icons: Use ONLY these icon names: Flame, Zap, Shield, Swords, Target, Brain, Heart, Eye, Wind, Leaf, Sun, Sparkles, Crown, Diamond, Star
+- Make each move distinct
+
+Format:
+MOVE1_NAME: [2 words]
+MOVE1_DESCRIPTION: [15-20 words]
+MOVE1_ICON: [icon name from list above]
+
+MOVE2_NAME: [2 words]  
+MOVE2_DESCRIPTION: [15-20 words]
+MOVE2_ICON: [icon name from list above]
+
+MOVE3_NAME: [2 words]
+MOVE3_DESCRIPTION: [15-20 words]
+MOVE3_ICON: [icon name from list above]
+
+MOVE4_NAME: [2 words]
+MOVE4_DESCRIPTION: [15-20 words]
+MOVE4_ICON: [icon name from list above]`;
+
+  const result = await generateText({
+    model: google('gemini-2.0-flash-exp'),
+    prompt: systemPrompt,
+    temperature: 0.8,
+  });
+
+  return parseMovesFromResponse(result.text.trim());
+}
+
+function parseMovesFromResponse(response: string) {
+  const movePattern =
+    /MOVE\d+_NAME:\s*(.+)\s*\n\s*MOVE\d+_DESCRIPTION:\s*(.+)\s*\n\s*MOVE\d+_ICON:\s*(.+)/gi;
+  const moves = [];
+  let match: RegExpExecArray | null;
+
+  match = movePattern.exec(response);
+  while (match !== null && moves.length < 4) {
+    const moveName = match[1].trim();
+    const moveDescription = match[2].trim();
+    const iconName = match[3].trim();
+
+    if (moveName.split(/\s+/).length !== 2) {
+      throw new Error(`Move name must be 2 words: ${moveName}`);
+    }
+
+    moves.push({ name: moveName, description: moveDescription, iconName });
+    match = movePattern.exec(response);
+  }
+
+  if (moves.length !== 4) {
+    throw new Error(`Expected 4 moves, parsed ${moves.length}`);
+  }
+
+  return moves;
+}
+
+// Internal mutation to save generated moves
+export const saveGeneratedMoves = internalMutation({
+  args: {
+    collectionId: v.string(),
+    itemId: v.string(),
+    customMoves: v.array(nftMoveSchema),
+  },
+  handler: async (ctx, args) => {
+    const nft = await ctx.db
+      .query('nftItems')
+      .withIndex('by_item', (q) =>
+        q.eq('collectionId', args.collectionId).eq('itemId', args.itemId),
+      )
+      .first();
+
+    if (nft) {
+      await ctx.db.patch(nft._id, {
+        customMoves: args.customMoves,
+      });
+    }
   },
 });
