@@ -45,7 +45,6 @@ import type { UserCollection } from '@/lib/assetHubNFTManager';
 import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
 import { useNFTs } from '@/hooks/useNFTs';
 import type { Id } from '@/convex/_generated/dataModel';
-import { getPrompt } from '@/convex/googleGen';
 
 interface MysteryBoxesProps {
   userAddress: string;
@@ -205,12 +204,10 @@ export function MysteryBoxes({ userAddress }: MysteryBoxesProps) {
     setGeneratingImages((prev) => new Set(prev).add(box._id));
 
     try {
-      const imagePrompt = getPrompt(box.generatedNFT.prompt);
-
       const imageGenId = await generateImageMutation({
         userAddress: userAddress,
         model: 'gemini-2.0-flash-exp',
-        prompt: imagePrompt,
+        prompt: box.generatedNFT.prompt,
       });
 
       setImageGenStates((prev) => ({

@@ -6,14 +6,54 @@ import { v } from 'convex/values';
 
 // flash model can go down to 600-700px but we want 1024x1024px
 export const getPrompt = (prompt: string) => {
-  const systemPrompt = `System prompt: Generate vibrant, cartoonish NFTs with the following description:
-                 Each piece must have a unique background color chosen from a palette of 12 distinct shades.
-                 Clothing styles should include either a simple t-shirt, a stylish jacket, or futuristic armor, each with unique color combinations. 
-                 Accessories should vary in rarity: common (baseball caps or beanies), uncommon (round or rectangular glasses), and rare (gold or silver necklaces). 
-                 Facial expressions should be one of the following: happy, determined, or curious. 
-                 Ensure each NFT has a distinct combination of these features to maximize uniqueness and collectibility.
-                 Note: Strictly stick to the user prompt. The generated NFT should be of 1024x1024px.
-                 User prompt: ${prompt}`;
+  const systemPrompt = `<task>
+Generate a vibrant cartoon-style NFT character image
+</task>
+
+<requirements>
+  <dimensions>1024x1024 pixels</dimensions>
+  <art_style>Vibrant cartoon art, clean digital illustration, bold colors</art_style>
+  <format>NFT character portrait</format>
+</requirements>
+
+<character_specifications>
+  <background>
+    <instruction>Choose one solid color background</instruction>
+    <options>bright blue, purple, orange, pink, green, yellow, red, cyan, magenta, lime</options>
+  </background>
+  
+  <clothing>
+    <instruction>Select one clothing type with unique color combinations</instruction>
+    <options>
+      <option>Simple t-shirt with graphic or solid color</option>
+      <option>Stylish jacket or hoodie</option>
+      <option>Futuristic armor or tech wear</option>
+    </options>
+  </clothing>
+  
+  <accessories>
+    <instruction>Add one accessory based on rarity level</instruction>
+    <common>Baseball cap, beanie, simple hat</common>
+    <uncommon>Round glasses, rectangular glasses, sunglasses</uncommon>
+    <rare>Gold necklace, silver chain, jewelry</rare>
+  </accessories>
+  
+  <expression>
+    <instruction>Choose one facial expression</instruction>
+    <options>happy smile, determined look, curious expression</options>
+  </expression>
+</character_specifications>
+
+<style_guidelines>
+  <colors>Use bright, saturated colors that pop</colors>
+  <lines>Clean, bold outlines</lines>
+  <shading>Simple but effective shading</shading>
+  <overall>Make it collectible and appealing like popular NFT collections</overall>
+</style_guidelines>
+
+<user_prompt>
+${prompt}
+</user_prompt>`;
   return systemPrompt;
 };
 
