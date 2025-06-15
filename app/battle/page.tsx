@@ -212,7 +212,7 @@ export default function BattlePage() {
                   transition={{ type: 'spring', stiffness: 400 }}
                 >
                   <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
-                    <CardContent className="flex flex-col items-center justify-center p-6 space-y-3">
+                    <CardContent className="flex flex-col items-center justify-center p-6 space-y-3 min-h-[225px]">
                       <Plus className="h-10 w-10 text-primary" />
                       <h3 className="text-lg font-semibold">Create Battle</h3>
                       <p className="text-sm text-muted-foreground text-center">
