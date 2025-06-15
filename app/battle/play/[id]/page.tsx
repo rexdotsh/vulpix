@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -26,6 +26,7 @@ export default function BattlePlayPage() {
   const { selectedAccount, isInitialized } = usePolkadot();
   const [isExecutingTurn, setIsExecutingTurn] = useState(false);
   const [selectedMove, setSelectedMove] = useState<BattleMove | null>(null);
+  const [isScreenTooSmall, setIsScreenTooSmall] = useState(false);
   const {
     isConnected: talismanConnected,
     connectionStatus,
@@ -62,6 +63,26 @@ export default function BattlePlayPage() {
   const isParticipant = isPlayer1 || isPlayer2;
   const isMyTurn = battle?.gameState.currentTurn === selectedAccount?.address;
   const isPending = !!battle?.gameState.pendingTurn;
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      // - Left panel (BattlePlayerPanel): ~320px
+      // - Right panel (BattleLogPanel): ~384px (w-96)
+      // - Center area minimum: ~400px for arena + moves
+      // - Margins/padding: ~400px
+      const minRequiredWidth = 320 + 384 + 400 + 400; // 1504px
+      const minRequiredHeight = 600;
+      setIsScreenTooSmall(
+        viewportWidth < minRequiredWidth || viewportHeight < minRequiredHeight,
+      );
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   const handleExecuteTurn = async () => {
     if (!selectedAccount || !battle || !isMyTurn || isPending || !selectedMove)
@@ -197,6 +218,35 @@ export default function BattlePlayPage() {
         variant="walletConnect"
         message="Please connect your wallet to view this battle."
       />
+    );
+  }
+
+  if (isScreenTooSmall) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="flex flex-col items-center justify-center p-8 space-y-4 text-center">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+              <AlertCircle className="h-8 w-8 text-destructive" />
+            </div>
+            <h2 className="text-2xl font-bold">Screen Space Insufficient</h2>
+            <p className="text-muted-foreground">
+              The Battle Arena needs more screen space to display all battle
+              panels properly. Try zooming out, maximizing your window, or using
+              a larger screen.
+            </p>
+            <div className="space-y-2 text-xs">
+              <div className="text-muted-foreground">
+                Current: {typeof window !== 'undefined' ? window.innerWidth : 0}
+                x{typeof window !== 'undefined' ? window.innerHeight : 0}px
+              </div>
+              <div className="font-medium">
+                Recommended: 1504x600px or larger
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
