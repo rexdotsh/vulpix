@@ -1,44 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
-import {} from '@/lib/utils';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-  Clock,
-  Loader2,
-  Trophy,
-  AlertCircle,
-  Swords,
-  ExternalLink,
-} from 'lucide-react';
-import { NFTCard } from '@/components/battle/NFTCard';
-import { MoveHistoryCard } from '@/components/battle/MoveHistoryCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Trophy, AlertCircle } from 'lucide-react';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 import { useTalismanWallet } from '@/hooks/useTalismanWallet';
-
 import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
-import Link from 'next/link';
 import { env } from '@/env';
+import { getNFTTypeName } from '@/lib/battle-utils';
+import { decodeHexMetadata, getIpfsImageUrl } from '@/lib/utils';
+import { generateMoves, type BattleMove } from '@/lib/battle-moves';
+import { BattlePlayerPanel } from '@/components/battle/BattlePlayerPanel';
+import { BattleArena } from '@/components/battle/BattleArena';
+import { BattleMovesPanel } from '@/components/battle/BattleMovesPanel';
+import { BattleLogPanel } from '@/components/battle/BattleLogPanel';
 
 export default function BattlePlayPage() {
   const { id } = useParams();
-  const router = useRouter();
   const { selectedAccount, isInitialized } = usePolkadot();
   const [isExecutingTurn, setIsExecutingTurn] = useState(false);
+  const [selectedMove, setSelectedMove] = useState<BattleMove | null>(null);
   const {
     isConnected: talismanConnected,
     connectionStatus,
@@ -48,31 +35,26 @@ export default function BattlePlayPage() {
 
   const battleId = Array.isArray(id) ? id[0] : (id ?? '');
 
-  // Queries and mutations
-  const battle = useQuery(api.battle.getBattle, { battleId });
+  const battleData = useQuery(api.battle.getBattleWithNFTData, { battleId });
+  const battle = battleData
+    ? {
+        ...battleData,
+        player1NFT: battleData.player1NFT,
+        player2NFT: battleData.player2NFT,
+      }
+    : null;
   const executeTurn = useMutation(api.battle.executeTurn);
   const updateTurnResult = useMutation(api.battle.updateTurnResult);
   const revertPendingTurn = useMutation(api.battle.revertPendingTurn);
 
-  // Fetch NFT metadata for both players
-  const player1NFTMetadata = useQuery(
-    api.nft.getNFTMetadata,
-    battle
-      ? {
-          collection: battle.player1NFT.collection,
-          item: battle.player1NFT.item,
-        }
-      : 'skip',
+  const player1Profile = useQuery(
+    api.users.getUser,
+    battle ? { address: battle.player1Address } : 'skip',
   );
 
-  const player2NFTMetadata = useQuery(
-    api.nft.getNFTMetadata,
-    battle
-      ? {
-          collection: battle.player2NFT.collection,
-          item: battle.player2NFT.item,
-        }
-      : 'skip',
+  const player2Profile = useQuery(
+    api.users.getUser,
+    battle ? { address: battle.player2Address } : 'skip',
   );
 
   const isPlayer1 = selectedAccount?.address === battle?.player1Address;
@@ -82,7 +64,8 @@ export default function BattlePlayPage() {
   const isPending = !!battle?.gameState.pendingTurn;
 
   const handleExecuteTurn = async () => {
-    if (!selectedAccount || !battle || !isMyTurn || isPending) return;
+    if (!selectedAccount || !battle || !isMyTurn || isPending || !selectedMove)
+      return;
 
     setIsExecutingTurn(true);
 
@@ -91,7 +74,7 @@ export default function BattlePlayPage() {
       await executeTurn({
         battleId,
         playerAddress: selectedAccount.address,
-        action: 'attack',
+        action: selectedMove.name,
       });
 
       // 2. Connect to blockchain
@@ -137,7 +120,6 @@ export default function BattlePlayPage() {
         battle.contractBattleId,
       );
 
-      // TODO: dont just any, use type
       const turnExecutedEvent = turnEvents.find(
         (e: any) => e.name === 'TurnExecuted',
       );
@@ -181,6 +163,9 @@ export default function BattlePlayPage() {
       } else {
         toast.success('Turn executed successfully!');
       }
+
+      // Clear selected move after successful execution
+      setSelectedMove(null);
     } catch (error: any) {
       console.error('Failed to execute turn:', error);
 
@@ -197,7 +182,6 @@ export default function BattlePlayPage() {
     }
   };
 
-  // Show loading state while wallet is initializing
   if (!isInitialized) {
     return (
       <PageStateCard
@@ -223,7 +207,7 @@ export default function BattlePlayPage() {
   if (!isParticipant) {
     return (
       <PageStateCard
-        icon={<AlertCircle className="h-12 w-12 text-yellow-500" />}
+        icon={<AlertCircle className="size-12 text-yellow-500" />}
         title="Spectator Mode"
         message="You are viewing this battle as a spectator."
         buttonText="Back to Battle Arena"
@@ -236,215 +220,122 @@ export default function BattlePlayPage() {
   const winner = battle.gameState.winner;
   const isWinner = winner === selectedAccount.address;
 
+  const player1 = {
+    address: battle.player1Address,
+    name: battle.player1Name,
+    nft: battle.player1NFT,
+    nftData: battle.player1NFTData,
+    health: battle.gameState.player1Health,
+    maxHealth: battle.gameState.player1MaxHealth,
+    isCurrentPlayer: isPlayer1,
+    profile: player1Profile,
+  };
+
+  const player2 = {
+    address: battle.player2Address,
+    name: battle.player2Name,
+    nft: battle.player2NFT,
+    nftData: battle.player2NFTData,
+    health: battle.gameState.player2Health,
+    maxHealth: battle.gameState.player2MaxHealth,
+    isCurrentPlayer: isPlayer2,
+    profile: player2Profile,
+  };
+
+  const currentPlayer = isPlayer1 ? player1 : player2;
+  const opponent = isPlayer1 ? player2 : player1;
+
+  const currentPlayerMetadata = decodeHexMetadata(
+    currentPlayer.nftData?.itemMetadata?.data || '',
+  );
+  const opponentMetadata = decodeHexMetadata(
+    opponent.nftData?.itemMetadata?.data || '',
+  );
+
+  const currentPlayerImage = getIpfsImageUrl(currentPlayerMetadata);
+  const opponentImage = getIpfsImageUrl(opponentMetadata);
+
+  const currentPlayerNFTName =
+    currentPlayerMetadata?.name ||
+    `${getNFTTypeName(currentPlayer.nft.stats.nftType)} #${currentPlayer.nft.item}`;
+  const opponentNFTName =
+    opponentMetadata?.name ||
+    `${getNFTTypeName(opponent.nft.stats.nftType)} #${opponent.nft.item}`;
+
+  const availableMoves = generateMoves(currentPlayer.nft.stats);
+
   return (
-    <div className="bg-background">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Battle Arena</h1>
-            <p className="text-sm text-muted-foreground">
-              Battle ID: {battleId} • Turn {battle.gameState.turnNumber}
-              {battle.creationTxHash && (
-                <Link
-                  href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${battle.creationTxHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 text-blue-500 hover:underline"
+    <div className="min-h-screen bg-background text-foreground">
+      {gameFinished && (
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-center pt-8">
+          <Card
+            className={`border-2 ${
+              isWinner
+                ? 'bg-green-500/20 border-green-500'
+                : 'bg-red-500/20 border-red-500'
+            }`}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <Trophy className="size-6" />
+                <span
+                  className={`text-xl font-bold ${
+                    isWinner ? 'text-green-400' : 'text-red-400'
+                  }`}
                 >
-                  View Creation Tx
-                </Link>
-              )}
-            </p>
-          </div>
-          <Button variant="outline" asChild>
-            <Link href="/battle">← Back to Arena</Link>
-          </Button>
+                  {isWinner ? '🎉 Victory!' : '💔 Defeat'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {gameFinished && (
-            <Card
-              className={`border-2 ${isWinner ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-red-500 bg-red-50 dark:bg-red-950'}`}
-            >
-              <CardContent className="pt-6">
-                <div className="text-center space-y-2">
-                  <Trophy
-                    className={`h-12 w-12 mx-auto ${isWinner ? 'text-green-600' : 'text-red-600'}`}
-                  />
-                  <h2 className="text-2xl font-bold">
-                    {isWinner ? '🎉 Victory!' : '💔 Defeat'}
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Battle completed in {battle.gameState.turnNumber} turns •
-                    {battle.finishedAt &&
-                      ` ${formatDistanceToNow(battle.finishedAt, { addSuffix: true })}`}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      <div className="flex h-screen">
+        <BattlePlayerPanel
+          player={currentPlayer}
+          nftName={currentPlayerNFTName}
+          isMyTurn={isMyTurn}
+          roomCode={battleId}
+        />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="space-y-4">
-              <NFTCard
-                title="Player 1"
-                playerAddress={battle.player1Address}
-                playerName={battle.player1Name}
-                nftData={{
-                  collection: battle.player1NFT.collection,
-                  item: battle.player1NFT.item,
-                  itemMetadata: player1NFTMetadata?.itemMetadata || undefined,
-                }}
-                stats={battle.player1NFT.stats}
-                currentHealth={battle.gameState.player1Health}
-                maxHealth={battle.gameState.player1MaxHealth}
-                isCurrentPlayer={isPlayer1}
-                isCurrentTurn={isMyTurn && isPlayer1}
-              />
-            </div>
+        <div className="flex-1 flex flex-col">
+          <BattleArena
+            currentPlayer={currentPlayer}
+            opponent={opponent}
+            currentPlayerImage={currentPlayerImage}
+            opponentImage={opponentImage}
+            currentPlayerNFTName={currentPlayerNFTName}
+            opponentNFTName={opponentNFTName}
+            currentPlayerNFTType={currentPlayer.nft.stats.nftType}
+            opponentNFTType={opponent.nft.stats.nftType}
+            turnNumber={battle.gameState.turnNumber}
+          />
 
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="text-center">
-                  <CardTitle className="text-3xl font-bold">VS</CardTitle>
-                  <CardDescription>
-                    Turn {battle.gameState.turnNumber} •{' '}
-                    {gameFinished
-                      ? 'Battle Complete'
-                      : isPending
-                        ? 'Processing...'
-                        : isMyTurn
-                          ? 'Your turn'
-                          : "Opponent's turn"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {battle.gameState.status === 'initializing' && (
-                    <div className="text-center py-4">
-                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Creating battle on blockchain...
-                      </p>
-                    </div>
-                  )}
-
-                  {battle.gameState.status === 'active' && !gameFinished && (
-                    <div className="space-y-4">
-                      {connectionStatus && (
-                        <div className="p-3 bg-muted rounded-lg text-sm text-center">
-                          {connectionStatus}
-                        </div>
-                      )}
-
-                      {isPending && (
-                        <div className="text-center py-4">
-                          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            {battle.gameState.pendingTurn?.txHash
-                              ? 'Confirming transaction...'
-                              : 'Processing turn...'}
-                          </p>
-                          {battle.gameState.pendingTurn?.txHash && (
-                            <Link
-                              href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${battle.gameState.pendingTurn.txHash}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-500 hover:underline flex items-center gap-1 justify-center mt-2"
-                            >
-                              View Transaction{' '}
-                              <ExternalLink className="h-3 w-3" />
-                            </Link>
-                          )}
-                        </div>
-                      )}
-
-                      {isMyTurn && !isPending && (
-                        <Button
-                          onClick={handleExecuteTurn}
-                          disabled={isExecutingTurn}
-                          className="w-full"
-                          size="lg"
-                        >
-                          {isExecutingTurn ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Executing Turn...
-                            </>
-                          ) : (
-                            <>
-                              <Swords className="h-4 w-4 mr-2" />
-                              Attack!
-                            </>
-                          )}
-                        </Button>
-                      )}
-
-                      {!isMyTurn && !isPending && (
-                        <div className="text-center p-4 bg-muted rounded-lg">
-                          <Clock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">
-                            Waiting for opponent's move...
-                          </p>
-                        </div>
-                      )}
-
-                      {!talismanConnected && (
-                        <Button
-                          onClick={connectWallet}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          Connect Talisman Wallet
-                        </Button>
-                      )}
-                    </div>
-                  )}
-
-                  {gameFinished && (
-                    <div className="text-center space-y-4">
-                      <div className="p-4 bg-muted rounded-lg">
-                        <p className="font-semibold">Final Result</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {winner === battle.player1Address
-                            ? `${battle.player1Name || 'Player 1'} wins!`
-                            : `${battle.player2Name || 'Player 2'} wins!`}
-                        </p>
-                      </div>
-                      <Button
-                        onClick={() => router.push('/battle')}
-                        className="w-full"
-                      >
-                        Return to Battle Arena
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <MoveHistoryCard moves={battle.moves} />
-            </div>
-
-            <div className="space-y-4">
-              <NFTCard
-                title="Player 2"
-                playerAddress={battle.player2Address}
-                playerName={battle.player2Name}
-                nftData={{
-                  collection: battle.player2NFT.collection,
-                  item: battle.player2NFT.item,
-                  itemMetadata: player2NFTMetadata?.itemMetadata || undefined,
-                }}
-                stats={battle.player2NFT.stats}
-                currentHealth={battle.gameState.player2Health}
-                maxHealth={battle.gameState.player2MaxHealth}
-                isCurrentPlayer={isPlayer2}
-                isCurrentTurn={isMyTurn && isPlayer2}
-              />
-            </div>
-          </div>
+          <BattleMovesPanel
+            moves={availableMoves}
+            selectedMove={selectedMove}
+            onMoveSelect={setSelectedMove}
+            onExecuteTurn={handleExecuteTurn}
+            isMyTurn={isMyTurn}
+            isPending={isPending}
+            gameFinished={gameFinished}
+            isExecutingTurn={isExecutingTurn}
+            connectionStatus={connectionStatus}
+            pendingTxHash={battle.gameState.pendingTurn?.txHash}
+          />
         </div>
+
+        <BattleLogPanel
+          moves={battle.moves}
+          gameStatus={battle.gameState.status}
+          currentTurn={battle.gameState.currentTurn}
+          turnNumber={battle.gameState.turnNumber}
+          player1Address={battle.player1Address}
+          player2Address={battle.player2Address}
+          player1Name={battle.player1Name}
+          player2Name={battle.player2Name}
+        />
       </div>
     </div>
   );

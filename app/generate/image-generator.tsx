@@ -46,6 +46,7 @@ export function ImageGenerator() {
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
+  const [nftName, setNftName] = useState<string>('');
 
   const [generatedImage, setGeneratedImage] = useState<{
     url: string | null;
@@ -100,6 +101,7 @@ export function ImageGenerator() {
       selectedCollectionId,
       newCollectionName,
       imageUrl: generatedImage.url,
+      nftName,
     });
 
     if (result && syncFromAssetHub) {
@@ -495,11 +497,18 @@ export function ImageGenerator() {
                         className="h-10 rounded-xl"
                       />
                     )}
+                    <Input
+                      placeholder="Enter NFT name..."
+                      value={nftName}
+                      onChange={(e) => setNftName(e.target.value)}
+                      className="h-10 rounded-xl"
+                    />
                     <Button
                       onClick={handleMint}
                       disabled={
                         isMinting ||
-                        (!selectedCollectionId && !newCollectionName.trim())
+                        (!selectedCollectionId && !newCollectionName.trim()) ||
+                        !nftName.trim()
                       }
                       className="w-full h-10 rounded-xl bg-green-500 hover:bg-green-600 transition-all duration-300"
                     >
