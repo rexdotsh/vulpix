@@ -106,9 +106,15 @@ export function WalletConnection() {
                   <User className="h-3 w-3" />
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
-                {userData?.credits || 0}
-              </div>
+              {userData?.credits && userData.credits > 0 && (
+                <div className="absolute -top-1 -right-1 bg-yellow-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center min-w-[12px] h-3 px-1">
+                  {userData.credits >= 1000
+                    ? `${Math.floor(userData.credits / 1000)}k`
+                    : userData.credits >= 100
+                      ? '99+'
+                      : userData.credits}
+                </div>
+              )}
             </div>
             <span className="hidden sm:inline text-sm">
               {selectedAccount?.meta.name ||
