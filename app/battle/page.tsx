@@ -441,17 +441,17 @@ export default function BattlePage() {
                                 </div>
                                 <Button
                                   onClick={() =>
-                                    !isOwnLobby &&
-                                    handleJoinLobby(lobby.lobbyId)
+                                    isOwnLobby
+                                      ? router.push(
+                                          `/battle/lobby/${lobby.lobbyId}`,
+                                        )
+                                      : handleJoinLobby(lobby.lobbyId)
                                   }
                                   size="sm"
-                                  disabled={isOwnLobby}
                                   variant={isOwnLobby ? 'secondary' : 'default'}
                                 >
-                                  {isOwnLobby ? 'Waiting...' : 'Join'}
-                                  {!isOwnLobby && (
-                                    <ArrowRight className="h-4 w-4 ml-1" />
-                                  )}
+                                  {isOwnLobby ? 'Enter Lobby' : 'Join'}
+                                  <ArrowRight className="h-4 w-4 ml-1" />
                                 </Button>
                               </div>
                             </div>
