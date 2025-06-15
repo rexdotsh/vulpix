@@ -358,8 +358,17 @@ export default function Dashboard() {
                   onClick={() => syncFromAssetHub()}
                   disabled={isSyncing || !isInitialized}
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Check Again
+                  {isSyncing ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Syncing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Check Again
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
