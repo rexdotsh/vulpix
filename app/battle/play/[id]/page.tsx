@@ -27,12 +27,7 @@ export default function BattlePlayPage() {
   const [isExecutingTurn, setIsExecutingTurn] = useState(false);
   const [selectedMove, setSelectedMove] = useState<BattleMove | null>(null);
   const [isScreenTooSmall, setIsScreenTooSmall] = useState(false);
-  const {
-    isConnected: talismanConnected,
-    connectionStatus,
-    setConnectionStatus,
-    connectWallet,
-  } = useTalismanWallet();
+  const { connectionStatus, setConnectionStatus } = useTalismanWallet();
 
   const battleId = Array.isArray(id) ? id[0] : (id ?? '');
 
@@ -386,7 +381,6 @@ export default function BattlePlayPage() {
             isPending={isPending}
             gameFinished={gameFinished}
             isExecutingTurn={isExecutingTurn}
-            connectionStatus={connectionStatus}
             pendingTxHash={battle.gameState.pendingTurn?.txHash}
           />
         </div>
@@ -400,6 +394,8 @@ export default function BattlePlayPage() {
           player2Address={battle.player2Address}
           player1Name={battle.player1Name}
           player2Name={battle.player2Name}
+          connectionStatus={connectionStatus}
+          isPending={isPending}
         />
       </div>
     </div>

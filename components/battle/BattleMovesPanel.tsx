@@ -31,7 +31,6 @@ interface BattleMovesPanelProps {
   isPending: boolean;
   gameFinished: boolean;
   isExecutingTurn: boolean;
-  connectionStatus?: string;
   pendingTxHash?: string;
 }
 
@@ -44,7 +43,6 @@ export function BattleMovesPanel({
   isPending,
   gameFinished,
   isExecutingTurn,
-  connectionStatus,
   pendingTxHash,
 }: BattleMovesPanelProps) {
   const getIcon = (iconName: string) => {
