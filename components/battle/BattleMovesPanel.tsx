@@ -66,23 +66,21 @@ export function BattleMovesPanel({
 
   return (
     <Card className="mb-6 rounded-2xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-sm font-medium">Available Moves</CardTitle>
+      <CardHeader>
+        <CardTitle className="text-lg font-medium">Available Moves</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-6">
-          {/* Move Buttons */}
-          <div className="space-y-4 flex-shrink-0">
-            {/* Top Row */}
-            <div className="flex gap-4">
-              {moves.slice(0, 2).map((move) => (
+      <CardContent className="space-y-3">
+        <div className="flex gap-4">
+          <div className="space-y-3 flex-shrink-0">
+            <div className="grid grid-cols-2 gap-2">
+              {moves.map((move) => (
                 <Button
                   key={move.name}
                   variant="outline"
-                  className={`w-44 h-11 ${
+                  className={`w-44 h-11 transition-all duration-200 ease-in-out ${
                     selectedMove?.name === move.name
-                      ? 'border-primary bg-primary/10'
-                      : ''
+                      ? '!border-primary !border-2 bg-primary/10 shadow-lg shadow-primary/20 scale-[1.02]'
+                      : 'hover:!border-primary hover:border-2 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 hover:scale-[1.01]'
                   }`}
                   onClick={() => onMoveSelect(move)}
                   disabled={!isMyTurn || isPending || gameFinished}
@@ -95,31 +93,16 @@ export function BattleMovesPanel({
               ))}
             </div>
 
-            {/* Bottom Row */}
-            <div className="flex gap-4">
-              {moves.slice(2, 4).map((move) => (
-                <Button
-                  key={move.name}
-                  variant="outline"
-                  className={`w-44 h-11 ${
-                    selectedMove?.name === move.name
-                      ? 'border-primary bg-primary/10'
-                      : ''
-                  }`}
-                  onClick={() => onMoveSelect(move)}
-                  disabled={!isMyTurn || isPending || gameFinished}
-                >
-                  <div className="flex items-center gap-2">
-                    {getIcon(move.iconName)}
-                    {move.name}
-                  </div>
-                </Button>
-              ))}
-            </div>
-
-            {/* Execute Move Button */}
             <Button
-              className="w-full h-11"
+              className={`w-full h-11 ${
+                selectedMove &&
+                isMyTurn &&
+                !isPending &&
+                !isExecutingTurn &&
+                !gameFinished
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                  : ''
+              }`}
               onClick={onExecuteTurn}
               disabled={
                 isExecutingTurn ||
@@ -127,6 +110,15 @@ export function BattleMovesPanel({
                 isPending ||
                 !selectedMove ||
                 gameFinished
+              }
+              variant={
+                selectedMove &&
+                isMyTurn &&
+                !isPending &&
+                !isExecutingTurn &&
+                !gameFinished
+                  ? 'default'
+                  : 'outline'
               }
             >
               {gameFinished ? (
@@ -143,23 +135,22 @@ export function BattleMovesPanel({
               ) : !selectedMove ? (
                 'Select a move'
               ) : (
-                `Use ${selectedMove.name}`
+                'Use move'
               )}
             </Button>
           </div>
 
-          {/* Move Description Panel */}
-          <Card className="flex-1 bg-card/30">
-            <CardContent className="p-6">
+          <Card className="flex-1 bg-card/30 p-0">
+            <CardContent className="p-4">
               {selectedMove ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-lg font-medium flex items-center gap-2">
                       {getIcon(selectedMove.iconName)}
                       {selectedMove.name}
                     </h4>
                     <div className="flex items-center gap-2">
-                      <Swords className="size-4 text-yellow-400" />
+                      <Swords className="size-4 text-primary" />
                       <span className="text-lg font-medium">
                         {selectedMove.power}
                       </span>
@@ -175,7 +166,7 @@ export function BattleMovesPanel({
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-muted-foreground">
+                <div className="flex items-center justify-center h-full min-h-[120px] text-center text-muted-foreground">
                   <p>Select a move to see details</p>
                 </div>
               )}
@@ -183,37 +174,24 @@ export function BattleMovesPanel({
           </Card>
         </div>
 
-        {/* Connection Status and Pending Transaction */}
-        <div className="space-y-2">
-          {/* Connection Status */}
-          {connectionStatus && (
-            <Card className="bg-muted/50">
-              <CardContent className="p-3 text-sm text-center text-muted-foreground">
-                {connectionStatus}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Pending Transaction */}
-          {isPending && pendingTxHash && (
-            <Card className="bg-muted/50">
-              <CardContent className="p-3 text-sm text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Loader2 className="size-4 animate-spin" />
-                  <span>Transaction pending...</span>
-                </div>
-                <Link
-                  href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${pendingTxHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline text-xs flex items-center gap-1 justify-center"
-                >
-                  View on Explorer <ExternalLink className="size-3" />
-                </Link>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {isPending && pendingTxHash && (
+          <div className="space-y-1">
+            <div className="text-xs text-center">
+              <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
+                <Loader2 className="size-3 animate-spin" />
+                <span>Transaction pending...</span>
+              </div>
+              <Link
+                href={`https://blockscout-passet-hub.parity-testnet.parity.io/tx/${pendingTxHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline text-xs flex items-center gap-1 justify-center"
+              >
+                View on Explorer <ExternalLink className="size-3" />
+              </Link>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
