@@ -35,6 +35,7 @@ import {
   ArrowRight,
   Trophy,
   Activity,
+  ExternalLink,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -42,6 +43,8 @@ import { toast } from 'sonner';
 import { formatTimeLeft, getPlayerDisplayName } from '@/lib/battle-utils';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 import { motion } from 'framer-motion';
+import { env } from '@/env';
+import { ASSET_HUB_NETWORK_CONFIG } from '@/lib/constants/chains';
 
 export default function BattlePage() {
   const router = useRouter();
@@ -677,6 +680,22 @@ export default function BattlePage() {
             </Tabs>
           </motion.div>
         </div>
+      </div>
+
+      <div className="fixed bottom-4 right-4 z-10 hidden xl:block">
+        <a
+          href={`${ASSET_HUB_NETWORK_CONFIG.blockExplorerUrls[0]}/address/${env.NEXT_PUBLIC_CONTRACT_ADDRESS}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground/60 hover:text-muted-foreground/80 transition-colors duration-200 bg-background/80 backdrop-blur-sm rounded border border-border/40 hover:border-border/60"
+          title="View contract on block explorer"
+        >
+          <span className="font-mono">
+            {env.NEXT_PUBLIC_CONTRACT_ADDRESS.slice(0, 6)}...
+            {env.NEXT_PUBLIC_CONTRACT_ADDRESS.slice(-4)}
+          </span>
+          <ExternalLink className="h-3 w-3" />
+        </a>
       </div>
     </div>
   );
