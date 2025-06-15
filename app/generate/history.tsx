@@ -11,7 +11,6 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,16 +30,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
 import type { UserCollection } from '@/lib/assetHubNFTManager';
 
 type ImageGen = {
   _id: string;
+  _creationTime: number;
   prompt: string;
   model: string;
   status: 'pending' | 'completed' | 'failed';
   imageUrl?: string;
   createdAt: number;
+  completedAt?: number;
+  userAddress: string;
   width?: number;
   height?: number;
 };
@@ -90,21 +98,23 @@ export function ImageHistory() {
 
   if (!images) {
     return (
-      <div className="w-full max-w-[1800px] mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 justify-items-center">
-          {Array.from({ length: 6 }).map((_, i) => (
+      <div className="w-full max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
             <Card
               key={i}
-              className="overflow-hidden w-full max-w-[512px] aspect-square"
+              className="overflow-hidden flex flex-col bg-card border-2"
             >
-              <CardHeader className="p-4">
-                <Skeleton className="h-4 w-2/3" />
+              <CardHeader className="p-4 pb-2">
+                <Skeleton className="h-5 w-2/3 mb-1" />
+                <Skeleton className="h-4 w-1/2" />
               </CardHeader>
-              <CardContent className="p-0 flex-grow">
-                <Skeleton className="w-full h-full" />
+              <CardContent className="p-4 pt-2 flex-grow">
+                <Skeleton className="w-full aspect-square rounded-lg" />
               </CardContent>
-              <CardFooter className="p-4">
-                <Skeleton className="h-4 w-1/3" />
+              <CardFooter className="p-4 pt-2 flex justify-center gap-3">
+                <Skeleton className="h-9 flex-1" />
+                <Skeleton className="h-9 flex-1" />
               </CardFooter>
             </Card>
           ))}
@@ -122,9 +132,9 @@ export function ImageHistory() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 items-center">
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 items-center">
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="text-sm font-medium">Search by date:</span>
             <Input
@@ -173,13 +183,15 @@ export function ImageHistory() {
           </p>
         </div>
       ) : (
-        <div className="w-full max-w-[1800px] mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 justify-items-center">
-            {filteredImages.map((image) => (
-              <ImageCard key={image._id} image={image as unknown as ImageGen} />
-            ))}
+        <TooltipProvider>
+          <div className="w-full max-w-7xl mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredImages.map((image) => (
+                <ImageCard key={image._id} image={image} />
+              ))}
+            </div>
           </div>
-        </div>
+        </TooltipProvider>
       )}
     </div>
   );
@@ -203,80 +215,145 @@ function ImageCard({ image }: { image: ImageGen }) {
 
   return (
     <>
-      <Card className="overflow-hidden flex flex-col w-full max-w-[512px] aspect-square">
-        <CardHeader className="p-4">
-          <CardTitle className="text-base font-medium truncate">
-            {image.prompt}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 flex-grow">
-          {image.status === 'completed' && image.imageUrl ? (
-            <div className="relative w-full h-full">
-              <Image
-                src={image.imageUrl}
-                alt={image.prompt}
-                width={1024}
-                height={1024}
-                className="object-contain w-full h-full"
-              />
-            </div>
-          ) : image.status === 'pending' ? (
-            <div className="flex items-center justify-center w-full h-full bg-muted/50">
-              <div className="flex flex-col items-center">
+      <div className="group relative bg-card rounded-xl overflow-hidden border-2 hover:border-primary/20 hover:shadow-lg transition-all duration-300 ease-out">
+        <div className="relative w-full aspect-square bg-muted/10 p-3">
+          <div className="relative w-full h-full rounded-lg overflow-hidden bg-muted/20 ring-1 ring-border/50">
+            {image.status === 'completed' && image.imageUrl ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="relative w-full h-full cursor-pointer">
+                    <Image
+                      src={image.imageUrl}
+                      alt={image.prompt}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                      className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs p-3" side="top">
+                  <p className="text-sm leading-relaxed">{image.prompt}</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : image.status === 'pending' ? (
+              <div className="flex items-center justify-center w-full h-full">
+                <div className="flex flex-col items-center space-y-3">
+                  <svg
+                    className="animate-spin h-8 w-8 text-primary/60"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  <div className="text-center">
+                    <span className="text-sm font-medium text-foreground">
+                      Processing
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      This may take a few minutes
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-full h-full">
+                <div className="text-center space-y-2">
+                  <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+                    <svg
+                      className="h-6 w-6 text-destructive"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-destructive font-medium">
+                    Generation Failed
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {image.status === 'completed' && image.imageUrl && (
+          <div className="p-4 pt-0">
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                size="default"
+                className="flex-1 h-10 hover:bg-muted/50 transition-colors duration-200"
+                asChild
+              >
+                <a
+                  href={image.imageUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <span className="text-sm font-medium">Download</span>
+                </a>
+              </Button>
+              <Button
+                variant="default"
+                size="default"
+                className="flex-1 h-10 bg-primary hover:bg-primary/90 transition-colors duration-200"
+                onClick={() => setMintOpen(true)}
+                disabled={!isInitialized}
+              >
                 <svg
-                  className="animate-spin h-8 w-8 mb-2 text-muted-foreground"
-                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-2"
                   fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
                   <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
                   />
                 </svg>
-                <span className="text-sm text-muted-foreground">
-                  Processing...
-                </span>
-              </div>
+                <span className="text-sm font-medium">Mint NFT</span>
+              </Button>
             </div>
-          ) : (
-            <div className="flex items-center justify-center w-full h-full bg-muted/50">
-              <span className="text-muted-foreground">Failed to generate</span>
-            </div>
-          )}
-        </CardContent>
-        {image.status === 'completed' && image.imageUrl && (
-          <CardFooter className="p-3 pt-2 flex justify-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <a
-                href={image.imageUrl}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download
-              </a>
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setMintOpen(true)}
-              disabled={!isInitialized}
-            >
-              Mint NFT
-            </Button>
-          </CardFooter>
+          </div>
         )}
-      </Card>
+      </div>
 
       {image.status === 'completed' && image.imageUrl && (
         <MintDialog
@@ -334,35 +411,57 @@ function MintDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Mint as NFT</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-xl">Mint as NFT</DialogTitle>
+          <DialogDescription className="text-base">
             Mint this image as an NFT on AssetHub
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="relative w-[512px] h-[512px] mb-4 mx-auto">
+        <div className="space-y-6 py-6">
+          <div className="relative w-full max-w-sm mx-auto aspect-square rounded-xl overflow-hidden bg-muted/20 ring-1 ring-border/50">
             <Image
               src={imageUrl}
               alt="Image to mint"
-              width={1024}
-              height={1024}
-              className="object-contain w-full h-full rounded-md"
+              fill
+              sizes="400px"
+              className="object-cover"
             />
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground text-center">
-              Loading collections...
-            </p>
+            <div className="text-center py-4">
+              <div className="inline-flex items-center gap-2 text-muted-foreground">
+                <svg
+                  className="animate-spin h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Loading collections...</span>
+              </div>
+            </div>
           ) : collections.length > 0 ? (
             <Select
               onValueChange={setSelectedCollection}
               value={selectedCollection}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full h-12">
                 <SelectValue placeholder="Select a collection" />
               </SelectTrigger>
               <SelectContent>
@@ -375,7 +474,7 @@ function MintDialog({
               </SelectContent>
             </Select>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-center text-muted-foreground py-4">
               No collections found. Please enter a new collection name below.
             </p>
           )}
@@ -386,12 +485,17 @@ function MintDialog({
               placeholder="New Collection Name"
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
+              className="h-12"
             />
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="h-10"
+          >
             Cancel
           </Button>
           <Button
@@ -402,8 +506,35 @@ function MintDialog({
               (!selectedCollection && !newCollectionName.trim()) ||
               !isInitialized
             }
+            className="h-10"
           >
-            {minting ? 'Minting...' : 'Mint NFT'}
+            {minting ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Minting...
+              </>
+            ) : (
+              'Mint NFT'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
