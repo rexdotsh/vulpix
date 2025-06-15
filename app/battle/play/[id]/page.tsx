@@ -8,7 +8,7 @@ import { usePolkadot } from '@/lib/providers/PolkadotProvider';
 import { ethers } from 'ethers';
 import { VulpixPVMABI } from '@/lib/contract/contractABI';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, AlertCircle } from 'lucide-react';
+import { Trophy, AlertCircle, Loader2 } from 'lucide-react';
 import { PageStateCard } from '@/components/battle/PageStateCard';
 import { useTalismanWallet } from '@/hooks/useTalismanWallet';
 import { toast } from 'sonner';
@@ -58,6 +58,7 @@ export default function BattlePlayPage() {
   const isParticipant = isPlayer1 || isPlayer2;
   const isMyTurn = battle?.gameState.currentTurn === selectedAccount?.address;
   const isPending = !!battle?.gameState.pendingTurn;
+  const isInitializing = battle?.gameState.status === 'initializing';
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -351,6 +352,24 @@ export default function BattlePlayPage() {
         </div>
       )}
 
+      {isInitializing && (
+        <div className="absolute inset-0 z-30 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <Card className="border-primary/20">
+            <CardContent className="p-8">
+              <div className="text-center space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                <div>
+                  <h3 className="text-lg font-semibold">Creating Battle</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Setting up battle on blockchain...
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="flex h-screen">
         <BattlePlayerPanel
           player={currentPlayer}
@@ -377,7 +396,7 @@ export default function BattlePlayPage() {
             selectedMove={selectedMove}
             onMoveSelect={setSelectedMove}
             onExecuteTurn={handleExecuteTurn}
-            isMyTurn={isMyTurn}
+            isMyTurn={isMyTurn && !isInitializing}
             isPending={isPending}
             gameFinished={gameFinished}
             isExecutingTurn={isExecutingTurn}

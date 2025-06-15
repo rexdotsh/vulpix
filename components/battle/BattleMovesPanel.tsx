@@ -32,6 +32,7 @@ interface BattleMovesPanelProps {
   gameFinished: boolean;
   isExecutingTurn: boolean;
   pendingTxHash?: string;
+  disabled?: boolean;
 }
 
 export function BattleMovesPanel({
@@ -44,6 +45,7 @@ export function BattleMovesPanel({
   gameFinished,
   isExecutingTurn,
   pendingTxHash,
+  disabled = false,
 }: BattleMovesPanelProps) {
   const getIcon = (iconName: string) => {
     const iconProps = { className: 'size-4' };
@@ -103,7 +105,7 @@ export function BattleMovesPanel({
                       : 'hover:!border-primary hover:border-2 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 hover:scale-[1.01]'
                   }`}
                   onClick={() => onMoveSelect(move)}
-                  disabled={!isMyTurn || isPending || gameFinished}
+                  disabled={!isMyTurn || isPending || gameFinished || disabled}
                 >
                   <div className="flex items-center gap-2">
                     {getIcon(move.iconName)}
@@ -129,7 +131,8 @@ export function BattleMovesPanel({
                 !isMyTurn ||
                 isPending ||
                 !selectedMove ||
-                gameFinished
+                gameFinished ||
+                disabled
               }
               variant={
                 selectedMove &&
