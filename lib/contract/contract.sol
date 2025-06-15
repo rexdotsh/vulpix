@@ -255,7 +255,8 @@ contract VulpixPVM {
         uint256 tacticalDamage = (baseDamage * _attacker.intelligence) /
             (BASE_MULTIPLIER * 4);
 
-        uint256 pseudoRandom = uint256(
+        // Generate multiple random values using bit shifting for different aspects
+        uint256 randomSeed = uint256(
             keccak256(
                 abi.encodePacked(
                     block.timestamp,
@@ -263,27 +264,50 @@ contract VulpixPVM {
                     _attacker.luck,
                     _defender.defense,
                     _battleId,
-                    _turnCount
+                    _turnCount,
+                    msg.sender
                 )
             )
-        ) % 100;
+        );
 
+        // Add random variance to base damage (±25%)
+        uint256 damageVariance = (randomSeed % 51) + 75; // 75-125% range
+        baseDamage = (baseDamage * damageVariance) / 100;
+
+        // Add random variance to speed modifier (±20%)
+        uint256 speedVariance = ((randomSeed >> 8) % 41) + 80; // 80-120% range
+        speedModifier = (speedModifier * speedVariance) / 100;
+
+        // Add random variance to tactical damage (±20%)
+        uint256 tacticalVariance = ((randomSeed >> 16) % 41) + 80; // 80-120% range
+        tacticalDamage = (tacticalDamage * tacticalVariance) / 100;
+
+        // Critical hit calculation
+        uint256 criticalRandom = (randomSeed >> 24) % 100;
         uint256 criticalChance = (_attacker.luck / CRITICAL_CHANCE_DIVISOR) + 5;
         criticalChance = criticalChance > 50 ? 50 : criticalChance;
-        isCritical = pseudoRandom < criticalChance;
+        isCritical = criticalRandom < criticalChance;
 
         uint256 rawDamage = baseDamage + speedModifier + tacticalDamage;
 
-        // apply type effectiveness: Fire > Grass > Water > Fire
+        // Apply type effectiveness
         uint256 typeMultiplier = _getTypeEffectiveness(
             _attacker.nftType,
             _defender.nftType
         );
         rawDamage = (rawDamage * typeMultiplier) / 100;
 
-        rawDamage = isCritical ? (rawDamage * 150) / 100 : rawDamage;
+        // Critical hit with random multiplier
+        if (isCritical) {
+            uint256 criticalMultiplier = 135 + ((randomSeed >> 32) % 31); // 135-165% range
+            rawDamage = (rawDamage * criticalMultiplier) / 100;
+        }
 
+        // Defense calculation with random variance
         uint256 totalDefense = (_defender.defense / 4);
+        uint256 defenseVariance = ((randomSeed >> 40) % 21) + 90; // 90-110% range
+        totalDefense = (totalDefense * defenseVariance) / 100;
+        
         uint256 damageReduction = (rawDamage * totalDefense) /
             (totalDefense + 25);
 
@@ -291,7 +315,7 @@ contract VulpixPVM {
             ? uint128(rawDamage - damageReduction)
             : 0;
 
-        // ensure minimum damage for critical hits
+        // Ensure minimum damage for critical hits
         if (damage == 0 && rawDamage > 0) damage = 1;
         if (isCritical && damage < 2 && rawDamage > 1) {
             damage = rawDamage / 2 > 1 ? uint128(rawDamage / 2) : 2;
