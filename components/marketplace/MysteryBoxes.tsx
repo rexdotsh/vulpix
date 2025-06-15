@@ -46,7 +46,6 @@ import { mintImageAsNFT, getUserCollections } from '@/lib/mintNFT';
 import { useNFTs } from '@/hooks/useNFTs';
 import type { Id } from '@/convex/_generated/dataModel';
 
-
 interface MysteryBoxesProps {
   userAddress: string;
 }
