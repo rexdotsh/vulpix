@@ -403,45 +403,66 @@ async function generateMovesWithAI(args: {
   nftType: number;
   nftMetadata: any;
 }) {
-  const { google } = await import('@ai-sdk/google');
+  const { createOpenRouter } = await import('@openrouter/ai-sdk-provider');
   const { generateText } = await import('ai');
+
+  const openrouter = createOpenRouter({
+    apiKey: process.env.OPENROUTER_API_KEY,
+  });
 
   const typeNames = ['Fire', 'Water', 'Grass'];
   const typeName = typeNames[args.nftType] || 'Unknown';
   const nftName = args.nftMetadata?.name || `${typeName} NFT`;
   const nftDescription = args.nftMetadata?.description || '';
 
-  const systemPrompt = `Generate exactly 4 unique battle moves for this ${typeName} type NFT.
+  const systemPrompt = `<task>
+Generate exactly 4 unique battle moves for this ${typeName} type NFT.
+</task>
 
-NFT: ${nftName}
-Description: ${nftDescription}
+<nft_info>
+<name>${nftName}</name>
+<description>${nftDescription}</description>
+<type>${typeName}</type>
+</nft_info>
 
-Requirements:
-- Exactly 4 different moves
-- Move names: 2 words each, ${typeName}-themed
-- Descriptions: 15-20 words, describe battle effect
-- Icons: Use ONLY these icon names: Flame, Zap, Shield, Swords, Target, Brain, Heart, Eye, Wind, Leaf, Sun, Sparkles, Crown, Diamond, Star
-- Make each move distinct
+<requirements>
+<move_count>Exactly 4 different moves</move_count>
+<naming>Move names: 2 words each, ${typeName}-themed</naming>
+<descriptions>15-20 words, describe battle effect</descriptions>
+<icons>Use ONLY these icon names: Flame, Zap, Shield, Swords, Target, Brain, Heart, Eye, Wind, Leaf, Sun, Sparkles, Crown, Diamond, Star</icons>
+<uniqueness>Make each move distinct from the others</uniqueness>
+</requirements>
 
-Format:
-MOVE1_NAME: [2 words]
-MOVE1_DESCRIPTION: [15-20 words]
-MOVE1_ICON: [icon name from list above]
-
-MOVE2_NAME: [2 words]  
-MOVE2_DESCRIPTION: [15-20 words]
-MOVE2_ICON: [icon name from list above]
-
-MOVE3_NAME: [2 words]
-MOVE3_DESCRIPTION: [15-20 words]
-MOVE3_ICON: [icon name from list above]
-
-MOVE4_NAME: [2 words]
-MOVE4_DESCRIPTION: [15-20 words]
-MOVE4_ICON: [icon name from list above]`;
+<output_format>
+Return your response as valid JSON in this exact format:
+{
+  "moves": [
+    {
+      "name": "Move Name",
+      "description": "Description of the move in 15-20 words",
+      "iconName": "IconName"
+    },
+    {
+      "name": "Move Name",
+      "description": "Description of the move in 15-20 words", 
+      "iconName": "IconName"
+    },
+    {
+      "name": "Move Name",
+      "description": "Description of the move in 15-20 words",
+      "iconName": "IconName"
+    },
+    {
+      "name": "Move Name", 
+      "description": "Description of the move in 15-20 words",
+      "iconName": "IconName"
+    }
+  ]
+}
+</output_format>`;
 
   const result = await generateText({
-    model: google('gemini-2.0-flash-exp'),
+    model: openrouter.chat('anthropic/claude-4-sonnet-20250522'),
     prompt: systemPrompt,
     temperature: 0.8,
   });
@@ -450,30 +471,51 @@ MOVE4_ICON: [icon name from list above]`;
 }
 
 function parseMovesFromResponse(response: string) {
-  const movePattern =
-    /MOVE\d+_NAME:\s*(.+)\s*\n\s*MOVE\d+_DESCRIPTION:\s*(.+)\s*\n\s*MOVE\d+_ICON:\s*(.+)/gi;
-  const moves = [];
-  let match: RegExpExecArray | null;
+  try {
+    // try to find JSON in the response - sometimes AI wraps it in markdown
+    let jsonStr = response.trim();
 
-  match = movePattern.exec(response);
-  while (match !== null && moves.length < 4) {
-    const moveName = match[1].trim();
-    const moveDescription = match[2].trim();
-    const iconName = match[3].trim();
-
-    if (moveName.split(/\s+/).length !== 2) {
-      throw new Error(`Move name must be 2 words: ${moveName}`);
+    if (jsonStr.startsWith('```json')) {
+      jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (jsonStr.startsWith('```')) {
+      jsonStr = jsonStr.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
 
-    moves.push({ name: moveName, description: moveDescription, iconName });
-    match = movePattern.exec(response);
-  }
+    const parsed = JSON.parse(jsonStr);
 
-  if (moves.length !== 4) {
-    throw new Error(`Expected 4 moves, parsed ${moves.length}`);
-  }
+    if (!parsed.moves || !Array.isArray(parsed.moves)) {
+      throw new Error('Response must contain a "moves" array');
+    }
 
-  return moves;
+    if (parsed.moves.length !== 4) {
+      throw new Error(`Expected 4 moves, got ${parsed.moves.length}`);
+    }
+
+    const moves = [];
+    for (const move of parsed.moves) {
+      if (!move.name || !move.description || !move.iconName) {
+        throw new Error('Each move must have name, description, and iconName');
+      }
+
+      const moveName = move.name.trim();
+      if (moveName.split(/\s+/).length !== 2) {
+        throw new Error(`Move name must be 2 words: ${moveName}`);
+      }
+
+      moves.push({
+        name: moveName,
+        description: move.description.trim(),
+        iconName: move.iconName.trim(),
+      });
+    }
+
+    return moves;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`Invalid JSON response: ${error.message}`);
+    }
+    throw error;
+  }
 }
 
 // Internal mutation to save generated moves
