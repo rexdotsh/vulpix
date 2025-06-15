@@ -296,6 +296,7 @@ export default function BattlePlayPage() {
           player={currentPlayer}
           nftName={currentPlayerNFTName}
           isMyTurn={isMyTurn}
+          roomCode={battleId}
         />
 
         <div className="flex-1 flex flex-col">
