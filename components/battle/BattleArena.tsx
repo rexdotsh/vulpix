@@ -10,26 +10,26 @@ interface PlayerArenaData {
 }
 
 interface BattleArenaProps {
-  player1: PlayerArenaData;
-  player2: PlayerArenaData;
-  player1Image?: string;
-  player2Image?: string;
-  player1NFTName: string;
-  player2NFTName: string;
-  player1NFTType: number;
-  player2NFTType: number;
+  currentPlayer: PlayerArenaData;
+  opponent: PlayerArenaData;
+  currentPlayerImage?: string;
+  opponentImage?: string;
+  currentPlayerNFTName: string;
+  opponentNFTName: string;
+  currentPlayerNFTType: number;
+  opponentNFTType: number;
   turnNumber: number;
 }
 
 export function BattleArena({
-  player1,
-  player2,
-  player1Image,
-  player2Image,
-  player1NFTName,
-  player2NFTName,
-  player1NFTType,
-  player2NFTType,
+  currentPlayer,
+  opponent,
+  currentPlayerImage,
+  opponentImage,
+  currentPlayerNFTName,
+  opponentNFTName,
+  currentPlayerNFTType,
+  opponentNFTType,
   turnNumber,
 }: BattleArenaProps) {
   const getTypeEmoji = (nftType: number) => {
@@ -39,11 +39,11 @@ export function BattleArena({
   const SegmentedHealthBar = ({
     health,
     maxHealth,
-    isPlayer1,
+    isCurrentPlayer,
   }: {
     health: number;
     maxHealth: number;
-    isPlayer1: boolean;
+    isCurrentPlayer: boolean;
   }) => {
     const segments = 18; // Number of health segments to match the design
     const healthPerSegment = maxHealth / segments;
@@ -56,7 +56,7 @@ export function BattleArena({
             key={index}
             className={`h-6 w-2 rounded-full ${
               index < filledSegments
-                ? isPlayer1
+                ? isCurrentPlayer
                   ? 'bg-green-400'
                   : 'bg-red-500'
                 : 'bg-white/10'
@@ -71,11 +71,11 @@ export function BattleArena({
     <Card className="flex-1 m-6 mr-0 rounded-2xl overflow-hidden relative p-0">
       <div className="flex h-full">
         <div className="flex-1 relative">
-          {player1Image ? (
+          {currentPlayerImage ? (
             <>
               <Image
-                src={player1Image}
-                alt="Player NFT"
+                src={currentPlayerImage}
+                alt="Current Player NFT"
                 fill
                 className="object-cover"
                 unoptimized
@@ -89,7 +89,7 @@ export function BattleArena({
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-9xl opacity-60">
-              {getTypeEmoji(player1NFTType)}
+              {getTypeEmoji(currentPlayerNFTType)}
             </div>
           )}
         </div>
@@ -97,7 +97,7 @@ export function BattleArena({
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <div className="flex items-center justify-center w-full max-w-2xl px-8">
             <p className="text-xl font-bold text-white flex-1 text-right pr-4">
-              {player1NFTName}
+              {currentPlayerNFTName}
             </p>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -111,16 +111,16 @@ export function BattleArena({
               />
             </svg>
             <p className="text-xl font-bold text-white flex-1 text-left pl-4">
-              {player2NFTName}
+              {opponentNFTName}
             </p>
           </div>
         </div>
 
         <div className="flex-1 relative">
-          {player2Image ? (
+          {opponentImage ? (
             <>
               <Image
-                src={player2Image}
+                src={opponentImage}
                 alt="Opponent NFT"
                 fill
                 className="object-cover"
@@ -135,7 +135,7 @@ export function BattleArena({
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-9xl opacity-60">
-              {getTypeEmoji(player2NFTType)}
+              {getTypeEmoji(opponentNFTType)}
             </div>
           )}
         </div>
@@ -145,31 +145,31 @@ export function BattleArena({
         <div className="flex justify-between items-center">
           <div className="space-y-2">
             <p className="text-lg font-medium text-white">
-              {player1.health}/{player1.maxHealth}
+              {currentPlayer.health}/{currentPlayer.maxHealth}
             </p>
             <SegmentedHealthBar
-              health={player1.health}
-              maxHealth={player1.maxHealth}
-              isPlayer1={true}
+              health={currentPlayer.health}
+              maxHealth={currentPlayer.maxHealth}
+              isCurrentPlayer={true}
             />
             <p className="text-lg font-medium text-white">
-              {getPlayerDisplayName(player1.address, player1.name)}
+              {getPlayerDisplayName(currentPlayer.address, currentPlayer.name)}
             </p>
           </div>
 
           <div className="space-y-2 text-right">
             <p className="text-lg font-medium text-white">
-              {player2.health}/{player2.maxHealth}
+              {opponent.health}/{opponent.maxHealth}
             </p>
             <div className="flex justify-end">
               <SegmentedHealthBar
-                health={player2.health}
-                maxHealth={player2.maxHealth}
-                isPlayer1={false}
+                health={opponent.health}
+                maxHealth={opponent.maxHealth}
+                isCurrentPlayer={false}
               />
             </div>
             <p className="text-lg font-medium text-white">
-              {getPlayerDisplayName(player2.address, player2.name)}
+              {getPlayerDisplayName(opponent.address, opponent.name)}
             </p>
           </div>
         </div>

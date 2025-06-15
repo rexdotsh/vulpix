@@ -300,22 +300,14 @@ export default function BattlePlayPage() {
 
         <div className="flex-1 flex flex-col">
           <BattleArena
-            player1={player1}
-            player2={player2}
-            player1Image={isPlayer1 ? currentPlayerImage : opponentImage}
-            player2Image={isPlayer1 ? opponentImage : currentPlayerImage}
-            player1NFTName={isPlayer1 ? currentPlayerNFTName : opponentNFTName}
-            player2NFTName={isPlayer1 ? opponentNFTName : currentPlayerNFTName}
-            player1NFTType={
-              isPlayer1
-                ? currentPlayer.nft.stats.nftType
-                : opponent.nft.stats.nftType
-            }
-            player2NFTType={
-              isPlayer1
-                ? opponent.nft.stats.nftType
-                : currentPlayer.nft.stats.nftType
-            }
+            currentPlayer={currentPlayer}
+            opponent={opponent}
+            currentPlayerImage={currentPlayerImage}
+            opponentImage={opponentImage}
+            currentPlayerNFTName={currentPlayerNFTName}
+            opponentNFTName={opponentNFTName}
+            currentPlayerNFTType={currentPlayer.nft.stats.nftType}
+            opponentNFTType={opponent.nft.stats.nftType}
             turnNumber={battle.gameState.turnNumber}
           />
 
