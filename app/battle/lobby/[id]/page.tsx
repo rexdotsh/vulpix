@@ -623,21 +623,19 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             </Card>
           )}
 
-          {lobby.joinedPlayerAddress && (
-            <BattleReadinessCard
-              bothPlayersReady={bothPlayersReady || false}
-              isCreator={isCreator}
-              canStartBattle={canStartBattle || false}
-              isStartingBattle={isStartingBattle}
-              onStartBattle={handleStartBattle}
-              creatorReady={!!lobby.creatorNFT?.isReady}
-              joinerReady={!!lobby.joinerNFT?.isReady}
-              talismanConnected={talismanConnected}
-              isOnAssetHub={isOnAssetHub}
-              hasLinkedEthAddress={linkStatus?.hasLinkedEthAddress}
-              playersEthAddresses={playersEthAddresses}
-            />
-          )}
+          <BattleReadinessCard
+            bothPlayersReady={bothPlayersReady || false}
+            isCreator={isCreator}
+            canStartBattle={canStartBattle || false}
+            isStartingBattle={isStartingBattle}
+            onStartBattle={handleStartBattle}
+            creatorReady={!!lobby.creatorNFT?.isReady}
+            joinerReady={!!lobby.joinerNFT?.isReady}
+            talismanConnected={talismanConnected}
+            isOnAssetHub={isOnAssetHub}
+            hasLinkedEthAddress={linkStatus?.hasLinkedEthAddress}
+            playersEthAddresses={playersEthAddresses}
+          />
         </div>
       </main>
     </div>
