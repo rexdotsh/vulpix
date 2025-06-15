@@ -4,6 +4,19 @@ import { internalAction } from './_generated/server';
 import { internal } from './_generated/api';
 import { v } from 'convex/values';
 
+// flash model can go down to 600-700px but we want 1024x1024px
+export const getPrompt = (prompt: string) => {
+  const systemPrompt = `System prompt: Generate vibrant, cartoonish NFTs with the following description:
+                 Each piece must have a unique background color chosen from a palette of 12 distinct shades.
+                 Clothing styles should include either a simple t-shirt, a stylish jacket, or futuristic armor, each with unique color combinations. 
+                 Accessories should vary in rarity: common (baseball caps or beanies), uncommon (round or rectangular glasses), and rare (gold or silver necklaces). 
+                 Facial expressions should be one of the following: happy, determined, or curious. 
+                 Ensure each NFT has a distinct combination of these features to maximize uniqueness and collectibility.
+                 Note: Strictly stick to the user prompt. The generated NFT should be of 1024x1024px.
+                 User prompt: ${prompt}`;
+  return systemPrompt;
+};
+
 export const callGoogleAPI = internalAction({
   args: {
     imageGenId: v.id('imageGenerations'),
@@ -23,17 +36,9 @@ export const callGoogleAPI = internalAction({
             responseModalities: ['TEXT', 'IMAGE'],
           },
         },
-        prompt: `System prompt: Generate vibrant, cartoonish NFTs with the following description:
-                 Each piece must have a unique background color chosen from a palette of 12 distinct shades.
-                 Clothing styles should include either a simple t-shirt, a stylish jacket, or futuristic armor, each with unique color combinations. 
-                 Accessories should vary in rarity: common (baseball caps or beanies), uncommon (round or rectangular glasses), and rare (gold or silver necklaces). 
-                 Facial expressions should be one of the following: happy, determined, or curious. 
-                 Ensure each NFT has a distinct combination of these features to maximize uniqueness and collectibility.
-                 Note: Strictly stick to the user prompt. The generated NFT should be of 1024x1024px.
-                 User prompt: ${args.prompt}`,
+        prompt: getPrompt(args.prompt),
       });
 
-      // extract the first image file from the response
       const imageFile = result.files?.find((file) =>
         file.mimeType?.startsWith('image/'),
       );

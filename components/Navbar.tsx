@@ -3,12 +3,13 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Swords, Home, Sparkles } from 'lucide-react';
+import { Swords, Home, Sparkles, ShoppingCart } from 'lucide-react';
 import { WalletConnection } from '@/components/WalletConnection';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Generate', href: '/generate', icon: Sparkles },
+  { name: 'Marketplace', href: '/marketplace', icon: ShoppingCart },
   { name: 'Battle', href: '/battle', icon: Swords },
 ];
 
@@ -18,6 +19,7 @@ export function Navbar() {
   const shouldShowNavbar =
     pathname === '/dashboard' ||
     pathname === '/generate' ||
+    pathname === '/marketplace' ||
     (pathname.startsWith('/battle') &&
       !pathname.startsWith('/battle/lobby/') &&
       !pathname.startsWith('/battle/play/'));
