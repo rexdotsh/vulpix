@@ -184,7 +184,9 @@ export function BattleLogPanel({
               </ScrollArea>
 
               {/* Fade effect to indicate more content */}
-              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+              {moves.length > 4 && (
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+              )}
             </div>
           )}
         </div>
