@@ -73,7 +73,7 @@ export default function BattlePlayPage() {
       // - Center area minimum: ~400px for arena + moves
       // - Margins/padding: ~400px
       const minRequiredWidth = 320 + 384 + 400 + 400; // 1504px
-      const minRequiredHeight = 600;
+      const minRequiredHeight = 900;
       setIsScreenTooSmall(
         viewportWidth < minRequiredWidth || viewportHeight < minRequiredHeight,
       );
