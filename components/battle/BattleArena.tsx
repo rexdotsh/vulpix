@@ -1,6 +1,8 @@
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
 import { getPlayerDisplayName } from '@/lib/battle-utils';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface PlayerArenaData {
   address: string;
@@ -32,6 +34,12 @@ export function BattleArena({
   opponentNFTType,
   turnNumber,
 }: BattleArenaProps) {
+  const [currentPlayerImageLoading, setCurrentPlayerImageLoading] =
+    useState(true);
+  const [currentPlayerImageError, setCurrentPlayerImageError] = useState(false);
+  const [opponentImageLoading, setOpponentImageLoading] = useState(true);
+  const [opponentImageError, setOpponentImageError] = useState(false);
+
   const getTypeEmoji = (nftType: number) => {
     return nftType === 0 ? '🔥' : nftType === 1 ? '💧' : '🌿';
   };
@@ -73,19 +81,37 @@ export function BattleArena({
         <div className="flex-1 relative">
           {currentPlayerImage ? (
             <>
-              <Image
-                src={currentPlayerImage}
-                alt="Current Player NFT"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
-                }}
-              />
+              {currentPlayerImageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-20">
+                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                </div>
+              )}
+
+              {currentPlayerImageError ? (
+                <div className="flex items-center justify-center h-full text-9xl opacity-60">
+                  {getTypeEmoji(currentPlayerNFTType)}
+                </div>
+              ) : (
+                <>
+                  <Image
+                    src={currentPlayerImage}
+                    alt="Current Player NFT"
+                    fill
+                    className="object-cover"
+                    onLoad={() => setCurrentPlayerImageLoading(false)}
+                    onError={() => {
+                      setCurrentPlayerImageLoading(false);
+                      setCurrentPlayerImageError(true);
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
+                    }}
+                  />
+                </>
+              )}
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-9xl opacity-60">
@@ -119,19 +145,37 @@ export function BattleArena({
         <div className="flex-1 relative">
           {opponentImage ? (
             <>
-              <Image
-                src={opponentImage}
-                alt="Opponent NFT"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
-                }}
-              />
+              {opponentImageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-20">
+                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                </div>
+              )}
+
+              {opponentImageError ? (
+                <div className="flex items-center justify-center h-full text-9xl opacity-60">
+                  {getTypeEmoji(opponentNFTType)}
+                </div>
+              ) : (
+                <>
+                  <Image
+                    src={opponentImage}
+                    alt="Opponent NFT"
+                    fill
+                    className="object-cover"
+                    onLoad={() => setOpponentImageLoading(false)}
+                    onError={() => {
+                      setOpponentImageLoading(false);
+                      setOpponentImageError(true);
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(180deg, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.3) 15%, rgba(0, 0, 0, 0.8) 100%)`,
+                    }}
+                  />
+                </>
+              )}
             </>
           ) : (
             <div className="flex items-center justify-center h-full text-9xl opacity-60">
