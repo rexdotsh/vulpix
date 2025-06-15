@@ -54,7 +54,7 @@ export function BattleArena({
         {Array.from({ length: segments }).map((_, index) => (
           <div
             key={index}
-            className={`h-7 w-2.5 rounded-full ${
+            className={`h-6 w-2 rounded-full ${
               index < filledSegments
                 ? isPlayer1
                   ? 'bg-green-400'
