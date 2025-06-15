@@ -105,21 +105,20 @@ export function BattleLogPanel({
           )}
         </div>
 
-        {/* Game Status */}
         <div className="flex-shrink-0">
           <Separator className="mb-4" />
 
           <Alert
             className={
               gameStatus === 'finished'
-                ? 'border-green-500/50 bg-green-500/10'
-                : 'border-blue-500/50 bg-blue-500/10'
+                ? 'border-primary/50 bg-primary/10'
+                : 'border-secondary/50 bg-secondary/10'
             }
           >
             <Trophy className="size-4" />
-            <AlertDescription>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
+            <AlertDescription className="!justify-items-stretch">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
                   <span className="font-medium">Game Status:</span>
                   <Badge
                     variant={
@@ -129,7 +128,7 @@ export function BattleLogPanel({
                     {gameStatus}
                   </Badge>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1">
                     <Clock className="size-3" />
                     Turn:
@@ -137,7 +136,7 @@ export function BattleLogPanel({
                   <span className="font-mono">{turnNumber}</span>
                 </div>
                 {gameStatus === 'active' && (
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span>Current Player:</span>
                     <Badge variant="outline" className="text-xs">
                       {getPlayerDisplayName(
