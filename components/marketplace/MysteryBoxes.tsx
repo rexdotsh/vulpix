@@ -71,6 +71,7 @@ export function MysteryBoxes({ userAddress }: MysteryBoxesProps) {
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('');
   const [newCollectionName, setNewCollectionName] = useState<string>('');
+  const [nftName, setNftName] = useState<string>('');
   const [imageGenStates, setImageGenStates] = useState<
     Record<string, Id<'imageGenerations'>>
   >({});
@@ -239,6 +240,7 @@ export function MysteryBoxes({ userAddress }: MysteryBoxesProps) {
         selectedCollectionId,
         newCollectionName,
         imageUrl: imageUrl,
+        nftName,
       });
 
       if (result && syncFromAssetHub) {
@@ -531,12 +533,19 @@ export function MysteryBoxes({ userAddress }: MysteryBoxesProps) {
                                 />
                               )}
 
+                              <Input
+                                placeholder="Enter NFT name..."
+                                value={nftName}
+                                onChange={(e) => setNftName(e.target.value)}
+                              />
+
                               <Button
                                 onClick={() => handleMint(box)}
                                 disabled={
                                   isMinting ||
                                   (!selectedCollectionId &&
-                                    !newCollectionName.trim())
+                                    !newCollectionName.trim()) ||
+                                  !nftName.trim()
                                 }
                                 className="w-full"
                               >
