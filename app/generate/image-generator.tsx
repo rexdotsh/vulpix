@@ -183,7 +183,7 @@ export function ImageGenerator() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-3">
-            AI Image Generator
+            AI NFT Generator
           </h1>
           <p className="text-lg text-muted-foreground mx-auto">
             Create stunning AI-generated artwork and mint it directly as NFTs on
