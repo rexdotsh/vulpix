@@ -386,31 +386,40 @@ export default function BattlePage() {
                     ) : (
                       <div className="space-y-3">
                         {publicLobbies.map((lobby) => {
-                          const isOwnLobby = lobby.creatorAddress === selectedAccount?.address;
-                          
+                          const isOwnLobby =
+                            lobby.creatorAddress === selectedAccount?.address;
+
                           return (
                             <div
                               key={lobby._id}
                               className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 ${
-                                isOwnLobby 
-                                  ? 'bg-primary/5 border-primary/20' 
+                                isOwnLobby
+                                  ? 'bg-primary/5 border-primary/20'
                                   : 'hover:bg-muted/50'
                               }`}
                             >
                               <div className="flex items-center space-x-4">
-                                <div className={`w-2 h-2 rounded-full animate-pulse ${
-                                  isOwnLobby ? 'bg-primary' : 'bg-green-500'
-                                }`} />
+                                <div
+                                  className={`w-2 h-2 rounded-full animate-pulse ${
+                                    isOwnLobby ? 'bg-primary' : 'bg-green-500'
+                                  }`}
+                                />
                                 <div>
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold">
                                       {lobby.creatorName || 'Anonymous'}
                                     </span>
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
                                       {lobby.lobbyId}
                                     </Badge>
                                     {isOwnLobby && (
-                                      <Badge variant="default" className="text-xs">
+                                      <Badge
+                                        variant="default"
+                                        className="text-xs"
+                                      >
                                         Your Lobby
                                       </Badge>
                                     )}
@@ -431,13 +440,18 @@ export default function BattlePage() {
                                   </p>
                                 </div>
                                 <Button
-                                  onClick={() => !isOwnLobby && handleJoinLobby(lobby.lobbyId)}
+                                  onClick={() =>
+                                    !isOwnLobby &&
+                                    handleJoinLobby(lobby.lobbyId)
+                                  }
                                   size="sm"
                                   disabled={isOwnLobby}
-                                  variant={isOwnLobby ? "secondary" : "default"}
+                                  variant={isOwnLobby ? 'secondary' : 'default'}
                                 >
                                   {isOwnLobby ? 'Waiting...' : 'Join'}
-                                  {!isOwnLobby && <ArrowRight className="h-4 w-4 ml-1" />}
+                                  {!isOwnLobby && (
+                                    <ArrowRight className="h-4 w-4 ml-1" />
+                                  )}
                                 </Button>
                               </div>
                             </div>
