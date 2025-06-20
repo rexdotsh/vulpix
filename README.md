@@ -2,7 +2,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rexdotsh/vulpix)
 
 > [!NOTE]
-> Winner of the Polkadot AssetHub Hackathon (1st place).
+> Winner of the [Polkadot AssetHub Hackathon](https://dorahacks.io/hackathon/polkadot/) (1st place).
 
 A blockchain-based NFT battle platform that combines AI-generated artwork with strategic turn-based combat. Built on Polkadot AssetHub with smart contract integration via PolkaVM.
 
